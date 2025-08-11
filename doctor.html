@@ -15,6 +15,7 @@ header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(-
 header .btn{color:#fff;text-decoration:none;border:1px solid #ffffff66;padding:8px 12px;border-radius:10px;margin-inline-start:6px;background:#ffffff22}
 main{max-width:1250px;margin:auto;padding:16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 6px 24px rgba(0,0,0,.04);margin-bottom:12px}
+
 label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
 input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
 .grid{display:grid;gap:10px}
@@ -75,7 +76,7 @@ input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);b
 </header>
 
 <main>
-  <!-- رأس الصفحة: اختيار الطفل والفترة + رأس فارغ لبيانات الطفلة -->
+  <!-- رأس الاختيار -->
   <section class="card controls">
     <div class="grid g4">
       <div>
@@ -90,7 +91,7 @@ input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);b
     <div id="visitAlert" class="alert" style="display:none"></div>
     <div id="meta" class="small" style="margin-top:6px"></div>
 
-    <!-- الخانات الفارغة في أعلى الصفحة للطباعة -->
+    <!-- خانات فارغة للطباعة -->
     <div id="blankHeader" class="blank-header">
       <span class="bh-item">الاسم:<span class="line"></span></span>
       <span class="bh-item">الوزن:<span class="line"></span></span>
@@ -100,7 +101,7 @@ input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);b
     </div>
   </section>
 
-  <!-- ملخص رقمي -->
+  <!-- ملخص -->
   <section class="card">
     <h3 style="margin:0 0 8px">ملخّص الفترة</h3>
     <div class="summary">
@@ -123,7 +124,7 @@ input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);b
     </div>
   </section>
 
-  <!-- ملخص دوائي -->
+  <!-- الملخص الدوائي -->
   <section class="card">
     <h3 style="margin:0 0 8px">الملخص الدوائي</h3>
     <div class="summary" style="grid-template-columns:repeat(4,minmax(0,1fr))">
@@ -134,14 +135,12 @@ input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);b
     </div>
   </section>
 
-  <!-- مقارنة كل أسبوعين -->
+  <!-- مقارنة أسبوعين -->
   <section class="card">
     <h3 style="margin:0 0 8px">مقارنة كل أسبوعين</h3>
     <table class="table">
       <thead>
-        <tr>
-          <th>الفترة</th><th>TIR%</th><th>متوسط</th><th>منخفض</th><th>طبيعي</th><th>مرتفع</th>
-        </tr>
+        <tr><th>الفترة</th><th>TIR%</th><th>متوسط</th><th>منخفض</th><th>طبيعي</th><th>مرتفع</th></tr>
       </thead>
       <tbody id="twoweekRows">
         <tr><td colspan="6" class="small">سيتم تقسيم الفترة المختارة إلى أسابيعين متتالية.</td></tr>
@@ -172,14 +171,12 @@ input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);b
   <section class="card">
     <h3 style="margin:0 0 8px">تعليقات الطبيب على الفترة</h3>
     <textarea id="doctorComment" rows="4" placeholder="اكتبِ ملاحظات الطبيب على الفترة الحالية..."></textarea>
-    <div class="actions" style="margin-top:8px">
-      <button id="saveComment" class="btn-main">حفظ التعليق</button>
-    </div>
+    <div class="actions" style="margin-top:8px"><button id="saveComment" class="btn-main">حفظ التعليق</button></div>
     <div class="notes-list" id="commentsList"></div>
   </section>
 </main>
 
-<!-- مكتبات خارجية -->
+<!-- مكتبات -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
@@ -196,8 +193,10 @@ const labels={preBreakfast:'قبل الإفطار',postBreakfast:'بعد الإ�
 const order=['preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','uponWake'];
 
 let uid=null, initChildId=new URL(location.href).searchParams.get('child');
-let cachedDetailed=[], chartDaily=null, chartSlots=null;
+let cachedDetailed=[];
 let currentChild=null, currentFrom=null, currentTo=null;
+/* إعلان واحد فقط للمخططات ✅ */
+let chartDaily=null, chartSlots=null;
 
 onAuthStateChanged(auth, async (u)=>{
   if(!u){ location.href='index.html'; return; }
@@ -222,13 +221,10 @@ function showVisitAlert(){
     const todayISO=new Date().toISOString().slice(0,10);
     if(visit){
       const diffDays=Math.ceil((new Date(visit)-new Date(todayISO))/(1000*60*60*24));
-      if(diffDays<=2 && diffDays>=0){
-        $('#visitAlert').style.display='block';
-        $('#visitAlert').textContent=`موعد الزيارة القادمة: ${visit} — باقي ${diffDays} يوم.`;
-      }else{
-        $('#visitAlert').style.display='block';
-        $('#visitAlert').textContent=`موعد الزيارة القادمة: ${visit}`;
-      }
+      $('#visitAlert').style.display='block';
+      $('#visitAlert').textContent = diffDays<=2 && diffDays>=0
+        ? `موعد الزيارة القادمة: ${visit} — باقي ${diffDays} يوم.`
+        : `موعد الزيارة القادمة: ${visit}`;
     }else $('#visitAlert').style.display='none';
   });
 }
@@ -314,25 +310,24 @@ async function buildReport(){
   const avg= total? (sum/total).toFixed(1) : '—'; $('#s_avg').textContent=avg;
   $('#s_minmax').textContent = (Number.isFinite(minR)&&Number.isFinite(maxR)) ? `${minR} (${minD}) / ${maxR} (${maxD})` : '—';
 
-  const parts=order.map(k=>{ const a=slotAgg[k]; const m=a.count?(a.sum/a.count).toFixed(1):'—'; return `<span style="display:inline-block;margin-inline-end:10px"><b>${labels[k]}:</b> ${m}</span>`; }).join('');
-  $('#slotMeans').innerHTML=parts;
-
-  const daysWithData=perDayDose.size || 1;
-  $('#m_meal_total').textContent=mealTotal.toFixed(1);
-  $('#m_corr_total').textContent=corrTotal.toFixed(1);
-  $('#m_meal_avg').textContent=(mealTotal/daysWithData).toFixed(2);
-  $('#m_corr_avg').textContent=(corrTotal/daysWithData).toFixed(2);
-
   renderCharts(dailyAvgLabels, dailyAvgValues, slotAgg);
   buildTwoWeekCompare(from, to);
 
   await loadDoctorComments(id, from, to);
+
+  // الملخص الدوائي:
+  const daysWithData=Math.max(perDayDose.size,1);
+  $('#m_meal_total').textContent=mealTotal.toFixed(1);
+  $('#m_corr_total').textContent=corrTotal.toFixed(1);
+  $('#m_meal_avg').textContent=(mealTotal/daysWithData).toFixed(2);
+  $('#m_corr_avg').textContent=(corrTotal/daysWithData).toFixed(2);
 }
 
-let chartDaily=null, chartSlots=null;
 function renderCharts(dailyLabels, dailyValues, slotAgg){
   const ctx1=$('#chartDaily'); const ctx2=$('#chartSlots');
-  if(chartDaily) chartDaily.destroy(); if(chartSlots) chartSlots.destroy();
+
+  if(chartDaily) chartDaily.destroy();
+  if(chartSlots) chartSlots.destroy();
 
   chartDaily=new Chart(ctx1,{type:'line',data:{
       labels:dailyLabels,
