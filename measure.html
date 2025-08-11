@@ -150,13 +150,25 @@ const slotLabels = {
   preDinner:'قبل العشاء', postDinner:'بعد العشاء'
 };
 
-let uid=null, thresholds={low:4,high:10}, currentChildId=null;
+let uid=null, thresholds={low:4,high:10}, currentChildId=null, initChildId=null;
+
+// اقرأ child من الرابط
+(function readQuery(){
+  const url=new URL(location.href);
+  initChildId = url.searchParams.get('child'); // ممكن تكون null
+})();
 
 onAuthStateChanged(auth, async (u)=>{
   if(!u){ location.href='index.html'; return; }
   uid=u.uid;
   await loadChildren();
   setToday();
+
+  // لو في child باللينك وحاضر في القائمة، اختاره آليًا
+  if(initChildId){
+    const opt = Array.from($('#childSel').options).find(o=>o.value===initChildId);
+    if(opt){ $('#childSel').value = initChildId; $('#childSel').dispatchEvent(new Event('change')); }
+  }
 });
 
 function setToday(){
@@ -213,7 +225,6 @@ async function refreshDay(){
   if(!any){ tbody.innerHTML='<tr><td colspan="4" class="small">لا توجد قراءات لليوم المختار بعد.</td></tr>'; }
 }
 
-// حالة القراءة
 function evaluate(val){
   if(val==='' || isNaN(Number(val))) return null;
   const n=Number(val);
@@ -228,7 +239,6 @@ function statusBadge(st){
   return '';
 }
 
-// تحكم الحالة في الواجهة
 const stOk=$('#stOk'), stLow=$('#stLow'), stHigh=$('#stHigh'), extraLow=$('#extraLow'), extraHigh=$('#extraHigh');
 $('#reading').addEventListener('input', ()=>{
   [stOk,stLow,stHigh].forEach(e=>e.classList.add('hide'));
@@ -245,7 +255,6 @@ $('#clear').addEventListener('click', ()=>{
   extraLow.classList.add('hide'); extraHigh.classList.add('hide');
 });
 
-// حفظ القياس
 $('#save').addEventListener('click', async ()=>{
   const childId=currentChildId, dateId=$('#date').value, slot=$('#slot').value;
   const val=$('#reading').value; const st=evaluate(val);
@@ -255,8 +264,7 @@ $('#save').addEventListener('click', async ()=>{
   if(st==null) return toast('أدخلي قراءة صحيحة');
 
   const payload = {
-    value: Number(val),
-    status: st,
+    value: Number(val), status: st,
     note: $('#note').value.trim() || null,
     raisedWith: (st==='low' ? ($('#raisedWith').value.trim() || null) : null),
     correctionDoses: (st==='high' && $('#corrDoses').value!=='' ? Number($('#corrDoses').value) : null),
@@ -267,8 +275,7 @@ $('#save').addEventListener('click', async ()=>{
   const snap = await getDoc(mRef);
   const base = snap.exists()? (snap.data()) : { date: dateId, readings:{} };
   base.readings[slot] = payload;
-  await setDoc(mRef, base); // merge-like لأننا بنبني الجسم ونحفظه كامل
-
+  await setDoc(mRef, base);
   toast('تم حفظ القياس ✅');
   refreshDay();
 });
