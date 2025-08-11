@@ -3,148 +3,226 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>منصة متابعة السكر — إعداد Firebase</title>
+<title>متابعة السكر — تسجيل / دخول</title>
+<meta name="color-scheme" content="light">
 <style>
   :root{
-    --brand:#0ea5e9; --brand2:#6ee7b7; --ink:#0f172a; --muted:#64748b;
-    --card:#ffffff; --bg:#f6fbff; --line:#e5e7eb; --danger:#ef4444; --ok:#16a34a;
+    --bg1:#0ea5e9; --bg2:#6ee7b7; --card:#fff; --ink:#0f172a; --muted:#64748b;
+    --line:#e5e7eb; --brand:#0ea5e9; --danger:#ef4444; --ok:#22c55e;
   }
   *{box-sizing:border-box}
-  body{margin:0;font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif;background:linear-gradient(135deg,var(--brand),var(--brand2)) fixed;color:var(--ink)}
-  header{color:#fff;padding:18px}
-  header h1{margin:0;font-size:20px}
-  main{max-width:1000px;margin:auto;padding:18px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.06);padding:16px;margin-bottom:14px}
-  .grid{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
-  @media(max-width:820px){.grid{grid-template-columns:1fr}}
-  .btn{border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
-  .btn.primary{background:var(--brand);color:#fff}
+  body{
+    margin:0; min-height:100vh; display:grid; place-items:center;
+    font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif;
+    color:var(--ink); background:linear-gradient(135deg,var(--bg1),var(--bg2)) fixed;
+  }
+  .wrap{width:min(980px,94vw)}
+  header{color:#f0fbff;text-align:center;margin-bottom:14px}
+  header h1{margin:0 0 6px;font-size:22px}
+  .card{
+    background:var(--card); border:1px solid #e6eef6; border-radius:18px;
+    box-shadow:0 20px 60px rgba(0,0,0,.08); padding:18px;
+  }
+  .tabs{display:flex; gap:8px; justify-content:center; margin-bottom:8px}
+  .tab-btn{
+    border:none; background:#eef6ff; color:#0369a1; padding:10px 14px;
+    border-radius:999px; cursor:pointer; font-weight:700
+  }
+  .tab-btn.active{background:#0369a1;color:#fff}
+  .grid{display:grid; gap:12px; grid-template-columns:repeat(2,minmax(0,1fr))}
+  @media (max-width:720px){ .grid{grid-template-columns:1fr} }
+  label{display:block; font-size:13px; color:var(--muted); margin:0 0 6px}
+  input{
+    width:100%; padding:12px; border:1px solid var(--line); border-radius:12px; background:#fff
+  }
+  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+  .btn{
+    border:none; border-radius:12px; padding:12px 16px; cursor:pointer; font-weight:800
+  }
+  .btn.primary{background:var(--brand); color:#fff}
   .btn.gray{background:#eef2f7}
-  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  .badge{display:inline-flex;gap:6px;align-items:center;padding:6px 10px;border-radius:999px;font-weight:700}
-  .ok{background:#ecfdf5;color:#065f46}
-  .warn{background:#fff7ed;color:#9a3412}
-  .err{background:#fef2f2;color:#991b1b}
-  code{background:#f8fafc;border:1px solid var(--line);padding:3px 6px;border-radius:6px}
-  .links{display:flex;flex-wrap:wrap;gap:10px}
-  .link-btn{display:inline-block;background:#ffffff;border:1px solid var(--line);padding:12px 14px;border-radius:12px;text-decoration:none;color:#0f172a;min-width:160px;text-align:center}
-  .link-btn:hover{border-color:#cbd5e1}
-  footer{color:#e6faff;text-align:center;padding:10px}
+  .note{color:var(--muted); font-size:13px}
+  .alert{display:none; padding:10px; border-radius:10px; margin:8px 0}
+  .alert.err{background:#fff1f2; color:#991b1b}
+  .alert.ok{background:#ecfdf5; color:#065f46}
+  footer{color:#eaf9ff; text-align:center; margin-top:12px}
+  .sep{height:1px;background:var(--line);margin:12px 0}
+  .small{font-size:12px;color:var(--muted)}
+  .hide{display:none !important}
 </style>
 </head>
 <body>
-<header>
-  <h1>منصة متابعة السكر — نقطة البداية</h1>
-  <div style="opacity:.9">الصفحة دي بتجهّز Firebase وتجمع كل روابط الصفحات القادمة.</div>
-</header>
+<div class="wrap">
+  <header>
+    <h1>منصة متابعة سكر الأطفال</h1>
+    <div class="small">سجّل دخولك أو أنشئ حساب وليّ أمر للبدء</div>
+  </header>
 
-<main>
-  <!-- حالة الاتصال -->
-  <section class="card">
-    <div class="row" style="justify-content:space-between">
-      <div class="row">
-        <span id="sdkBadge" class="badge warn">جارِ التحقق من اتصال Firebase…</span>
-        <span id="authBadge" class="badge warn">حالة المستخدم: غير معروف</span>
+  <div class="card">
+    <!-- حالة الاتصال وحالة المستخدم -->
+    <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div class="row" id="userInfo" style="gap:6px"></div>
+      <button id="btnLogout" class="btn gray hide">خروج</button>
+    </div>
+    <div class="sep"></div>
+
+    <!-- أزرار التبويب -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="login">تسجيل الدخول</button>
+      <button class="tab-btn" data-tab="register">إنشاء حساب جديد</button>
+    </div>
+
+    <!-- رسائل عامة -->
+    <div id="msgErr" class="alert err"></div>
+    <div id="msgOk"  class="alert ok"></div>
+
+    <!-- تبويب الدخول -->
+    <form id="formLogin" class="tab" data-name="login">
+      <div class="grid">
+        <div>
+          <label>البريد الإلكتروني</label>
+          <input id="login_email" type="email" placeholder="you@example.com" required>
+        </div>
+        <div>
+          <label>كلمة السر</label>
+          <input id="login_pass" type="password" placeholder="••••••••" required>
+        </div>
       </div>
-      <div class="row">
-        <button id="btnLogout" class="btn gray" title="تسجيل الخروج">خروج</button>
+      <div class="row" style="margin-top:12px">
+        <button class="btn primary" type="submit">دخول</button>
+        <span class="note">إن لم يكن لديك حساب يمكنك إنشاء حساب من التبويب الآخر.</span>
       </div>
-    </div>
-    <div style="margin-top:8px;color:var(--muted)">
-      Project: <code id="proj"></code> • AppId: <code id="appId"></code>
-    </div>
-    <div id="userBox" style="margin-top:10px"></div>
-  </section>
+    </form>
 
-  <!-- روابط الصفحات (Placeholders) -->
-  <section class="card">
-    <h3 style="margin:0 0 8px">صفحات المشروع</h3>
-    <div class="links">
-      <a class="link-btn" href="register.html">📝 تسجيل وليّ أمر (Register)</a>
-      <a class="link-btn" href="login.html">🔐 تسجيل الدخول (Login)</a>
-      <a class="link-btn" href="dashboard.html">📊 لوحة التحكم (Dashboard)</a>
-      <a class="link-btn" href="child.html">👧 إدارة طفل (Child)</a>
-      <a class="link-btn" href="measure.html">🩺 تسجيل القياسات (Measurements)</a>
-      <a class="link-btn" href="report.html">📄 تقارير بين تاريخين (Reports)</a>
-    </div>
-    <div style="margin-top:10px;color:var(--muted)">
-      * الروابط أعلاه مجرد إشارات — هنكمّل كل صفحة في الخطوات الجاية بنفس الهوية البصرية.✔️
-    </div>
-  </section>
+    <!-- تبويب التسجيل -->
+    <form id="formRegister" class="tab hide" data-name="register">
+      <div class="grid">
+        <div><label>اسم وليّ الأمر</label><input id="reg_guardian" placeholder="مثال: أحمد محمد" required></div>
+        <div><label>الاسم (اختياري)</label><input id="reg_fullname" placeholder="الاسم الكامل (اختياري)"></div>
+        <div><label>الرقم المدني</label><input id="reg_civil" placeholder="123456789012" required></div>
+        <div><label>رقم الهاتف</label><input id="reg_phone" placeholder="5xxxxxxxx" required></div>
+        <div><label>البريد الإلكتروني</label><input id="reg_email" type="email" placeholder="you@example.com" required></div>
+        <div><label>كلمة السر</label><input id="reg_pass" type="password" placeholder="••••••••" required></div>
+        <div><label>تأكيد كلمة السر</label><input id="reg_confirm" type="password" placeholder="أعد الإدخال" required></div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn primary" type="submit">إنشاء الحساب</button>
+        <span class="note">سيتم إنشاء ملفك في قاعدة البيانات وربط الحساب.</span>
+      </div>
+    </form>
+  </div>
 
-  <!-- ملاحظات سريعة -->
-  <section class="card">
-    <h3 style="margin:0 0 8px">ملاحظات</h3>
-    <ul style="margin:0 0 0 18px;line-height:1.9">
-      <li>لو الزر “خروج” غير فعّال، يبقى مفيش مستخدم داخل حاليًا.</li>
-      <li>Analytics تشتغل أفضل على <code>https</code> أو <code>localhost</code>.</li>
-      <li>الخطوة التالية: بناء <b>register.html</b> و <b>login.html</b> (جاهزين عندنا) وربطهم بالصفحة دي.</li>
-    </ul>
-  </section>
-</main>
+  <footer>© متابعة السكر للأطفال — كل الحقوق محفوظة</footer>
+</div>
 
-<footer>© متابعة السكر للأطفال — جاهزين للانطلاق</footer>
-
-<!-- Firebase setup (باستخدام كودك) -->
 <script type="module">
-  // استيراد SDKs
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js";
-  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+/* =========================== Firebase =========================== */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut,
+         signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-  // 🔧 Firebase config (الخاصة بمشروعك)
-  const firebaseConfig = {
-    apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
-    authDomain: "child-glucose-tracker.firebaseapp.com",
-    projectId: "child-glucose-tracker",
-    storageBucket: "child-glucose-tracker.firebasestorage.app",
-    messagingSenderId: "294563325904",
-    appId: "1:294563325904:web:39562550bf305fc01abbd5",
-    measurementId: "G-TWC063TD6X"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
+  authDomain: "child-glucose-tracker.firebaseapp.com",
+  projectId: "child-glucose-tracker",
+  storageBucket: "child-glucose-tracker.firebasestorage.app",
+  messagingSenderId: "294563325904",
+  appId: "1:294563325904:web:39562550bf305fc01abbd5",
+  measurementId: "G-TWC063TD6X"
+};
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
 
-  // ▶️ تهيئة Firebase
-  const app = initializeApp(firebaseConfig);
-  let analytics = null;
-  try { analytics = getAnalytics(app); } catch(e){ /* قد لا تعمل خارج https/localhost */ }
+/* =========================== UI helpers =========================== */
+const $ = s=>document.querySelector(s);
+const show=(el,msg)=>{ el.textContent=msg; el.style.display='block'; };
+const hide=(...els)=>els.forEach(e=>e.style.display='none');
+function switchTab(name){
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.tab===name);
+  });
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.classList.toggle('hide', t.dataset.name!==name);
+  });
+}
+document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
 
-  // خدمات رئيسية هنحتاجها في بقية الصفحات
-  const auth = getAuth(app);
-  const db   = getFirestore(app);
+/* =========================== Auth state =========================== */
+const msgErr = $('#msgErr'), msgOk = $('#msgOk');
+const userInfo = $('#userInfo'); const btnLogout = $('#btnLogout');
 
-  // ===== واجهة بسيطة توضح الحالة =====
-  const $ = s => document.querySelector(s);
-  $('#proj').textContent = firebaseConfig.projectId;
-  $('#appId').textContent = firebaseConfig.appId;
+onAuthStateChanged(auth, async (u)=>{
+  if(u){
+    // عرض ملخص سريع + زر خروج
+    userInfo.innerHTML = `<span class="note">مسجّل دخول: <b>${u.displayName || '—'}</b> • ${u.email}</span>`;
+    btnLogout.classList.remove('hide');
 
-  const sdkBadge  = $('#sdkBadge');
-  const authBadge = $('#authBadge');
-  const userBox   = $('#userBox');
-
-  // لو وصلنا هنا يبقى SDK اشتغل
-  sdkBadge.textContent = 'Firebase متصل وجاهز';
-  sdkBadge.className = 'badge ok';
-
-  function showUser(u){
-    if(u){
-      authBadge.textContent = 'حالة المستخدم: داخل';
-      authBadge.className = 'badge ok';
-      userBox.innerHTML = `
-        <div class="row">
-          <div><b>المستخدم:</b> ${u.displayName || '—'}</div>
-          <div><b>البريد:</b> ${u.email}</div>
-          <div><b>UID:</b> <code>${u.uid}</code></div>
-        </div>`;
-    }else{
-      authBadge.textContent = 'حالة المستخدم: خارج';
-      authBadge.className = 'badge err';
-      userBox.innerHTML = '<span style="color:var(--muted)">ليس هناك مستخدم مسجّل دخول الآن.</span>';
+    // تأكيد وجود مستند المستخدم (لو دخل بحساب قديم)
+    const ref = doc(db,'users',u.uid);
+    const snap = await getDoc(ref);
+    if(!snap.exists()){
+      await setDoc(ref, { parentInfo:{ guardianName: u.displayName || '', name: u.displayName || '', civilId:'', email:u.email, phone:'' }, createdAt: serverTimestamp() }, { merge:true });
     }
-  }
 
-  onAuthStateChanged(auth, showUser);
-  $('#btnLogout').addEventListener('click', ()=>signOut(auth).catch(()=>{}));
+    // تحويل تلقائي للداشبورد بعد ثانية (تقدري تقلليها/تلغيها)
+    setTimeout(()=>{ window.location.href = 'dashboard.html'; }, 800);
+  }else{
+    userInfo.innerHTML = `<span class="note">غير مسجّل دخول حاليًا — اختَر "تسجيل الدخول" أو "إنشاء حساب".</span>`;
+    btnLogout.classList.add('hide');
+  }
+});
+
+btnLogout.addEventListener('click', ()=>signOut(auth));
+
+/* =========================== Login submit =========================== */
+$('#formLogin').addEventListener('submit', async (e)=>{
+  e.preventDefault(); hide(msgErr,msgOk);
+  const email = $('#login_email').value.trim();
+  const pass  = $('#login_pass').value;
+  if(!email || !pass) return show(msgErr,'من فضلك أدخل البريد وكلمة السر');
+  try{
+    await signInWithEmailAndPassword(auth,email,pass);
+    show(msgOk,'تم تسجيل الدخول — جارٍ التحويل...');
+  }catch(err){
+    const map={'auth/invalid-credential':'البريد أو كلمة السر غير صحيحة','auth/user-not-found':'لا يوجد حساب بهذا البريد','auth/wrong-password':'كلمة السر غير صحيحة'};
+    show(msgErr, map[err.code] || ('حدث خطأ: '+err.message));
+  }
+});
+
+/* =========================== Register submit =========================== */
+$('#formRegister').addEventListener('submit', async (e)=>{
+  e.preventDefault(); hide(msgErr,msgOk);
+  const guardian = $('#reg_guardian').value.trim();
+  const name     = $('#reg_fullname').value.trim();
+  const civilId  = $('#reg_civil').value.trim();
+  const phone    = $('#reg_phone').value.trim();
+  const email    = $('#reg_email').value.trim();
+  const pass     = $('#reg_pass').value;
+  const confirm  = $('#reg_confirm').value;
+
+  if(!guardian || !civilId || !phone || !email || !pass) return show(msgErr,'من فضلك املئي كل الحقول المطلوبة');
+  if(pass.length < 6) return show(msgErr,'كلمة السر يجب أن تكون 6 أحرف على الأقل');
+  if(pass !== confirm) return show(msgErr,'تأكيد كلمة السر غير مطابق');
+
+  try{
+    const cred = await createUserWithEmailAndPassword(auth,email,pass);
+    await updateProfile(cred.user, { displayName: guardian });
+    await setDoc(doc(db,'users',cred.user.uid),{
+      createdAt: serverTimestamp(),
+      parentInfo:{
+        guardianName: guardian,
+        name: name || guardian,
+        civilId, email, phone
+      }
+    }, { merge:true });
+    show(msgOk,'تم إنشاء الحساب بنجاح — جارٍ التحويل…');
+  }catch(err){
+    const map={'auth/email-already-in-use':'هذا البريد مستخدم بالفعل','auth/invalid-email':'بريد إلكتروني غير صالح','auth/weak-password':'كلمة السر ضعيفة'};
+    show(msgErr, map[err.code] || ('حدث خطأ: '+err.message));
+  }
+});
 </script>
 </body>
 </html>
