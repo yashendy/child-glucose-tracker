@@ -51,7 +51,7 @@ input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);b
 .badge.low{background:var(--lowbg);color:var(--low)}
 .badge.high{background:var(--highbg);color:var(--high)}
 
-/* قسم التعليقات */
+/* التعليقات */
 .notes-list{margin-top:8px}
 .note-item{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px;margin-top:6px;font-size:13px}
 
@@ -176,7 +176,7 @@ input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);b
   </section>
 </main>
 
-<!-- مكتبات -->
+<!-- مكتبات خارجية (نسخة واحدة فقط) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
@@ -195,8 +195,11 @@ const order=['preBreakfast','postBreakfast','preLunch','postLunch','preDinner','
 let uid=null, initChildId=new URL(location.href).searchParams.get('child');
 let cachedDetailed=[];
 let currentChild=null, currentFrom=null, currentTo=null;
-/* إعلان واحد فقط للمخططات ✅ */
-let chartDaily=null, chartSlots=null;
+
+// منع تكرار تعريف المخططات ✅
+const w = window;
+w.chartDaily ??= null;
+w.chartSlots ??= null;
 
 onAuthStateChanged(auth, async (u)=>{
   if(!u){ location.href='index.html'; return; }
@@ -326,10 +329,10 @@ async function buildReport(){
 function renderCharts(dailyLabels, dailyValues, slotAgg){
   const ctx1=$('#chartDaily'); const ctx2=$('#chartSlots');
 
-  if(chartDaily) chartDaily.destroy();
-  if(chartSlots) chartSlots.destroy();
+  if(w.chartDaily) w.chartDaily.destroy();
+  if(w.chartSlots) w.chartSlots.destroy();
 
-  chartDaily=new Chart(ctx1,{type:'line',data:{
+  w.chartDaily=new Chart(ctx1,{type:'line',data:{
       labels:dailyLabels,
       datasets:[{label:'متوسط اليوم (mmol/L)',data:dailyValues,borderColor:'#0ea5e9',backgroundColor:'rgba(14,165,233,.15)',tension:.3,spanGaps:true}]
     },
@@ -338,7 +341,7 @@ function renderCharts(dailyLabels, dailyValues, slotAgg){
 
   const slotLabels=order.map(k=>labels[k]);
   const slotMeans=order.map(k=>{const a=slotAgg[k]; return a.count?(a.sum/a.count).toFixed(2):0;});
-  chartSlots=new Chart(ctx2,{type:'bar',data:{
+  w.chartSlots=new Chart(ctx2,{type:'bar',data:{
       labels:slotLabels,
       datasets:[{label:'متوسط الوقت',data:slotMeans,backgroundColor:'#6ee7b7',borderColor:'#059669'}]
     },
