@@ -125,7 +125,6 @@ let uid=null;
 onAuthStateChanged(auth, async (u)=>{
   if(!u){ location.href='index.html'; return; }
   uid=u.uid;
-  // ✅ كانت هنا المشكلة: الـ template string ماكانش مقفول
   $('#hello').textContent=`مرحبًا ${u.displayName || ''} — UID: ${u.uid}`;
   await loadParent();
   await loadKids();
@@ -175,30 +174,36 @@ async function loadKids(){
     if(c.doctorVisitDate){
       const diffDays=Math.ceil((new Date(c.doctorVisitDate)-new Date(todayISO))/(1000*60*60*24));
       if(diffDays<=2 && diffDays>=0){
-        visitBadge=`<span class="chip" style="background:#fff0e5;color:#b45309">🧑‍⚕️ زيارة الطبيب بعد ${diffDays} يوم</span>`;
+        visitBadge = '<span class="chip" style="background:#fff0e5;color:#b45309">🧑‍⚕️ زيارة الطبيب بعد '+diffDays+' يوم</span>';
       }
+    }
+
+    // ⚠️ تجهيز شارة الهدف بدون template داخل template
+    let targetChip = '';
+    if (c.targetMmol != null) {
+      targetChip = '<span class="chip">الهدف '+ c.targetMmol +'</span>';
     }
 
     const card=document.createElement('div');
     card.className='kid';
-    card.innerHTML=`
-      <div class="head">
-        <div class="name">${c.name||'بدون اسم'}</div>
-        <div class="chips">
-          <span class="chip">منخفض &lt; <b>${c.lowThreshold ?? '—'}</b></span>
-          <span class="chip">مرتفع &gt; <b>${c.highThreshold ?? '—'}</b></span>
-          ${c.targetMmol!=null?`<span class="chip">الهدف ${c.targetMmol}</span>`:''}
-          ${visitBadge}
-        </div>
-      </div>
-      <div class="row actions">
-        <a class="btn secondary" href="measure.html?child=${id}">تسجيل قياسات</a>
-        <a class="btn primary" href="report.html?child=${id}">عرض التقارير</a>
-        <a class="btn purple"  href="doctor.html?child=${id}">🧑‍⚕️ متابعة الطبيب</a>
-        <a class="btn gray"     href="child.html?child=${id}">تعديل بيانات الطفل</a>
-      </div>
-      <div class="note">الطول: ${c.height ?? '—'} سم • الوزن: ${c.weight ?? '—'} كجم • تريسيبا: ${c.tresiba ?? '—'} • نوفو: ${c.novo ?? '—'}</div>
-    `;
+    card.innerHTML =
+      '<div class="head">'+
+        '<div class="name">'+ (c.name||'بدون اسم') +'</div>'+
+        '<div class="chips">'+
+          '<span class="chip">منخفض &lt; <b>'+ (c.lowThreshold ?? '—') +'</b></span>'+
+          '<span class="chip">مرتفع &gt; <b>'+ (c.highThreshold ?? '—') +'</b></span>'+
+          targetChip+
+          visitBadge+
+        '</div>'+
+      '</div>'+
+      '<div class="row actions">'+
+        '<a class="btn secondary" href="measure.html?child='+id+'">تسجيل قياسات</a>'+
+        '<a class="btn primary" href="report.html?child='+id+'">عرض التقارير</a>'+
+        '<a class="btn purple" href="doctor.html?child='+id+'">🧑‍⚕️ متابعة الطبيب</a>'+
+        '<a class="btn gray" href="child.html?child='+id+'">تعديل بيانات الطفل</a>'+
+      '</div>'+
+      '<div class="note">الطول: '+ (c.height ?? '—') +' سم • الوزن: '+ (c.weight ?? '—') +' كجم • تريسيبا: '+ (c.tresiba ?? '—') +' • نوفو: '+ (c.novo ?? '—') +'</div>';
+
     box.appendChild(card);
   });
 }
