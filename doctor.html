@@ -2,180 +2,254 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>لوحة التحكم — متابعة سكر الأطفال</title>
+<title>متابعة الطبيب — ملخص القياسات</title>
 <style>
 :root{
   --brand:#0ea5e9;--brand2:#6ee7b7;--line:#e5e7eb;--ink:#0f172a;--muted:#6b7280;
-  --bg:#f6fbff;--card:#fff;--danger:#ef4444;--ok:#22c55e;--chip:#eef6ff
+  --bg:#f6fbff;--card:#fff;--ok:#16a34a;--low:#b45309;--high:#dc2626;
+  --okbg:#ecfdf5;--lowbg:#fff7ed;--highbg:#fee2e2;
 }
 *{box-sizing:border-box}
-body{margin:0;font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif;background:var(--bg);color:var(--ink)}
-header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
-header .title{font-weight:800}
-main{max-width:1200px;margin:auto;padding:18px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 1px 8px rgba(0,0,0,.05);margin-bottom:14px}
-h2{margin:0 0 10px}
-label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
-input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
-.grid{display:grid;gap:12px}
-.grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
-.grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
-@media(max-width:1000px){.grid.cols-3{grid-template-columns:1fr 1fr}}
-@media(max-width:720px){.grid.cols-2,.grid.cols-3{grid-template-columns:1fr}}
-.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.btn{border:none;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
-.btn.primary{background:var(--brand);color:#fff}
-.btn.secondary{background:#10b981;color:#fff}
-.btn.gray{background:#eef2f7}
-.note{color:var(--muted);font-size:13px}
-.toast{position:fixed;bottom:16px;left:16px;background:#111;color:#fff;padding:10px 14px;border-radius:12px;opacity:0;transform:translateY(8px);transition:.3s}
-.toast.show{opacity:1;transform:none}
-.quick{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr))}
-.quick a{display:flex;gap:10px;align-items:center;justify-content:center;text-decoration:none;background:#ffffff;border:1px solid var(--line);border-radius:12px;padding:14px;color:#0f172a;font-weight:800}
-.quick a:hover{border-color:#cbd5e1}
-.kids{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr))}
-@media(max-width:1100px){.kids{grid-template-columns:1fr 1fr}}
-@media(max-width:720px){.kids{grid-template-columns:1fr}}
-.kid{border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px}
-.kid .head{display:flex;justify-content:space-between;align-items:center}
-.kid .name{font-weight:800}
-.chips{display:flex;gap:8px;flex-wrap:wrap}
-.chip{background:var(--chip);color:#0369a1;padding:6px 10px;border-radius:999px;font-size:12px}
-.actions{display:flex;gap:8px;flex-wrap:wrap}
-.empty{border:1px dashed var(--line);padding:14px;border-radius:12px;text-align:center;color:var(--muted)}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 system-ui,"Tajawal","Noto Sans Arabic",sans-serif}
+header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;z-index:5}
+header .btn{color:#fff;text-decoration:none;border:1px solid #ffffff66;padding:8px 12px;border-radius:10px;margin-inline-start:6px;background:#ffffff22}
+main{max-width:1250px;margin:auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 6px 24px rgba(0,0,0,.04);margin-bottom:12px}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+input,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.grid{display:grid;gap:10px}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:900px){.g4{grid-template-columns:1fr 1fr}}
+.controls .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:end}
+.btn-main{padding:10px;border:none;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer}
+.alert{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:10px;border-radius:10px;margin:8px 0}
+.summary{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+@media(max-width:1100px){.summary{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.sum{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px;text-align:center}
+.sum .k{font-size:12px;color:var(--muted)}
+.sum .v{font-size:20px;font-weight:900;margin-top:4px}
+.sum.low{background:var(--lowbg);color:var(--low)}
+.sum.ok{background:var(--okbg);color:var(--ok)}
+.sum.high{background:var(--highbg);color:var(--high)}
+.blank-header{display:flex;flex-wrap:wrap;gap:18px;row-gap:10px;margin:10px 0 12px;font-weight:700}
+.blank-header .bh-item{display:inline-block;min-width:230px}
+.blank-header .line{display:inline-block;border-bottom:1px dashed #9aa6b2;min-width:160px;height:1.2em;vertical-align:middle;margin-inline-start:8px}
+.table{width:100%;border-collapse:separate;border-spacing:0}
+.table th,.table td{border:1px solid var(--line);padding:8px;vertical-align:top;text-align:right}
+.table thead th{background:#f8fafc;font-weight:800;text-align:right}
+.table td.date{background:#fbfdff;white-space:nowrap;font-weight:800}
+.small{font-size:12px;color:var(--muted)}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px}
+.badge.ok{background:var(--okbg);color:var(--ok)}
+.badge.low{background:var(--lowbg);color:var(--low)}
+.badge.high{background:var(--highbg);color:var(--high)}
+@media print{
+  @page{ size: A4 landscape; margin: 8mm }
+  header,.controls,.actions{display:none!important}
+  body{background:#fff;font-size:11px}
+  .card{border:0;box-shadow:none;padding:0;margin:0}
+  .table th,.table td{padding:4px}
+}
 </style>
 </head>
 <body>
 <header>
-  <div class="title">لوحة التحكم</div>
-  <div class="row">
-    <a class="btn gray" href="index.html">الصفحة الرئيسية</a>
-    <button id="btnLogout" class="btn gray">خروج</button>
+  <div>متابعة الطبيب — ملخص القياسات</div>
+  <div>
+    <a class="btn" href="dashboard.html">رجوع</a>
+    <button id="btnPrint" class="btn" type="button">طباعة</button>
+    <button id="btnXLSX" class="btn" type="button">تصدير Excel</button>
   </div>
 </header>
 
 <main>
-  <section class="card">
-    <h2>إجراءات سريعة</h2>
-    <div class="quick">
-      <a href="child.html">👧 إدارة الأطفال</a>
-      <a href="measure.html">🩺 تسجيل القياسات (عام)</a>
-      <a href="report.html">📄 عرض التقارير (عام)</a>
+  <section class="card controls">
+    <div class="grid g4">
+      <div>
+        <label>الطفل</label>
+        <select id="childSel"><option value="">— اختاري الطفل —</option></select>
+      </div>
+      <div><label>من تاريخ</label><input id="from" type="date"></div>
+      <div><label>إلى تاريخ</label><input id="to" type="date"></div>
+      <div class="actions"><button id="run" class="btn-main" style="width:100%">عرض المتابعة</button></div>
+    </div>
+
+    <div id="visitAlert" class="alert" style="display:none"></div>
+    <div id="meta" class="small" style="margin-top:6px"></div>
+
+    <div id="blankHeader" class="blank-header">
+      <span class="bh-item">الاسم:<span class="line"></span></span>
+      <span class="bh-item">الوزن:<span class="line"></span></span>
+      <span class="bh-item">الطول:<span class="line"></span></span>
+      <span class="bh-item">معامل التصحيحي:<span class="line"></span></span>
+      <span class="bh-item">جرعة الترسيبا:<span class="line"></span></span>
     </div>
   </section>
 
   <section class="card">
-    <h2>بيانات وليّ الأمر</h2>
-    <div id="hello" class="note">تحميل...</div>
-    <div class="grid cols-2" style="margin-top:10px">
-      <div><label>اسم وليّ الأمر</label><input id="guardianName"></div>
-      <div><label>الاسم (اختياري)</label><input id="fullName"></div>
-      <div><label>الرقم المدني</label><input id="civilId"></div>
-      <div><label>رقم الهاتف</label><input id="phone"></div>
-      <div><label>البريد الإلكتروني</label><input id="email" disabled></div>
-    </div>
-    <div class="row" style="margin-top:10px">
-      <button id="saveParent" class="btn primary">حفظ التعديلات</button>
-      <span class="note">يتم الحفظ في Firestore.</span>
+    <h3 style="margin:0 0 8px">ملخّص الفترة</h3>
+    <div class="summary">
+      <div class="sum"><div class="k">عدد القراءات</div><div class="v" id="s_total">—</div></div>
+      <div class="sum low"><div class="k">منخفض</div><div class="v" id="s_low">—</div></div>
+      <div class="sum ok"><div class="k">طبيعي</div><div class="v" id="s_ok">—</div></div>
+      <div class="sum high"><div class="k">مرتفع</div><div class="v" id="s_high">—</div></div>
+      <div class="sum"><div class="k">% داخل النطاق</div><div class="v" id="s_tir">—%</div></div>
+      <div class="sum"><div class="k">متوسط القراءة</div><div class="v" id="s_avg">—</div></div>
     </div>
   </section>
 
   <section class="card">
-    <div class="row" style="justify-content:space-between;align-items:center">
-      <h2 style="margin:0">أطفالي</h2>
-      <a class="btn primary" href="child.html">+ إضافة/إدارة طفل</a>
-    </div>
-    <div id="kids" class="kids" style="margin-top:10px">
-      <div class="empty">لا يوجد أطفال بعد — اضغطي “+ إضافة/إدارة طفل”.</div>
-    </div>
+    <h3 style="margin:0 0 8px">متوسط لكل وقت</h3>
+    <div id="slotMeans" class="small">—</div>
+  </section>
+
+  <section class="card">
+    <h3 style="margin:0 0 8px">الجدول التفصيلي</h3>
+    <table class="table" id="tbl">
+      <thead>
+        <tr>
+          <th>التاريخ</th>
+          <th>قبل الإفطار</th><th>بعد الإفطار</th>
+          <th>قبل الغداء</th><th>بعد الغداء</th>
+          <th>قبل العشاء</th><th>بعد العشاء</th>
+          <th>قبل النوم</th><th>أثناء النوم</th><th>عند الاستيقاظ</th>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        <tr><td colspan="10" class="small">اختاري طفلًا وحددي فترة لعرض البيانات.</td></tr>
+      </tbody>
+    </table>
   </section>
 </main>
 
-<div id="toast" class="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, getDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig={apiKey:"AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",authDomain:"child-glucose-tracker.firebaseapp.com",projectId:"child-glucose-tracker",storageBucket:"child-glucose-tracker.firebasestorage.app",messagingSenderId:"294563325904",appId:"1:294563325904:web:39562550bf305fc01abbd5"};
 const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getFirestore(app);
 
 const $=s=>document.querySelector(s);
-const toast=(m)=>{const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1700);};
+const labels={preBreakfast:'قبل الإفطار',postBreakfast:'بعد الإفطار',preLunch:'قبل الغداء',postLunch:'بعد الغداء',preDinner:'قبل العشاء',postDinner:'بعد العشاء',beforeSleep:'قبل النوم',duringSleep:'أثناء النوم',uponWake:'عند الاستيقاظ'};
+const order=['preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','uponWake'];
 
-let uid=null;
+let uid=null, initChildId=new URL(location.href).searchParams.get('child');
+let cachedDetailed=[];
 
 onAuthStateChanged(auth, async (u)=>{
   if(!u){ location.href='index.html'; return; }
-  uid=u.uid;
-  $('#hello').textContent=`مرحبًا ${u.displayName||''} — UID: ${u.uid}`;
-  await loadParent();
-  await loadKids();
+  uid=u.uid; await loadChildren(); setDefaults();
+  if(initChildId){ const opt=[...$('#childSel').options].find(o=>o.value===initChildId); if(opt){ $('#childSel').value=initChildId; $('#childSel').disabled=true; showVisitAlert(); } }
 });
 
-async function loadParent(){
-  const ref=doc(db,'users',uid); const snap=await getDoc(ref);
-  const p=(snap.data()||{}).parentInfo||{};
-  $('#guardianName').value=p.guardianName||''; $('#fullName').value=p.name||'';
-  $('#civilId').value=p.civilId||''; $('#phone').value=p.phone||''; $('#email').value=p.email||'';
-}
-$('#saveParent').addEventListener('click', async ()=>{
-  const ref=doc(db,'users',uid); const snap=await getDoc(ref); const root=snap.data()||{};
-  root.parentInfo={
-    guardianName:$('#guardianName').value.trim(),
-    name:$('#fullName').value.trim(),
-    civilId:$('#civilId').value.trim(),
-    phone:$('#phone').value.trim(),
-    email:$('#email').value.trim()
-  };
-  await updateDoc(ref,root);
-  toast('تم حفظ التعديلات ✅');
-});
-
-async function loadKids(){
-  const box=$('#kids'); box.innerHTML='';
+function setDefaults(){ const d=new Date(), iso=d.toISOString().slice(0,10); $('#from').value=iso; $('#to').value=iso; }
+async function loadChildren(){
+  const sel=$('#childSel'); sel.innerHTML='<option value="">— تحميل —</option>';
   const q=await getDocs(collection(db,'users',uid,'children'));
-  if(q.empty){ box.innerHTML='<div class="empty">لا يوجد أطفال بعد — اضغطي “+ إضافة/إدارة طفل”.</div>'; return; }
+  sel.innerHTML='<option value="">— اختاري الطفل —</option>';
+  q.forEach(s=>{ const o=document.createElement('option'); o.value=s.id; o.textContent=s.data().name||'بدون اسم'; sel.appendChild(o); });
+}
 
-  const todayISO=new Date().toISOString().slice(0,10);
-
-  q.forEach(s=>{
-    const c=s.data(); const id=s.id;
-
-    let visitBadge='';
-    if(c.doctorVisitDate){
-      const diffDays=Math.ceil((new Date(c.doctorVisitDate)-new Date(todayISO))/(1000*60*60*24));
-      if(diffDays<=2 && diffDays>=0){
-        visitBadge=`<span class="chip" style="background:#fff0e5;color:#b45309">🧑‍⚕️ زيارة الطبيب بعد ${diffDays} يوم</span>`;
-      }
-    }
-
-    const card=document.createElement('div'); card.className='kid';
-    card.innerHTML=`
-      <div class="head">
-        <div class="name">${c.name||'بدون اسم'}</div>
-        <div class="chips">
-          <span class="chip">منخفض &lt; <b>${c.lowThreshold??'—'}</b></span>
-          <span class="chip">مرتفع &gt; <b>${c.highThreshold??'—'}</b></span>
-          ${c.targetMmol!=null?`<span class="chip">الهدف ${c.targetMmol}</span>`:''}
-          ${visitBadge}
-        </div>
-      </div>
-      <div class="row actions">
-        <a class="btn secondary" href="measure.html?child=${id}">تسجيل قياسات</a>
-        <a class="btn primary" href="measure.html?child=${id}&date=${todayISO}">⚡ قياسات اليوم</a>
-        <a class="btn gray" href="report.html?child=${id}">عرض التقارير</a>
-        <a class="btn" style="background:#0ea5e9;color:#fff" href="doctor.html?child=${id}">🧑‍⚕️ متابعة الطبيب</a>
-        <a class="btn" style="background:#7c3aed;color:#fff" href="child.html?child=${id}">تعديل بيانات الطفل</a>
-      </div>
-      <div class="note">الطول: ${c.height??'—'} سم • الوزن: ${c.weight??'—'} كجم • تريسيبا: ${c.tresiba??'—'} • نوفو: ${c.novo??'—'}</div>
-    `;
-    box.appendChild(card);
+$('#childSel').addEventListener('change', showVisitAlert);
+function showVisitAlert(){
+  const id=$('#childSel').value; if(!id) return $('#visitAlert').style.display='none';
+  getDoc(doc(db,'users',uid,'children',id)).then(s=>{
+    const c=s.data()||{}; if(!c.doctorVisitDate){ $('#visitAlert').style.display='none'; return; }
+    const todayISO=new Date().toISOString().slice(0,10);
+    const diffDays=Math.ceil((new Date(c.doctorVisitDate)-new Date(todayISO))/(1000*60*60*24));
+    if(diffDays<=2 && diffDays>=0){
+      $('#visitAlert').style.display='block';
+      $('#visitAlert').textContent=`تنبيه: زيارة الطبيب يوم ${c.doctorVisitDate} — باقي ${diffDays} يوم.`;
+    }else $('#visitAlert').style.display='none';
   });
 }
 
-$('#btnLogout').addEventListener('click', ()=>signOut(auth).then(()=>location.href='index.html'));
+$('#btnPrint').addEventListener('click', ()=>window.print());
+$('#run').addEventListener('click', buildReport);
+$('#btnXLSX').addEventListener('click', exportXLSX);
+
+async function buildReport(){
+  const id=$('#childSel').value, from=$('#from').value, to=$('#to').value;
+  if(!id||!from||!to) return alert('اختاري الطفل وحددي الفترة');
+
+  const cs=await getDoc(doc(db,'users',uid,'children',id)); const c=cs.data()||{};
+  $('#meta').innerHTML=`الاسم: ${c.name||'—'} • الوزن: ${c.weight??'—'} كجم • الطول: ${c.height??'—'} سم • حدود: منخفض &lt; ${c.lowThreshold??'—'} — مرتفع &gt; ${c.highThreshold??'—'} • الفترة: ${from} → ${to}`;
+
+  const col=collection(db,'users',uid,'children',id,'measurements');
+  const qy=query(col, where('date','>=',from), where('date','<=',to), orderBy('date','asc'));
+  const qs=await getDocs(qy);
+
+  let total=0,cLow=0,cOk=0,cHigh=0,sum=0;
+  const slotAgg={}; order.forEach(k=>slotAgg[k]={sum:0,count:0});
+  cachedDetailed=[];
+
+  const tbody=$('#rows'); tbody.innerHTML='';
+  if(qs.empty){ tbody.innerHTML='<tr><td colspan="10" class="small">لا توجد قراءات في هذه الفترة.</td></tr>'; }
+  else{
+    qs.forEach(s=>{
+      const d=s.data(); const readings=d.readings||{};
+      const tr=document.createElement('tr');
+      const tdDate=document.createElement('td'); tdDate.className='date'; tdDate.textContent=d.date; tr.appendChild(tdDate);
+
+      const rowExport={date:d.date};
+      order.forEach(slot=>{
+        const r=readings[slot]; const td=document.createElement('td');
+        if(!r||r.value==null){ td.textContent='—'; rowExport[slot]=''; }
+        else{
+          total++; sum+=Number(r.value)||0;
+          if(r.status==='low')cLow++; else if(r.status==='high')cHigh++; else cOk++;
+          slotAgg[slot].sum+=Number(r.value)||0; slotAgg[slot].count++;
+
+          const cls=r.status==='low'?'low':(r.status==='high'?'high':'ok');
+          const meal=r.mealDose!=null?`جرعة: ${r.mealDose}U`:''; const corr=r.correctionGiven!=null?`تصحيحي: ${r.correctionGiven}U`:''; const note=r.note||r.raisedWith||'';
+          td.innerHTML=`
+            <div><b>${r.value}</b> <span class="badge ${cls}">${cls==='ok'?'طبيعي':(cls==='low'?'منخفض':'مرتفع')}</span></div>
+            ${meal?`<div class="small">${meal}</div>`:''}
+            ${corr?`<div class="small">${corr}</div>`:''}
+            ${note?`<div class="small">ملاحظة: ${escapeHTML(note)}</div>`:''}`;
+          rowExport[slot]=[r.value, meal?` | ${meal}`:'', corr?` | ${corr}`:'', note?` | ملاحظة: ${note}`:''].join('');
+        }
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+      cachedDetailed.push(rowExport);
+    });
+  }
+
+  $('#s_total').textContent=total; $('#s_low').textContent=cLow; $('#s_ok').textContent=cOk; $('#s_high').textContent=cHigh;
+  const tir= total? Math.round((cOk/total)*100) : 0; $('#s_tir').textContent=`${tir}%`;
+  const avg= total? (sum/total).toFixed(1) : '—'; $('#s_avg').textContent=avg;
+
+  const parts=order.map(k=>{ const a=slotAgg[k]; const m=a.count?(a.sum/a.count).toFixed(1):'—'; return `<span style="display:inline-block;margin-inline-end:10px"><b>${labels[k]}:</b> ${m}</span>`; }).join('');
+  $('#slotMeans').innerHTML=parts;
+}
+
+function exportXLSX(){
+  const childText=$('#childSel').selectedOptions[0]?.textContent||'child';
+  const from=$('#from').value, to=$('#to').value;
+
+  const summaryData=[
+    ['الفترة', `${from} → ${to}`],
+    ['عدد القراءات', $('#s_total').textContent],
+    ['منخفض', $('#s_low').textContent],
+    ['طبيعي', $('#s_ok').textContent],
+    ['مرتفع', $('#s_high').textContent],
+    ['داخل النطاق %', $('#s_tir').textContent],
+    ['متوسط القراءة', $('#s_avg').textContent]
+  ];
+  const head=['التاريخ', ...order.map(k=>labels[k])];
+  const rows=cachedDetailed.map(r=>[r.date, ...order.map(k=>r[k]??'')]);
+
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryData), 'Summary');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([head,...rows]), 'Detailed');
+  XLSX.writeFile(wb, `doctor_followup_${childText}_${from}_to_${to}.xlsx`);
+}
+
+function escapeHTML(str){ return (str||'').replace(/[&<>"']/g,(c)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
 </script>
 </body>
 </html>
