@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تسجيل الدخول</title>
+<style>
+:root{--bg:#0ea5e9;--bg2:#6ee7b7;--card:#fff;--ink:#0f172a;--muted:#6b7280;--line:#e5e7eb;--brand:#0ea5e9}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,var(--bg),var(--bg2));min-height:100vh;display:grid;place-items:center;font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif;color:var(--ink)}
+.card{width:min(520px,92vw);background:var(--card);border:1px solid #e6eef6;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.08);padding:22px}
+h1{margin:0 0 8px;font-size:20px}
+label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
+input{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.btn{border:none;border-radius:12px;padding:12px 16px;width:100%;cursor:pointer;background:var(--brand);color:#fff;font-weight:700;margin-top:12px}
+.err{display:none;margin-bottom:10px;background:#fff1f2;color:#991b1b;padding:10px;border-radius:10px}
+a.link{color:var(--brand);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>مرحبًا بك 👋</h1>
+  <p style="margin-top:0;color:var(--muted)">سجّل دخولك لمتابعة الأطفال.</p>
+  <div id="msgErr" class="err"></div>
+  <form id="form" novalidate>
+    <div><label>البريد الإلكتروني</label><input id="email" type="email" required placeholder="you@example.com"></div>
+    <div style="margin-top:10px"><label>كلمة السر</label><input id="password" type="password" required placeholder="••••••••"></div>
+    <button class="btn" type="submit">دخول</button>
+  </form>
+  <div style="margin-top:10px;text-align:center">
+    <a class="link" href="register.html">إنشاء حساب جديد</a> • <a class="link" href="index.html">الصفحة الرئيسية</a>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
+  authDomain: "child-glucose-tracker.firebaseapp.com",
+  projectId: "child-glucose-tracker",
+  storageBucket: "child-glucose-tracker.firebasestorage.app",
+  messagingSenderId: "294563325904",
+  appId: "1:294563325904:web:39562550bf305fc01abbd5",
+  measurementId: "G-TWC063TD6X"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+// لو المستخدم داخل بالفعل → رجّعيه للصفحة الرئيسية
+onAuthStateChanged(auth, (u)=>{ if(u) location.href='index.html'; });
+
+const $=s=>document.querySelector(s), err=$('#msgErr');
+$('#form').addEventListener('submit', async (e)=>{
+  e.preventDefault(); err.style.display='none';
+  try{
+    await signInWithEmailAndPassword(auth, $('#email').value.trim(), $('#password').value);
+    location.href='index.html';
+  }catch(e){
+    const map={'auth/invalid-credential':'البريد أو كلمة السر غير صحيحة','auth/user-not-found':'لا يوجد حساب بهذا البريد','auth/wrong-password':'كلمة السر غير صحيحة'};
+    err.textContent = map[e.code] || ('حدث خطأ: '+e.message);
+    err.style.display='block';
+  }
+});
+</script>
+</body>
+</html>
