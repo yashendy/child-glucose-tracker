@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>متابعة الطبيب — ملخص القياسات</title>
+<style>
+:root{
+  --brand:#0ea5e9;--brand2:#6ee7b7;--line:#e5e7eb;--ink:#0f172a;--muted:#6b7280;
+  --bg:#f6fbff;--card:#fff;--ok:#16a34a;--low:#b45309;--high:#dc2626;
+  --okbg:#ecfdf5;--lowbg:#fff7ed;--highbg:#fee2e2;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 system-ui,"Tajawal","Noto Sans Arabic",sans-serif}
+header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;z-index:5}
+header .btn{color:#fff;text-decoration:none;border:1px solid #ffffff66;padding:8px 12px;border-radius:10px;margin-inline-start:6px;background:#ffffff22}
+main{max-width:1250px;margin:auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 6px 24px rgba(0,0,0,.04);margin-bottom:12px}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+input,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.grid{display:grid;gap:10px}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:900px){.g4{grid-template-columns:1fr 1fr}}
+.controls .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:end}
+.btn-main{padding:10px;border:none;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer}
+
+/* Summary cards */
+.summary{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+@media(max-width:1100px){.summary{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.sum{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px;text-align:center}
+.sum .k{font-size:12px;color:var(--muted)}
+.sum .v{font-size:20px;font-weight:900;margin-top:4px}
+.sum.low{background:var(--lowbg);color:var(--low)}
+.sum.ok{background:var(--okbg);color:var(--ok)}
+.sum.high{background:var(--highbg);color:var(--high)}
+
+/* Table */
+.table{width:100%;border-collapse:separate;border-spacing:0}
+.table th,.table td{border:1px solid var(--line);padding:8px;vertical-align:top;text-align:right}
+.table thead th{background:#f8fafc;font-weight:800;text-align:right}
+.table td.date{background:#fbfdff;white-space:nowrap;font-weight:800}
+.small{font-size:12px;color:var(--muted)}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px}
+.badge.ok{background:var(--okbg);color:var(--ok)}
+.badge.low{background:var(--lowbg);color:var(--low)}
+.badge.high{background:var(--highbg);color:var(--high)}
+
+/* Print */
+@media print{
+  @page{ size: A4 landscape; margin: 8mm }
+  header,.controls,.actions{display:none!important}
+  body{background:#fff;font-size:11px}
+  .card{border:0;box-shadow:none;padding:0;margin:0}
+  .table th,.table td{padding:4px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div>متابعة الطبيب — ملخص القياسات</div>
+  <div>
+    <a class="btn" href="dashboard.html">رجوع</a>
+    <button id="btnPrint" class="btn" type="button">طباعة</button>
+    <button id="btnCSV" class="btn" type="button">تصدير CSV</button>
+  </div>
+</header>
+
+<main>
+  <section class="card controls">
+    <div class="grid g4">
+      <div>
+        <label>الطفل</label>
+        <select id="childSel"><option value="">— اختاري الطفل —</option></select>
+      </div>
+      <div>
+        <label>من تاريخ</label>
+        <input id="from" type="date">
+      </div>
+      <div>
+        <label>إلى تاريخ</label>
+        <input id="to" type="date">
+      </div>
+      <div class="actions">
+        <button id="run" class="btn-main" style="width:100%">عرض المتابعة</button>
+      </div>
+    </div>
+    <div id="meta" class="small" style="margin-top:6px"></div>
+  </section>
+
+  <section class="card">
+    <h3 style="margin:0 0 8px">ملخّص الفترة</h3>
+    <div id="summary" class="summary">
+      <div class="sum"><div class="k">عدد القراءات</div><div class="v" id="s_total">—</div></div>
+      <div class="sum low"><div class="k">منخفض</div><div class="v" id="s_low">—</div></div>
+      <div class="sum ok"><div class="k">طبيعي</div><div class="v" id="s_ok">—</div></div>
+      <div class="sum high"><div class="k">مرتفع</div><div class="v" id="s_high">—</div></div>
+      <div class="sum"><div class="k">% داخل النطاق</div><div class="v" id="s_tir">—%</div></div>
+      <div class="sum"><div class="k">متوسط القراءة</div><div class="v" id="s_avg">—</div></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3 style="margin:0 0 8px">متوسط لكل وقت</h3>
+    <div id="slotMeans" class="small">—</div>
+  </section>
+
+  <section class="card">
+    <h3 style="margin:0 0 8px">الجدول التفصيلي</h3>
+    <table class="table" id="tbl">
+      <thead>
+        <tr>
+          <th>التاريخ</th>
+          <th>قبل الإفطار</th>
+          <th>بعد الإفطار</th>
+          <th>قبل الغداء</th>
+          <th>بعد الغداء</th>
+          <th>قبل العشاء</th>
+          <th>بعد العشاء</th>
+          <th>قبل النوم</th>
+          <th>أثناء النوم</th>
+          <th>عند الاستيقاظ</th>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        <tr><td colspan="10" class="small">اختاري طفلًا وحددي فترة لعرض البيانات.</td></tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, getDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
+  authDomain: "child-glucose-tracker.firebaseapp.com",
+  projectId: "child-glucose-tracker",
+  storageBucket: "child-glucose-tracker.firebasestorage.app",
+  messagingSenderId: "294563325904",
+  appId: "1:294563325904:web:39562550bf305fc01abbd5"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+const $=s=>document.querySelector(s);
+const labels={
+  preBreakfast:'قبل الإفطار', postBreakfast:'بعد الإفطار',
+  preLunch:'قبل الغداء',     postLunch:'بعد الغداء',
+  preDinner:'قبل العشاء',    postDinner:'بعد العشاء',
+  beforeSleep:'قبل النوم',   duringSleep:'أثناء النوم', uponWake:'عند الاستيقاظ'
+};
+const order=['preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','uponWake'];
+
+let uid=null, initChildId=new URL(location.href).searchParams.get('child');
+
+onAuthStateChanged(auth, async (u)=>{
+  if(!u){ location.href='index.html'; return; }
+  uid=u.uid;
+  await loadChildren();
+  setDefaults();
+  if(initChildId){
+    const opt=[...$('#childSel').options].find(o=>o.value===initChildId);
+    if(opt){ $('#childSel').value=initChildId; $('#childSel').disabled=true; }
+  }
+});
+
+function setDefaults(){
+  const d=new Date(), iso=d.toISOString().slice(0,10);
+  $('#from').value=iso; $('#to').value=iso;
+}
+async function loadChildren(){
+  const sel=$('#childSel'); sel.innerHTML='<option value="">— تحميل —</option>';
+  const q=await getDocs(collection(db,'users',uid,'children'));
+  sel.innerHTML='<option value="">— اختاري الطفل —</option>';
+  q.forEach(s=>{
+    const o=document.createElement('option'); o.value=s.id; o.textContent=s.data().name||'بدون اسم'; sel.appendChild(o);
+  });
+}
+
+$('#btnPrint').addEventListener('click', ()=>window.print());
+$('#btnCSV').addEventListener('click', exportCSV);
+$('#run').addEventListener('click', buildReport);
+
+async function buildReport(){
+  const id=$('#childSel').value, from=$('#from').value, to=$('#to').value;
+  if(!id||!from||!to) return alert('اختاري الطفل وحددي الفترة');
+
+  const cs=await getDoc(doc(db,'users',uid,'children',id));
+  const c=cs.data()||{};
+  $('#meta').innerHTML = `الاسم: ${c.name||'—'} • الوزن: ${c.weight??'—'} كجم • الطول: ${c.height??'—'} سم • حدود: منخفض &lt; ${c.lowThreshold??'—'} — مرتفع &gt; ${c.highThreshold??'—'} • الفترة: ${from} → ${to}`;
+
+  // اجلب كل المستندات في الفترة
+  const col = collection(db,'users',uid,'children',id,'measurements');
+  const qy = query(col, where('date','>=',from), where('date','<=',to), orderBy('date','asc'));
+  const qs = await getDocs(qy);
+
+  // حضّر الملخصات
+  let total=0, cLow=0, cOk=0, cHigh=0, sum=0;
+  const slotAgg = {}; order.forEach(k=>slotAgg[k]={sum:0,count:0});
+
+  // ابني الجدول
+  const tbody=$('#rows'); tbody.innerHTML='';
+  if(qs.empty){
+    tbody.innerHTML='<tr><td colspan="10" class="small">لا توجد قراءات في هذه الفترة.</td></tr>';
+  }else{
+    qs.forEach(s=>{
+      const d=s.data(); const readings=d.readings||{};
+      const tr=document.createElement('tr');
+      const tdDate=document.createElement('td'); tdDate.className='date'; tdDate.textContent=d.date; tr.appendChild(tdDate);
+
+      order.forEach(slot=>{
+        const r=readings[slot];
+        const td=document.createElement('td');
+        if(!r || r.value==null){
+          td.textContent='—';
+        }else{
+          total++; sum+=Number(r.value)||0;
+          if(r.status==='low') cLow++; else if(r.status==='high') cHigh++; else cOk++;
+          slotAgg[slot].sum += Number(r.value)||0; slotAgg[slot].count++;
+
+          const cls = r.status==='low' ? 'low' : (r.status==='high' ? 'high' : 'ok');
+          td.innerHTML = `<div><b>${r.value}</b> <span class="badge ${cls}">${cls==='ok'?'طبيعي':(cls==='low'?'منخفض':'مرتفع')}</span></div>`;
+        }
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  // حدّث الملخص
+  $('#s_total').textContent = total;
+  $('#s_low').textContent = cLow;
+  $('#s_ok').textContent = cOk;
+  $('#s_high').textContent = cHigh;
+  const tir = total? Math.round((cOk/total)*100) : 0;
+  $('#s_tir').textContent = `${tir}%`;
+  const avg = total? (sum/total) : 0;
+  $('#s_avg').textContent = total? avg.toFixed(1) : '—';
+
+  // متوسط لكل وقت
+  const parts = order.map(k=>{
+    const a=slotAgg[k]; const m = a.count? (a.sum/a.count).toFixed(1) : '—';
+    return `<span style="display:inline-block;margin-inline-end:10px"><b>${labels[k]}:</b> ${m}</span>`;
+  }).join('');
+  $('#slotMeans').innerHTML = parts;
+}
+
+async function exportCSV(){
+  const id=$('#childSel').value, from=$('#from').value, to=$('#to').value;
+  if(!id||!from||!to) return alert('اختاري الطفل والفترة أولًا');
+
+  const col = collection(db,'users',uid,'children',id,'measurements');
+  const qy = query(col, where('date','>=',from), where('date','<=',to), orderBy('date','asc'));
+  const qs = await getDocs(qy);
+
+  const head = ['date', ...order];
+  const rows = [];
+  qs.forEach(s=>{
+    const d=s.data(); const r=d.readings||{};
+    rows.push([
+      d.date,
+      ...order.map(k=> r[k] && r[k].value!=null ? r[k].value : '' )
+    ]);
+  });
+
+  const csv = [head.join(','), ...rows.map(r=>r.join(','))].join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `doctor-followup_${id}_${from}_to_${to}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
