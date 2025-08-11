@@ -176,7 +176,7 @@ input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);b
   </section>
 </main>
 
-<!-- مكتبات خارجية (نسخة واحدة فقط) -->
+<!-- مكتبات خارجية (مرة واحدة فقط) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
@@ -196,8 +196,8 @@ let uid=null, initChildId=new URL(location.href).searchParams.get('child');
 let cachedDetailed=[];
 let currentChild=null, currentFrom=null, currentTo=null;
 
-// منع تكرار تعريف المخططات ✅
-const w = window;
+// مخططات — مرجع عالمي لمنع التعارض
+const w=window;
 w.chartDaily ??= null;
 w.chartSlots ??= null;
 
@@ -225,9 +225,9 @@ function showVisitAlert(){
     if(visit){
       const diffDays=Math.ceil((new Date(visit)-new Date(todayISO))/(1000*60*60*24));
       $('#visitAlert').style.display='block';
-      $('#visitAlert').textContent = diffDays<=2 && diffDays>=0
-        ? `موعد الزيارة القادمة: ${visit} — باقي ${diffDays} يوم.`
-        : `موعد الزيارة القادمة: ${visit}`;
+      $('#visitAlert').textContent = (diffDays<=2 && diffDays>=0)
+        ? ('موعد الزيارة القادمة: '+visit+' — باقي '+diffDays+' يوم.')
+        : ('موعد الزيارة القادمة: '+visit);
     }else $('#visitAlert').style.display='none';
   });
 }
@@ -239,18 +239,19 @@ $('#saveComment').addEventListener('click', saveDoctorComment);
 
 async function buildReport(){
   const id=$('#childSel').value, from=$('#from').value, to=$('#to').value;
-  if(!id||!from||!to) return alert('اختاري الطفل وحددي الفترة');
+  if(!id||!from||!to){ alert('اختاري الطفل وحددي الفترة'); return; }
   currentFrom=from; currentTo=to;
 
-  const cs=await getDoc(doc(db,'users',uid,'children',id)); const c=cs.data()||{};
-  currentChild=c;
-  $('#meta').innerHTML=`الاسم: ${c.name||'—'} • الوزن: ${c.weight??'—'} كجم • الطول: ${c.height??'—'} سم • حدود: منخفض &lt; ${c.lowThreshold??'—'} — مرتفع &gt; ${c.highThreshold??'—'} • الفترة: ${from} → ${to}`;
+  // بيانات الطفل + كتابة السطر العلوي بدون backticks لتفادي أخطاء اللصق
+  const cs=await getDoc(doc(db,'users',uid,'children',id)); const c=cs.data()||{}; currentChild=c;
+  const name=(c.name||'—'), wt=(c.weight??'—'), ht=(c.height??'—'), lo=(c.lowThreshold??'—'), hi=(c.highThreshold??'—');
+  $('#meta').innerHTML='الاسم: '+name+' • الوزن: '+wt+' كجم • الطول: '+ht+' سم • حدود: منخفض &lt; '+lo+' — مرتفع &gt; '+hi+' • الفترة: '+from+' → '+to;
 
   const col=collection(db,'users',uid,'children',id,'measurements');
   const qy=query(col, where('date','>=',from), where('date','<=',to), orderBy('date','asc'));
   const qs=await getDocs(qy);
 
-  let total=0,cLow=0,cOk=0,cHigh=0,sum=0, minR=Infinity, maxR=-Infinity, minD='—', maxD='—';
+  let total=0,cLow=0,cOk=0,cHigh=0,sum=0,minR=Infinity,maxR=-Infinity,minD='—',maxD='—';
   const slotAgg={}; order.forEach(k=>slotAgg[k]={sum:0,count:0});
   cachedDetailed=[];
 
@@ -282,17 +283,17 @@ async function buildReport(){
 
           slotAgg[slot].sum+=val; slotAgg[slot].count++;
 
-          const cls=r.status==='low'?'low':(r.status==='high'?'high':'ok');
-          const meal=r.mealDose!=null?`جرعة: ${r.mealDose}U`:''; 
-          const corr=r.correctionGiven!=null?`تصحيحي: ${r.correctionGiven}U`:''; 
+          const cls=(r.status==='low')?'low':((r.status==='high')?'high':'ok');
+          const badge='<span class="badge '+cls+'">'+(cls==='ok'?'طبيعي':(cls==='low'?'منخفض':'مرتفع'))+'</span>';
+          const meal=(r.mealDose!=null)?('جرعة: '+r.mealDose+'U'):'';
+          const corr=(r.correctionGiven!=null)?('تصحيحي: '+r.correctionGiven+'U'):'';
           const note=r.note||r.raisedWith||'';
-          td.innerHTML=`
-            <div><b>${r.value}</b> <span class="badge ${cls}">${cls==='ok'?'طبيعي':(cls==='low'?'منخفض':'مرتفع')}</span></div>
-            ${meal?`<div class="small">${meal}</div>`:''}
-            ${corr?`<div class="small">${corr}</div>`:''}
-            ${note?`<div class="small">ملاحظة: ${escapeHTML(note)}</div>`:''}`;
-
-          rowExport[slot]=[r.value, meal?` | ${meal}`:'', corr?` | ${corr}`:'', note?` | ملاحظة: ${note}`:''].join('');
+          td.innerHTML=
+            '<div><b>'+r.value+'</b> '+badge+'</div>'+
+            (meal?('<div class="small">'+meal+'</div>'):'')+
+            (corr?('<div class="small">'+corr+'</div>'):'')+
+            (note?('<div class="small">ملاحظة: '+escapeHTML(note)+'</div>'):'');
+          rowExport[slot]= (r.value+(meal?(' | '+meal):'')+(corr?(' | '+corr):'')+(note?(' | ملاحظة: '+note):''));
 
           if(r.mealDose!=null){ mealTotal+=Number(r.mealDose); dayMeal+=Number(r.mealDose); }
           if(r.correctionGiven!=null){ corrTotal+=Number(r.correctionGiven); dayCorr+=Number(r.correctionGiven); }
@@ -309,16 +310,15 @@ async function buildReport(){
   }
 
   $('#s_total').textContent=total; $('#s_low').textContent=cLow; $('#s_ok').textContent=cOk; $('#s_high').textContent=cHigh;
-  const tir= total? Math.round((cOk/total)*100) : 0; $('#s_tir').textContent=`${tir}%`;
+  const tir= total? Math.round((cOk/total)*100) : 0; $('#s_tir').textContent=(tir+'%');
   const avg= total? (sum/total).toFixed(1) : '—'; $('#s_avg').textContent=avg;
-  $('#s_minmax').textContent = (Number.isFinite(minR)&&Number.isFinite(maxR)) ? `${minR} (${minD}) / ${maxR} (${maxD})` : '—';
+  $('#s_minmax').textContent = (Number.isFinite(minR)&&Number.isFinite(maxR)) ? (minR+' ('+minD+') / '+maxR+' ('+maxD+')') : '—';
 
   renderCharts(dailyAvgLabels, dailyAvgValues, slotAgg);
   buildTwoWeekCompare(from, to);
 
   await loadDoctorComments(id, from, to);
 
-  // الملخص الدوائي:
   const daysWithData=Math.max(perDayDose.size,1);
   $('#m_meal_total').textContent=mealTotal.toFixed(1);
   $('#m_corr_total').textContent=corrTotal.toFixed(1);
@@ -328,7 +328,6 @@ async function buildReport(){
 
 function renderCharts(dailyLabels, dailyValues, slotAgg){
   const ctx1=$('#chartDaily'); const ctx2=$('#chartSlots');
-
   if(w.chartDaily) w.chartDaily.destroy();
   if(w.chartSlots) w.chartSlots.destroy();
 
@@ -388,7 +387,7 @@ function buildTwoWeekCompare(from, to){
   blocks.forEach(([a,b])=>{
     const st=calcBlock(a,b);
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${a} → ${b}</td><td>${st.tir}%</td><td>${st.avg}</td><td>${st.low}</td><td>${st.ok}</td><td>${st.high}</td>`;
+    tr.innerHTML='<td>'+a+' → '+b+'</td><td>'+st.tir+'%</td><td>'+st.avg+'</td><td>'+st.low+'</td><td>'+st.ok+'</td><td>'+st.high+'</td>';
     tbody.appendChild(tr);
   });
 }
@@ -398,7 +397,7 @@ function exportXLSX(){
   const from=$('#from').value, to=$('#to').value;
 
   const summaryData=[
-    ['الفترة', `${from} → ${to}`],
+    ['الفترة', from+' → '+to],
     ['عدد القراءات', $('#s_total').textContent],
     ['منخفض', $('#s_low').textContent],
     ['طبيعي', $('#s_ok').textContent],
@@ -413,24 +412,23 @@ function exportXLSX(){
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryData), 'Summary');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([head,...rows]), 'Detailed');
-  XLSX.writeFile(wb, `doctor_followup_${childText}_${from}_to_${to}.xlsx`);
+  XLSX.writeFile(wb, 'doctor_followup_'+childText+'_'+from+'_to_'+to+'.xlsx');
 }
 
 /* تعليقات الطبيب */
 async function loadDoctorComments(childId, from, to){
-  const key=`${from}_${to}`;
+  const key=(from+'_'+to);
   const col=collection(db,'users',uid,'children',childId,'doctorNotes');
   const qs=await getDocs(col);
-  const all=[];
-  qs.forEach(d=>{ all.push({id:d.id,...d.data()}); });
+  const all=[]; qs.forEach(d=>{ all.push({id:d.id,...d.data()}); });
   const current=all.find(x=>x.period===key);
   $('#doctorComment').value=current?.text||'';
-  all.sort((a,b)=> (b.createdAt||'').localeCompare(a.createdAt||'')); // الأحدث أولاً
+  all.sort((a,b)=> (b.createdAt||'').localeCompare(a.createdAt||'')); // الأحدث أولًا
   const list=$('#commentsList'); list.innerHTML='';
   all.slice(0,3).forEach(x=>{
     const div=document.createElement('div');
     div.className='note-item';
-    div.textContent=`[${x.period}] ${x.text||''}`;
+    div.textContent='['+(x.period||'—')+'] '+(x.text||'');
     list.appendChild(div);
   });
   $('#saveComment').dataset.child=childId;
@@ -439,7 +437,7 @@ async function loadDoctorComments(childId, from, to){
 
 async function saveDoctorComment(){
   const childId=this.dataset.child, period=this.dataset.period;
-  if(!childId||!period) return alert('اعرضي المتابعة أولًا ثم احفظي التعليق.');
+  if(!childId||!period){ alert('اعرضي المتابعة أولًا ثم احفظي التعليق.'); return; }
   const text=$('#doctorComment').value.trim();
   const col=collection(db,'users',uid,'children',childId,'doctorNotes');
   await setDoc(doc(col,period),{text,period,createdAt:new Date().toISOString()});
