@@ -4,9 +4,16 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>لوحة التحكم — متابعة سكر الأطفال</title>
 <style>
-:root{--brand:#0ea5e9;--brand2:#6ee7b7;--line:#e5e7eb;--ink:#0f172a;--muted:#6b7280;--bg:#f6fbff;--card:#fff;--danger:#ef4444;--ok:#22c55e;--chip:#eef6ff}
-*{box-sizing:border-box}body{margin:0;font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif;background:var(--bg);color:var(--ink)}
-header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
+:root{
+  --brand:#0ea5e9;--brand2:#6ee7b7;--line:#e5e7eb;--ink:#0f172a;--muted:#6b7280;
+  --bg:#f6fbff;--card:#fff;--danger:#ef4444;--ok:#22c55e;--chip:#eef6ff
+}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif;background:var(--bg);color:var(--ink)}
+header{
+  position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));
+  color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between
+}
 header .title{font-weight:800}
 main{max-width:1200px;margin:auto;padding:18px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 1px 8px rgba(0,0,0,.05);margin-bottom:14px}
@@ -52,15 +59,18 @@ input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10
 </header>
 
 <main>
+  <!-- إجراءات سريعة عامة -->
   <section class="card">
     <h2>إجراءات سريعة</h2>
     <div class="quick">
       <a href="child.html">👧 إدارة الأطفال</a>
-      <a href="measure.html">🩺 تسجيل القياسات</a>
-      <a href="report.html">📄 عرض التقارير</a>
+      <a href="measure.html">🩺 تسجيل القياسات (عام)</a>
+      <a href="report.html">📄 عرض التقارير (عام)</a>
     </div>
+    <div class="note" style="margin-top:6px">ممكن تستخدمي الأزرار العامة دي أو الأزرار الخاصة تحت كل طفل لفتح الصفحة مباشرة للطفل المختار.</div>
   </section>
 
+  <!-- بيانات ولي الأمر -->
   <section class="card">
     <h2>بيانات وليّ الأمر</h2>
     <div id="hello" class="note">تحميل...</div>
@@ -77,11 +87,13 @@ input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10
     </div>
   </section>
 
+  <!-- الأطفال -->
   <section class="card">
     <div class="row" style="justify-content:space-between;align-items:center">
       <h2 style="margin:0">أطفالي</h2>
       <a class="btn primary" href="child.html">+ إضافة/إدارة طفل</a>
     </div>
+
     <div id="kids" class="kids" style="margin-top:10px">
       <div class="empty">لا يوجد أطفال بعد — اضغطي “+ إضافة/إدارة طفل”.</div>
     </div>
@@ -91,6 +103,7 @@ input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10
 <div id="toast" class="toast"></div>
 
 <script type="module">
+/* Firebase */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
@@ -108,10 +121,14 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
+/* Helpers */
 const $=s=>document.querySelector(s);
 const toast=(m)=>{const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1700);};
 
+/* State */
 let uid=null;
+
+/* Auth guard */
 onAuthStateChanged(auth, async (u)=>{
   if(!u){ location.href='index.html'; return; }
   uid=u.uid;
@@ -120,6 +137,7 @@ onAuthStateChanged(auth, async (u)=>{
   await loadKids();
 });
 
+/* Parent info load/save */
 async function loadParent(){
   const ref=doc(db,'users',uid); const snap=await getDoc(ref);
   const p=(snap.data()||{}).parentInfo||{};
@@ -142,6 +160,7 @@ $('#saveParent').addEventListener('click', async ()=>{
   toast('تم حفظ التعديلات ✅');
 });
 
+/* Kids listing with deep links */
 async function loadKids(){
   const box=$('#kids'); box.innerHTML='';
   const q=await getDocs(collection(db,'users',uid,'children'));
@@ -158,6 +177,7 @@ async function loadKids(){
         <div class="chips">
           <span class="chip">منخفض &lt; <b>${c.lowThreshold ?? '—'}</b></span>
           <span class="chip">مرتفع &gt; <b>${c.highThreshold ?? '—'}</b></span>
+          ${c.targetMmol!=null ? `<span class="chip">الهدف ${c.targetMmol}</span>` : ''}
         </div>
       </div>
       <div class="row actions">
@@ -171,6 +191,7 @@ async function loadKids(){
   });
 }
 
+/* Logout */
 $('#btnLogout').addEventListener('click', ()=>signOut(auth).then(()=>location.href='index.html'));
 </script>
 </body>
