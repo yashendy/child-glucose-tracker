@@ -57,10 +57,8 @@ input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);
       <div><label>الحد المنخفض (mmol/L)</label><input id="lowThreshold" type="number" step="0.1"></div>
       <div><label>الحد المرتفع (mmol/L)</label><input id="highThreshold" type="number" step="0.1"></div>
       <div><label>الهدف (Target) mmol/L</label><input id="targetMmol" type="number" step="0.1"></div>
-
       <div><label>معامل التصحيح (ISF) — mmol/L لكل 1U</label><input id="cfMmol" type="number" step="0.01"></div>
       <div><label>أو ISF (mg/dL) لكل 1U</label><input id="cfMgdl" type="number" step="1"></div>
-
       <div><label>جرعة الترسيبا (وحدة)</label><input id="tresiba" type="number" step="0.5"></div>
       <div><label>جرعة النوفو (وحدة) — اختياري</label><input id="novo" type="number" step="0.5"></div>
     </div>
@@ -87,17 +85,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebas
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
-  authDomain: "child-glucose-tracker.firebaseapp.com",
-  projectId: "child-glucose-tracker",
-  storageBucket: "child-glucose-tracker.firebasestorage.app",
-  messagingSenderId: "294563325904",
-  appId: "1:294563325904:web:39562550bf305fc01abbd5"
-};
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app);
+const firebaseConfig={apiKey:"AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",authDomain:"child-glucose-tracker.firebaseapp.com",projectId:"child-glucose-tracker",storageBucket:"child-glucose-tracker.firebasestorage.app",messagingSenderId:"294563325904",appId:"1:294563325904:web:39562550bf305fc01abbd5"};
+const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getFirestore(app);
 
 const $=s=>document.querySelector(s);
 const toast=(m)=>{const t=$('.toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1600);};
@@ -114,13 +103,11 @@ async function loadChildren(){
   const sel=$('#childSel'); sel.innerHTML='<option value="">— تحميل —</option>';
   const q=await getDocs(collection(db,'users',uid,'children'));
   sel.innerHTML='<option value="">— اختاري الطفل —</option>';
-  q.forEach(s=>{
-    const o=document.createElement('option'); o.value=s.id; o.textContent=s.data().name||'بدون اسم'; sel.appendChild(o);
-  });
+  q.forEach(s=>{ const o=document.createElement('option'); o.value=s.id; o.textContent=s.data().name||'بدون اسم'; sel.appendChild(o); });
 }
 
 $('#childSel').addEventListener('change', async ()=>{
-  const id=$('#childSel').value; $('#childIdNote').textContent = id? ('ID: '+id) : '';
+  const id=$('#childSel').value; $('#childIdNote').textContent=id?('ID: '+id):'';
   if(!id) return;
   const snap=await getDoc(doc(db,'users',uid,'children',id));
   const c=snap.data()||{};
