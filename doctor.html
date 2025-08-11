@@ -13,21 +13,19 @@
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 system-ui,"Tajawal","Noto Sans Arabic",sans-serif}
 header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;z-index:5}
 header .btn{color:#fff;text-decoration:none;border:1px solid #ffffff66;padding:8px 12px;border-radius:10px;margin-inline-start:6px;background:#ffffff22}
-main{max-width:1250px;margin:auto;padding:16px}
+main{max-width:1100px;margin:auto;padding:16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 6px 24px rgba(0,0,0,.04);margin-bottom:12px}
 
 label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
-input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+input,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
 .grid{display:grid;gap:10px}
 .g4{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:900px){.g4{grid-template-columns:1fr 1fr}}
 .controls .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:end}
 .btn-main{padding:10px;border:none;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer}
 
-.alert{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:10px;border-radius:10px;margin:8px 0}
-
 .summary{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px}
-@media(max-width:1100px){.summary{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:1000px){.summary{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .sum{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px;text-align:center}
 .sum .k{font-size:12px;color:var(--muted)}
 .sum .v{font-size:20px;font-weight:900;margin-top:4px}
@@ -35,30 +33,19 @@ input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);b
 .sum.ok{background:var(--okbg);color:var(--ok)}
 .sum.high{background:var(--highbg);color:var(--high)}
 
-/* رأس فارغ لبيانات الطفل */
-.blank-header{display:flex;flex-wrap:wrap;gap:18px;row-gap:10px;margin:10px 0 12px;font-weight:700}
-.blank-header .bh-item{display:inline-block;min-width:230px}
-.blank-header .line{display:inline-block;border-bottom:1px dashed #9aa6b2;min-width:160px;height:1.2em;vertical-align:middle;margin-inline-start:8px}
-
-/* جدول التقرير */
+.small{font-size:12px;color:var(--muted)}
 .table{width:100%;border-collapse:separate;border-spacing:0}
 .table th,.table td{border:1px solid var(--line);padding:8px;vertical-align:top;text-align:right}
 .table thead th{background:#f8fafc;font-weight:800;text-align:right}
 .table td.date{background:#fbfdff;white-space:nowrap;font-weight:800}
-.small{font-size:12px;color:var(--muted)}
 .badge{display:inline-block;padding:2px 8px;border-radius:999px}
 .badge.ok{background:var(--okbg);color:var(--ok)}
 .badge.low{background:var(--lowbg);color:var(--low)}
 .badge.high{background:var(--highbg);color:var(--high)}
 
-/* التعليقات */
-.notes-list{margin-top:8px}
-.note-item{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px;margin-top:6px;font-size:13px}
-
-/* الطباعة */
 @media print{
   @page{ size: A4 landscape; margin: 8mm }
-  header,.controls,.actions .btn{display:none!important}
+  header,.controls{display:none!important}
   body{background:#fff;font-size:11px}
   .card{border:0;box-shadow:none;padding:0;margin:0}
   .table th,.table td{padding:4px}
@@ -71,12 +58,12 @@ input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);b
   <div>
     <a class="btn" href="dashboard.html">رجوع</a>
     <button id="btnPrint" class="btn" type="button">طباعة PDF</button>
-    <button id="btnXLSX" class="btn" type="button">تصدير Excel</button>
+    <button id="btnXLSX"  class="btn" type="button">تصدير Excel</button>
   </div>
 </header>
 
 <main>
-  <!-- رأس الاختيار -->
+  <!-- اختيارات -->
   <section class="card controls">
     <div class="grid g4">
       <div>
@@ -87,23 +74,11 @@ input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);b
       <div><label>إلى تاريخ</label><input id="to" type="date"></div>
       <div class="actions"><button id="run" class="btn-main" style="width:100%">عرض المتابعة</button></div>
     </div>
-
-    <div id="visitAlert" class="alert" style="display:none"></div>
     <div id="meta" class="small" style="margin-top:6px"></div>
-
-    <!-- خانات فارغة للطباعة -->
-    <div id="blankHeader" class="blank-header">
-      <span class="bh-item">الاسم:<span class="line"></span></span>
-      <span class="bh-item">الوزن:<span class="line"></span></span>
-      <span class="bh-item">الطول:<span class="line"></span></span>
-      <span class="bh-item">معامل التصحيحي:<span class="line"></span></span>
-      <span class="bh-item">جرعة الترسيبا:<span class="line"></span></span>
-    </div>
   </section>
 
   <!-- ملخص -->
   <section class="card">
-    <h3 style="margin:0 0 8px">ملخّص الفترة</h3>
     <div class="summary">
       <div class="sum"><div class="k">عدد القراءات</div><div class="v" id="s_total">—</div></div>
       <div class="sum low"><div class="k">منخفض</div><div class="v" id="s_low">—</div></div>
@@ -117,41 +92,15 @@ input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);b
 
   <!-- مخططات -->
   <section class="card">
-    <h3 style="margin:0 0 8px">مخططات</h3>
     <div class="grid" style="grid-template-columns:1fr 1fr">
       <canvas id="chartDaily"></canvas>
       <canvas id="chartSlots"></canvas>
     </div>
   </section>
 
-  <!-- الملخص الدوائي -->
-  <section class="card">
-    <h3 style="margin:0 0 8px">الملخص الدوائي</h3>
-    <div class="summary" style="grid-template-columns:repeat(4,minmax(0,1fr))">
-      <div class="sum"><div class="k">إجمالي جرعات الوجبة</div><div class="v" id="m_meal_total">—</div></div>
-      <div class="sum"><div class="k">متوسط/اليوم (وجبة)</div><div class="v" id="m_meal_avg">—</div></div>
-      <div class="sum"><div class="k">إجمالي التصحيحي</div><div class="v" id="m_corr_total">—</div></div>
-      <div class="sum"><div class="k">متوسط/اليوم (تصحيحي)</div><div class="v" id="m_corr_avg">—</div></div>
-    </div>
-  </section>
-
-  <!-- مقارنة أسبوعين -->
-  <section class="card">
-    <h3 style="margin:0 0 8px">مقارنة كل أسبوعين</h3>
-    <table class="table">
-      <thead>
-        <tr><th>الفترة</th><th>TIR%</th><th>متوسط</th><th>منخفض</th><th>طبيعي</th><th>مرتفع</th></tr>
-      </thead>
-      <tbody id="twoweekRows">
-        <tr><td colspan="6" class="small">سيتم تقسيم الفترة المختارة إلى أسابيعين متتالية.</td></tr>
-      </tbody>
-    </table>
-  </section>
-
   <!-- جدول تفصيلي -->
   <section class="card">
-    <h3 style="margin:0 0 8px">الجدول التفصيلي</h3>
-    <table class="table" id="tbl">
+    <table class="table">
       <thead>
         <tr>
           <th>التاريخ</th>
@@ -166,14 +115,6 @@ input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);b
       </tbody>
     </table>
   </section>
-
-  <!-- تعليقات الطبيب -->
-  <section class="card">
-    <h3 style="margin:0 0 8px">تعليقات الطبيب على الفترة</h3>
-    <textarea id="doctorComment" rows="4" placeholder="اكتبِ ملاحظات الطبيب على الفترة الحالية..."></textarea>
-    <div class="actions" style="margin-top:8px"><button id="saveComment" class="btn-main">حفظ التعليق</button></div>
-    <div class="notes-list" id="commentsList"></div>
-  </section>
 </main>
 
 <!-- مكتبات خارجية (مرة واحدة فقط) -->
@@ -181,9 +122,10 @@ input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);b
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <script type="module">
+/* Firebase */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, getDoc, setDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig={apiKey:"AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",authDomain:"child-glucose-tracker.firebaseapp.com",projectId:"child-glucose-tracker",storageBucket:"child-glucose-tracker.firebasestorage.app",messagingSenderId:"294563325904",appId:"1:294563325904:web:39562550bf305fc01abbd5"};
 const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getFirestore(app);
@@ -194,19 +136,14 @@ const order=['preBreakfast','postBreakfast','preLunch','postLunch','preDinner','
 
 let uid=null, initChildId=new URL(location.href).searchParams.get('child');
 let cachedDetailed=[];
-let currentChild=null, currentFrom=null, currentTo=null;
-
-// مخططات — مرجع عالمي لمنع التعارض
-const w=window;
-w.chartDaily ??= null;
-w.chartSlots ??= null;
+/* مخططات — مرجع عالمي لمنع التعارض */
+window.chartDaily=null; window.chartSlots=null;
 
 onAuthStateChanged(auth, async (u)=>{
   if(!u){ location.href='index.html'; return; }
   uid=u.uid; await loadChildren(); setDefaults();
-  if(initChildId){ const opt=[...$('#childSel').options].find(o=>o.value===initChildId); if(opt){ $('#childSel').value=initChildId; $('#childSel').disabled=true; showVisitAlert(); } }
+  if(initChildId){ const opt=[...$('#childSel').options].find(o=>o.value===initChildId); if(opt){ $('#childSel').value=initChildId; $('#childSel').disabled=true; } }
 });
-
 function setDefaults(){ const d=new Date(), iso=d.toISOString().slice(0,10); $('#from').value=iso; $('#to').value=iso; }
 async function loadChildren(){
   const sel=$('#childSel'); sel.innerHTML='<option value="">— تحميل —</option>';
@@ -215,51 +152,30 @@ async function loadChildren(){
   q.forEach(s=>{ const o=document.createElement('option'); o.value=s.id; o.textContent=s.data().name||'بدون اسم'; sel.appendChild(o); });
 }
 
-$('#childSel').addEventListener('change', showVisitAlert);
-function showVisitAlert(){
-  const id=$('#childSel').value; if(!id) return $('#visitAlert').style.display='none';
-  getDoc(doc(db,'users',uid,'children',id)).then(s=>{
-    const c=s.data()||{}; currentChild=c;
-    const visit=c.doctorVisitDate;
-    const todayISO=new Date().toISOString().slice(0,10);
-    if(visit){
-      const diffDays=Math.ceil((new Date(visit)-new Date(todayISO))/(1000*60*60*24));
-      $('#visitAlert').style.display='block';
-      $('#visitAlert').textContent = (diffDays<=2 && diffDays>=0)
-        ? ('موعد الزيارة القادمة: '+visit+' — باقي '+diffDays+' يوم.')
-        : ('موعد الزيارة القادمة: '+visit);
-    }else $('#visitAlert').style.display='none';
-  });
-}
-
 $('#btnPrint').addEventListener('click', ()=>window.print());
-$('#run').addEventListener('click', buildReport);
 $('#btnXLSX').addEventListener('click', exportXLSX);
-$('#saveComment').addEventListener('click', saveDoctorComment);
+$('#run').addEventListener('click', buildReport);
 
 async function buildReport(){
   const id=$('#childSel').value, from=$('#from').value, to=$('#to').value;
   if(!id||!from||!to){ alert('اختاري الطفل وحددي الفترة'); return; }
-  currentFrom=from; currentTo=to;
 
-  // بيانات الطفل + كتابة السطر العلوي بدون backticks لتفادي أخطاء اللصق
-  const cs=await getDoc(doc(db,'users',uid,'children',id)); const c=cs.data()||{}; currentChild=c;
+  // بيانات الطفل — سطر مختصر
+  const cs=await getDoc(doc(db,'users',uid,'children',id)); const c=cs.data()||{};
   const name=(c.name||'—'), wt=(c.weight??'—'), ht=(c.height??'—'), lo=(c.lowThreshold??'—'), hi=(c.highThreshold??'—');
   $('#meta').innerHTML='الاسم: '+name+' • الوزن: '+wt+' كجم • الطول: '+ht+' سم • حدود: منخفض &lt; '+lo+' — مرتفع &gt; '+hi+' • الفترة: '+from+' → '+to;
 
+  // جلب القياسات
   const col=collection(db,'users',uid,'children',id,'measurements');
   const qy=query(col, where('date','>=',from), where('date','<=',to), orderBy('date','asc'));
   const qs=await getDocs(qy);
 
-  let total=0,cLow=0,cOk=0,cHigh=0,sum=0,minR=Infinity,maxR=-Infinity,minD='—',maxD='—';
+  let total=0,cLow=0,cOk=0,cHigh=0,sum=0, minR=Infinity, maxR=-Infinity, minD='—', maxD='—';
   const slotAgg={}; order.forEach(k=>slotAgg[k]={sum:0,count:0});
   cachedDetailed=[];
-
-  let mealTotal=0, corrTotal=0;
-  const perDayDose=new Map();
-
   const dailyAvgLabels=[]; const dailyAvgValues=[];
   const tbody=$('#rows'); tbody.innerHTML='';
+
   if(qs.empty){ tbody.innerHTML='<tr><td colspan="10" class="small">لا توجد قراءات في هذه الفترة.</td></tr>'; }
   else{
     qs.forEach(s=>{
@@ -269,7 +185,6 @@ async function buildReport(){
       const tdDate=document.createElement('td'); tdDate.className='date'; tdDate.textContent=d.date; tr.appendChild(tdDate);
 
       const rowExport={date:d.date};
-      let dayMeal=0, dayCorr=0;
 
       order.forEach(slot=>{
         const r=readings[slot]; const td=document.createElement('td');
@@ -280,123 +195,100 @@ async function buildReport(){
           if(r.status==='low')cLow++; else if(r.status==='high')cHigh++; else cOk++;
           if(val<minR){minR=val; minD=d.date;} if(val>maxR){maxR=val; maxD=d.date;}
           daySum+=val; dayCnt++;
-
           slotAgg[slot].sum+=val; slotAgg[slot].count++;
 
           const cls=(r.status==='low')?'low':((r.status==='high')?'high':'ok');
-          const badge='<span class="badge '+cls+'">'+(cls==='ok'?'طبيعي':(cls==='low'?'منخفض':'مرتفع'))+'</span>';
+          const statusName=(cls==='ok')?'طبيعي':((cls==='low')?'منخفض':'مرتفع');
+          const badge='<span class="badge '+cls+'">'+statusName+'</span>';
           const meal=(r.mealDose!=null)?('جرعة: '+r.mealDose+'U'):'';
           const corr=(r.correctionGiven!=null)?('تصحيحي: '+r.correctionGiven+'U'):'';
           const note=r.note||r.raisedWith||'';
-          td.innerHTML=
-            '<div><b>'+r.value+'</b> '+badge+'</div>'+
-            (meal?('<div class="small">'+meal+'</div>'):'')+
-            (corr?('<div class="small">'+corr+'</div>'):'')+
-            (note?('<div class="small">ملاحظة: '+escapeHTML(note)+'</div>'):'');
-          rowExport[slot]= (r.value+(meal?(' | '+meal):'')+(corr?(' | '+corr):'')+(note?(' | ملاحظة: '+note):''));
-
-          if(r.mealDose!=null){ mealTotal+=Number(r.mealDose); dayMeal+=Number(r.mealDose); }
-          if(r.correctionGiven!=null){ corrTotal+=Number(r.correctionGiven); dayCorr+=Number(r.correctionGiven); }
+          td.innerHTML='<div><b>'+r.value+'</b> '+badge+'</div>'+
+                       (meal?('<div class="small">'+meal+'</div>'):'')+
+                       (corr?('<div class="small">'+corr+'</div>'):'')+
+                       (note?('<div class="small">ملاحظة: '+escapeHTML(note)+'</div>'):'');
+          rowExport[slot]= r.value+(meal?(' | '+meal):'')+(corr?(' | '+corr):'')+(note?(' | ملاحظة: '+note):'');
         }
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
       cachedDetailed.push(rowExport);
 
-      perDayDose.set(d.date,{meal:dayMeal,corr:dayCorr});
       dailyAvgLabels.push(d.date);
-      dailyAvgValues.push(dayCnt? (daySum/dayCnt).toFixed(2): null);
+      dailyAvgValues.push(dayCnt? Number((daySum/dayCnt).toFixed(2)) : null);
     });
   }
 
+  // ملخص
   $('#s_total').textContent=total; $('#s_low').textContent=cLow; $('#s_ok').textContent=cOk; $('#s_high').textContent=cHigh;
   const tir= total? Math.round((cOk/total)*100) : 0; $('#s_tir').textContent=(tir+'%');
-  const avg= total? (sum/total).toFixed(1) : '—'; $('#s_avg').textContent=avg;
+  $('#s_avg').textContent= total? (sum/total).toFixed(1) : '—';
   $('#s_minmax').textContent = (Number.isFinite(minR)&&Number.isFinite(maxR)) ? (minR+' ('+minD+') / '+maxR+' ('+maxD+')') : '—';
 
   renderCharts(dailyAvgLabels, dailyAvgValues, slotAgg);
-  buildTwoWeekCompare(from, to);
-
-  await loadDoctorComments(id, from, to);
-
-  const daysWithData=Math.max(perDayDose.size,1);
-  $('#m_meal_total').textContent=mealTotal.toFixed(1);
-  $('#m_corr_total').textContent=corrTotal.toFixed(1);
-  $('#m_meal_avg').textContent=(mealTotal/daysWithData).toFixed(2);
-  $('#m_corr_avg').textContent=(corrTotal/daysWithData).toFixed(2);
 }
 
-function renderCharts(dailyLabels, dailyValues, slotAgg){
-  const ctx1=$('#chartDaily'); const ctx2=$('#chartSlots');
-  if(w.chartDaily) w.chartDaily.destroy();
-  if(w.chartSlots) w.chartSlots.destroy();
+/* مخططات — نسخة مبسطة ونظيفة (بدون أي template-literals) */
+function renderCharts(dailyLabels, dailyValues, slotAgg) {
+  const ctx1=document.querySelector('#chartDaily');
+  const ctx2=document.querySelector('#chartSlots');
 
-  w.chartDaily=new Chart(ctx1,{type:'line',data:{
-      labels:dailyLabels,
-      datasets:[{label:'متوسط اليوم (mmol/L)',data:dailyValues,borderColor:'#0ea5e9',backgroundColor:'rgba(14,165,233,.15)',tension:.3,spanGaps:true}]
+  if (window.chartDaily)  window.chartDaily.destroy();
+  if (window.chartSlots)  window.chartSlots.destroy();
+
+  window.chartDaily = new Chart(ctx1, {
+    type: 'line',
+    data: {
+      labels: dailyLabels,
+      datasets: [{
+        label: 'متوسط اليوم (mmol/L)',
+        data: dailyValues,
+        borderColor: '#0ea5e9',
+        backgroundColor: 'rgba(14,165,233,.15)',
+        tension: 0.3,
+        spanGaps: true
+      }]
     },
-    options:{plugins:{legend:{display:true}},scales:{x:{ticks:{autoSkip:true,maxTicksLimit:14}}}}
-  );
+    options: {
+      plugins: { legend: { display: true } },
+      scales: { x: { ticks: { autoSkip: true, maxTicksLimit: 14 } } }
+    }
+  });
 
-  const slotLabels=order.map(k=>labels[k]);
-  const slotMeans=order.map(k=>{const a=slotAgg[k]; return a.count?(a.sum/a.count).toFixed(2):0;});
-  w.chartSlots=new Chart(ctx2,{type:'bar',data:{
-      labels:slotLabels,
-      datasets:[{label:'متوسط الوقت',data:slotMeans,backgroundColor:'#6ee7b7',borderColor:'#059669'}]
+  const slotLabels = order.map(function(k){ return labels[k]; });
+  const slotMeans  = order.map(function(k){
+    const a = slotAgg[k] || { sum:0, count:0 };
+    return a.count ? Number((a.sum/a.count).toFixed(2)) : 0;
+  });
+
+  window.chartSlots = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: slotLabels,
+      datasets: [{
+        label: 'متوسط الوقت',
+        data: slotMeans,
+        backgroundColor: '#6ee7b7',
+        borderColor: '#059669'
+      }]
     },
-    options:{plugins:{legend:{display:true}},scales:{x:{ticks:{autoSkip:false}}}}
-  );
-}
-
-function buildTwoWeekCompare(from, to){
-  const tbody=$('#twoweekRows'); tbody.innerHTML='';
-  const start=new Date(from); const end=new Date(to);
-  const blocks=[];
-  let bStart=new Date(start);
-  while(bStart<=end){
-    let bEnd=new Date(bStart); bEnd.setDate(bEnd.getDate()+13); if(bEnd>end) bEnd=new Date(end);
-    blocks.push([fmt(bStart), fmt(bEnd)]);
-    bStart.setDate(bStart.getDate()+14);
-  }
-  if(blocks.length===0){ tbody.innerHTML='<tr><td colspan="6" class="small">لا توجد فترات.</td></tr>'; return; }
-
-  const rows=[...document.querySelectorAll('#rows tr')].map(tr=>{
-    const tds=tr.querySelectorAll('td'); if(tds.length<2)return null;
-    const date=tds[0].textContent.trim(); if(!date||date==='—')return null;
-    const values=[...tds].slice(1).map(td=>{
-      const v=td.querySelector('b')?.textContent;
-      const stEl=td.querySelector('.badge'); const st=stEl? (stEl.classList.contains('low')?'low':(stEl.classList.contains('high')?'high':'ok')) : null;
-      return v?{value:Number(v),status:st}:null;
-    });
-    return {date,values};
-  }).filter(Boolean);
-
-  const calcBlock=(d1,d2)=>{
-    let t=0,low=0,ok=0,high=0,s=0;
-    rows.forEach(r=>{
-      const d=new Date(r.date);
-      if(d>=new Date(d1)&&d<=new Date(d2)){
-        r.values.forEach(x=>{
-          if(x){ t++; s+=x.value; if(x.status==='low')low++; else if(x.status==='high')high++; else ok++; }
-        });
-      }
-    });
-    return {t,low,ok,high,avg: t? (s/t).toFixed(2) : '—', tir: t? Math.round((ok/t)*100): 0};
-  };
-
-  blocks.forEach(([a,b])=>{
-    const st=calcBlock(a,b);
-    const tr=document.createElement('tr');
-    tr.innerHTML='<td>'+a+' → '+b+'</td><td>'+st.tir+'%</td><td>'+st.avg+'</td><td>'+st.low+'</td><td>'+st.ok+'</td><td>'+st.high+'</td>';
-    tbody.appendChild(tr);
+    options: {
+      plugins: { legend: { display: true } },
+      scales: { x: { ticks: { autoSkip: false } } }
+    }
   });
 }
 
+/* تصدير Excel */
 function exportXLSX(){
   const childText=$('#childSel').selectedOptions[0]?.textContent||'child';
   const from=$('#from').value, to=$('#to').value;
 
-  const summaryData=[
+  const head=['التاريخ', ...order.map(k=>labels[k])];
+  const rows=cachedDetailed.map(r=>[r.date, ...order.map(k=>r[k]??'')]);
+
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
     ['الفترة', from+' → '+to],
     ['عدد القراءات', $('#s_total').textContent],
     ['منخفض', $('#s_low').textContent],
@@ -405,49 +297,14 @@ function exportXLSX(){
     ['داخل النطاق %', $('#s_tir').textContent],
     ['متوسط القراءة', $('#s_avg').textContent],
     ['أعلى / أقل', $('#s_minmax').textContent]
-  ];
-  const head=['التاريخ', ...order.map(k=>labels[k])];
-  const rows=cachedDetailed.map(r=>[r.date, ...order.map(k=>r[k]??'')]);
+  ]), 'Summary');
 
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryData), 'Summary');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([head,...rows]), 'Detailed');
   XLSX.writeFile(wb, 'doctor_followup_'+childText+'_'+from+'_to_'+to+'.xlsx');
 }
 
-/* تعليقات الطبيب */
-async function loadDoctorComments(childId, from, to){
-  const key=(from+'_'+to);
-  const col=collection(db,'users',uid,'children',childId,'doctorNotes');
-  const qs=await getDocs(col);
-  const all=[]; qs.forEach(d=>{ all.push({id:d.id,...d.data()}); });
-  const current=all.find(x=>x.period===key);
-  $('#doctorComment').value=current?.text||'';
-  all.sort((a,b)=> (b.createdAt||'').localeCompare(a.createdAt||'')); // الأحدث أولًا
-  const list=$('#commentsList'); list.innerHTML='';
-  all.slice(0,3).forEach(x=>{
-    const div=document.createElement('div');
-    div.className='note-item';
-    div.textContent='['+(x.period||'—')+'] '+(x.text||'');
-    list.appendChild(div);
-  });
-  $('#saveComment').dataset.child=childId;
-  $('#saveComment').dataset.period=key;
-}
-
-async function saveDoctorComment(){
-  const childId=this.dataset.child, period=this.dataset.period;
-  if(!childId||!period){ alert('اعرضي المتابعة أولًا ثم احفظي التعليق.'); return; }
-  const text=$('#doctorComment').value.trim();
-  const col=collection(db,'users',uid,'children',childId,'doctorNotes');
-  await setDoc(doc(col,period),{text,period,createdAt:new Date().toISOString()});
-  alert('تم حفظ تعليق الطبيب ✅');
-  await loadDoctorComments(childId, currentFrom, currentTo);
-}
-
-/* Utilities */
-function fmt(d){ const x=new Date(d); return x.toISOString().slice(0,10); }
-function escapeHTML(str){ return (str||'').replace(/[&<>"']/g,(c)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+/* أدوات */
+function escapeHTML(str){ return (str||'').replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);}); }
 </script>
 </body>
 </html>
