@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>تقرير القياسات — متابعة سكر الأطفال</title>
+<title>تقرير القياسات — عرض أفقي حسب التاريخ</title>
 <style>
 :root{
   --brand:#0ea5e9;--brand2:#6ee7b7;--line:#e5e7eb;--ink:#0f172a;--muted:#6b7280;
@@ -15,39 +15,36 @@ header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(-
 main{max-width:1200px;margin:auto;padding:18px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 6px 24px rgba(0,0,0,.04);margin-bottom:14px}
 
-/* form */
 label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
 input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
 .grid{display:grid;gap:12px}
 .g4{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:900px){.g4{grid-template-columns:1fr 1fr}}
 
-/* table */
 .table{width:100%;border-collapse:separate;border-spacing:0}
-.table th,.table td{border:1px solid var(--line);padding:10px;vertical-align:top}
-.table th{background:#f8fafc;font-weight:800;text-align:center}
-.table td.time{background:#fbfdff;white-space:nowrap;font-weight:700}
-.headdate{font-weight:900}
+.table th,.table td{border:1px solid var(--line);padding:10px;vertical-align:top;text-align:center}
+.table thead th{background:#f8fafc;font-weight:800}
+.table td.date{background:#fbfdff;white-space:nowrap;font-weight:800}
+
 .cell{display:flex;flex-direction:column;gap:4px}
 .line{font-size:13px}
-.val{font-weight:800}
-.state.ok{color:var(--ok);background:var(--okbg);padding:2px 8px;border-radius:999px;width:max-content}
-.state.low{color:var(--low);background:var(--lowbg);padding:2px 8px;border-radius:999px;width:max-content}
-.state.high{color:var(--high);background:var(--highbg);padding:2px 8px;border-radius:999px;width:max-content}
+.state{padding:2px 8px;border-radius:999px;width:max-content;margin:auto}
+.state.ok{color:var(--ok);background:var(--okbg)}
+.state.low{color:var(--low);background:var(--lowbg)}
+.state.high{color:var(--high);background:var(--highbg)}
 .note{color:var(--muted)}
-.meta{color:#0f172ab3}
 
-/* print */
 @media print{
   header,.controls{display:none!important}
   body{background:#fff}
   .card{border:0;box-shadow:none;padding:0;margin:0}
+  .table th,.table td{padding:6px}
 }
 </style>
 </head>
 <body>
 <header>
-  <div>تقرير القياسات</div>
+  <div>تقرير القياسات (بالعرض حسب التاريخ)</div>
   <div>
     <a href="dashboard.html" style="color:#fff;text-decoration:none;border:1px solid #ffffff66;padding:8px 12px;border-radius:10px">رجوع</a>
     <button id="btnPrint" style="margin-inline-start:8px;border:none;background:#ffffff22;color:#fff;border:1px solid #ffffff66;padding:8px 12px;border-radius:10px;cursor:pointer">طباعة</button>
@@ -73,7 +70,7 @@ input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-ra
         <button id="run" style="width:100%;padding:10px 12px;border:none;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer">عرض التقرير</button>
       </div>
     </div>
-    <div id="childMeta" class="meta" style="margin-top:8px"></div>
+    <div id="childMeta" style="margin-top:8px;color:#0f172ab3"></div>
   </section>
 
   <section id="reportBox" class="card" style="display:none">
@@ -82,7 +79,6 @@ input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-ra
 </main>
 
 <script type="module">
-/* Firebase */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
@@ -138,55 +134,51 @@ async function loadChildren(){
 $('#btnPrint').addEventListener('click', ()=>window.print());
 $('#run').addEventListener('click', buildReport);
 
-/* build report grid: rows = times (يمين), columns = dates */
+/* بناء جدول أفقي: كل صف = تاريخ، الأعمدة = الأوقات */
 async function buildReport(){
   const childId=$('#childSel').value, from=$('#from').value, to=$('#to').value;
   if(!childId || !from || !to) return alert('اختاري الطفل وحددي الفترة');
 
-  // بيانات الطفل (للهيدر الصغير)
+  // بيانات الطفل لعرضها كتعريف
   const cs=await getDoc(doc(db,'users',uid,'children',childId));
   const c=cs.data()||{};
-  const info=`الاسم: ${c.name||'—'} • العمر التقريبي: ${age(c.dob)||'—'} • الوزن: ${c.weight??'—'} كجم • الطول: ${c.height??'—'} سم • حدود: منخفض &lt; ${c.lowThreshold??'—'} — مرتفع &gt; ${c.highThreshold??'—'}`;
-  $('#childMeta').innerHTML=info;
+  $('#childMeta').innerHTML = `
+    الاسم: ${c.name||'—'} • الوزن: ${c.weight??'—'} كجم • الطول: ${c.height??'—'} سم
+    • حدود: منخفض &lt; ${c.lowThreshold??'—'} — مرتفع &gt; ${c.highThreshold??'—'}
+  `;
 
-  // بنجيب الأيام بين from و to
   const dates = enumerateDates(from,to);
-  // fetch docs parallel
   const snaps = await Promise.all(dates.map(d=>getDoc(doc(db,'users',uid,'children',childId,'measurements',d))));
-  const byDate = {};
-  dates.forEach((d,i)=>{ byDate[d] = snaps[i].data() || { date:d, readings:{} }; });
+  const byDate = {}; dates.forEach((d,i)=> byDate[d] = snaps[i].data() || { date:d, readings:{} });
 
-  // بناء الجدول
-  const tbl = $('#rep'); tbl.innerHTML='';
-  // THEAD: أول خلية فاضية للـ "الوقت" (يمين)، ثم تواريخ
-  const thead = document.createElement('thead');
-  const htr = document.createElement('tr');
-  const th0 = document.createElement('th'); th0.textContent='الوقت'; htr.appendChild(th0);
-  dates.forEach(d=>{
-    const th=document.createElement('th'); th.innerHTML=`<div class="headdate">${d}</div>`;
-    htr.appendChild(th);
+  const tbl=$('#rep'); tbl.innerHTML='';
+  // رأس الأعمدة: التاريخ + الأوقات
+  const thead=document.createElement('thead');
+  const htr=document.createElement('tr');
+  const thDate=document.createElement('th'); thDate.textContent='التاريخ'; htr.appendChild(thDate);
+  order.forEach(slot=>{
+    const th=document.createElement('th'); th.textContent=labels[slot]; htr.appendChild(th);
   });
   thead.appendChild(htr); tbl.appendChild(thead);
 
-  // TBODY: لكل وقت صف؛ العمود الأول هو اسم الوقت (يمين)
-  const tbody = document.createElement('tbody');
-  order.forEach(slot=>{
+  // الجسم: صف لكل تاريخ
+  const tbody=document.createElement('tbody');
+  dates.forEach(d=>{
     const tr=document.createElement('tr');
-    const tTime=document.createElement('td'); tTime.className='time'; tTime.textContent = labels[slot]; tr.appendChild(tTime);
-
-    dates.forEach(d=>{
-      const r = (byDate[d].readings||{})[slot];
+    const tdDate=document.createElement('td'); tdDate.className='date'; tdDate.textContent=d; tr.appendChild(tdDate);
+    order.forEach(slot=>{
+      const r=(byDate[d].readings||{})[slot];
       const td=document.createElement('td');
       if(!r || r.value==null){
-        td.innerHTML = '<div class="note">—</div>';
+        td.innerHTML = '—'; // القياس غير موجود
       }else{
         const state = r.status==='low'?'low':(r.status==='high'?'high':'ok');
-        const corr  = r.correctionDoses!=null ? `جرعة تصحيحي: ${r.correctionDoses}` : null;
-        const note  = r.note || r.raisedWith || null;
+        const corr  = r.correctionDoses!=null ? `جرعة تصحيحي: ${r.correctionDoses}` : '';
+        const note  = r.note || r.raisedWith || '';
         td.innerHTML = `
           <div class="cell">
-            <div class="line val">القياس: ${r.value}</div>
-            ${corr?`<div class="line"> ${corr}</div>`:''}
+            <div class="line"><b>القياس:</b> ${r.value}</div>
+            ${corr?`<div class="line">${corr}</div>`:''}
             ${note?`<div class="line note">ملاحظة: ${escapeHTML(note)}</div>`:''}
             <div class="line state ${state}">${stateLabel(state)}</div>
           </div>`;
@@ -204,12 +196,6 @@ function enumerateDates(from,to){
   const res=[]; let d=new Date(from); const end=new Date(to);
   while(d<=end){ res.push(d.toISOString().slice(0,10)); d.setDate(d.getDate()+1); }
   return res;
-}
-function age(dob){
-  if(!dob) return null;
-  const d=new Date(dob), now=new Date(); let y=now.getFullYear()-d.getFullYear();
-  const m=now.getMonth()-d.getMonth(); const dm=now.getDate()-d.getDate();
-  if(m<0 || (m===0 && dm<0)) y--; return y>=0?`${y} سنة`:'—';
 }
 function stateLabel(s){ return s==='low'?'⬇︎ منخفض':(s==='high'?'⬆︎ مرتفع':'✔️ طبيعي'); }
 function escapeHTML(str){ return str.replace(/[&<>"']/g,(c)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
