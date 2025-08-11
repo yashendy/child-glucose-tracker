@@ -117,7 +117,7 @@ let uid=null;
 onAuthStateChanged(auth, async (u)=>{
   if(!u){ location.href='index.html'; return; }
   uid=u.uid;
-  $('#hello').textContent=`مرحبًا ${u.displayName||''} — UID: ${u.uid}`;
+  $('#hello').textContent=`مرحبًا ${u.displayName||''};
   await loadParent();
   await loadKids();
 });
