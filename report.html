@@ -28,7 +28,7 @@ input,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-rad
 /* الهيدر الفارغ أعلى الورقة */
 .blank-header{display:flex;flex-wrap:wrap;gap:18px;row-gap:10px;margin:10px 0 12px;font-weight:700}
 .blank-header .bh-item{display:inline-block;min-width:230px}
-.blank-header .line{display:inline-block;border-bottom:1px dashed #9aa6b2;min-width:150px;height:1.2em;vertical-align:middle;margin-inline-start:8px}
+.blank-header .line{display:inline-block;border-bottom:1px dashed #9aa6b2;min-width:160px;height:1.2em;vertical-align:middle;margin-inline-start:8px}
 
 /* الجدول */
 .table{width:100%;border-collapse:separate;border-spacing:0}
@@ -38,12 +38,12 @@ input,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-rad
   vertical-align:top;
   text-align:right; /* محاذاة يمين */
 }
-.table thead th{background:#f8fafc;font-weight:800;text-align:right} /* يمين للهيدر كمان */
+.table thead th{background:#f8fafc;font-weight:800;text-align:right}
 .table td.date{background:#fbfdff;white-space:nowrap;font-weight:800}
 
 .cell{display:flex;flex-direction:column;gap:3px}
 .line{font-size:12px}
-.state{padding:2px 8px;border-radius:999px;width:max-content;margin:0} /* بدون تمركز وسط */
+.state{padding:2px 8px;border-radius:999px;width:max-content;margin:0}
 .state.ok{color:var(--ok);background:var(--okbg)}
 .state.low{color:var(--low);background:var(--lowbg)}
 .state.high{color:var(--high);background:var(--highbg)}
@@ -93,7 +93,7 @@ input,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-rad
 
     <!-- يظهر فقط عند طباعة الورقة الفارغة -->
     <div id="blankHeader" class="blank-header" style="display:none">
-      <!-- يتم ملؤه برمجيًا -->
+      <!-- يُملأ برمجيًا -->
     </div>
   </section>
 
@@ -203,13 +203,15 @@ async function buildReport(){
         td.textContent='—';
       }else{
         const state = r.status==='low'?'low':(r.status==='high'?'high':'ok');
-        const corr  = r.correctionDoses!=null ? `جرعة تصحيحي: ${r.correctionDoses}` : '';
+        const meal  = r.mealDose!=null ? `جرعة: ${r.mealDose}U` : '';
+        const corr  = r.correctionGiven!=null ? `تصحيحي: ${r.correctionGiven}U` : '';
         const note  = r.note || r.raisedWith || '';
         td.innerHTML = `
           <div class="cell">
             <div class="line"><b>القياس:</b> ${r.value}</div>
             ${corr?`<div class="line">${corr}</div>`:''}
             ${note?`<div class="line note">ملاحظة: ${escapeHTML(note)}</div>`:''}
+            ${meal?`<div class="line note">${meal}</div>`:''}
             <div class="line state ${state}">${stateLabel(state)}</div>
           </div>`;
       }
@@ -227,11 +229,10 @@ async function printBlankSheet(){
   const childId=$('#childSel').value;
   if(!childId) return alert('اختاري الطفل أولاً');
 
-  // جلب بيانات الطفل لوضعها في الهيدر الفارغ (لكن بخانات كتابة)
+  // جلب بيانات الطفل لوضعها في الهيدر الفارغ (مع خانات كتابة)
   const cs=await getDoc(doc(db,'users',uid,'children',childId));
   const c=cs.data()||{};
 
-  // إخفاء childMeta وإظهار blankHeader
   $('#childMeta').innerHTML='';
   const bh = $('#blankHeader');
   bh.innerHTML = `
@@ -270,7 +271,6 @@ async function printBlankSheet(){
   tbl.appendChild(tbody);
 
   $('#reportBox').style.display='block';
-  // اطبع مباشرة
   setTimeout(()=>window.print(), 50);
 }
 
