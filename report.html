@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>تقرير القياسات — عرض أفقي حسب التاريخ</title>
+<title>تقرير القياسات — عرض أفقي</title>
 <style>
 :root{
   --brand:#0ea5e9;--brand2:#6ee7b7;--line:#e5e7eb;--ink:#0f172a;--muted:#6b7280;
@@ -10,44 +10,52 @@
   --okbg:#ecfdf5;--lowbg:#fff7ed;--highbg:#fee2e2;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif}
-header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:14px;display:flex;justify-content:space-between;align-items:center;z-index:5}
-main{max-width:1200px;margin:auto;padding:18px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 6px 24px rgba(0,0,0,.04);margin-bottom:14px}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 system-ui,"Tajawal","Noto Sans Arabic",sans-serif}
+header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;z-index:5}
+header .btn{color:#fff;text-decoration:none;border:1px solid #ffffff66;padding:8px 12px;border-radius:10px;margin-inline-start:6px;background:#ffffff22}
+main{max-width:1200px;margin:auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 6px 24px rgba(0,0,0,.04);margin-bottom:12px}
 
-label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
-.grid{display:grid;gap:12px}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+input,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.grid{display:grid;gap:10px}
 .g4{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:900px){.g4{grid-template-columns:1fr 1fr}}
 
 .table{width:100%;border-collapse:separate;border-spacing:0}
-.table th,.table td{border:1px solid var(--line);padding:10px;vertical-align:top;text-align:center}
+.table th,.table td{border:1px solid var(--line);padding:8px;vertical-align:top;text-align:center}
 .table thead th{background:#f8fafc;font-weight:800}
 .table td.date{background:#fbfdff;white-space:nowrap;font-weight:800}
 
-.cell{display:flex;flex-direction:column;gap:4px}
-.line{font-size:13px}
+.cell{display:flex;flex-direction:column;gap:3px}
+.line{font-size:12px}
 .state{padding:2px 8px;border-radius:999px;width:max-content;margin:auto}
 .state.ok{color:var(--ok);background:var(--okbg)}
 .state.low{color:var(--low);background:var(--lowbg)}
 .state.high{color:var(--high);background:var(--highbg)}
 .note{color:var(--muted)}
 
+.print-row{display:flex;gap:6px}
+#childMeta{color:#0f172ab3;font-size:12px;margin-top:6px}
+
+/* الطباعة: A4 Landscape + تصغير الخط والمسافات لتكفي 7 أيام */
 @media print{
+  @page{ size: A4 landscape; margin: 8mm }
   header,.controls{display:none!important}
-  body{background:#fff}
+  body{background:#fff;font-size:11px}
   .card{border:0;box-shadow:none;padding:0;margin:0}
-  .table th,.table td{padding:6px}
+  .table th,.table td{padding:4px}
+  .line{font-size:10px}
 }
 </style>
 </head>
 <body>
 <header>
-  <div>تقرير القياسات (بالعرض حسب التاريخ)</div>
+  <div>تقرير القياسات (أفقي)</div>
   <div>
-    <a href="dashboard.html" style="color:#fff;text-decoration:none;border:1px solid #ffffff66;padding:8px 12px;border-radius:10px">رجوع</a>
-    <button id="btnPrint" style="margin-inline-start:8px;border:none;background:#ffffff22;color:#fff;border:1px solid #ffffff66;padding:8px 12px;border-radius:10px;cursor:pointer">طباعة</button>
+    <a class="btn" href="dashboard.html">رجوع</a>
+    <button id="btnBlank" class="btn" type="button">طباعة ورقة فارغة</button>
+    <button id="btnPrint" class="btn" type="button">طباعة التقرير</button>
   </div>
 </header>
 
@@ -67,10 +75,10 @@ input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-ra
         <input id="to" type="date">
       </div>
       <div style="display:flex;align-items:end">
-        <button id="run" style="width:100%;padding:10px 12px;border:none;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer">عرض التقرير</button>
+        <button id="run" style="width:100%;padding:10px;border:none;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer">عرض التقرير</button>
       </div>
     </div>
-    <div id="childMeta" style="margin-top:8px;color:#0f172ab3"></div>
+    <div id="childMeta"></div>
   </section>
 
   <section id="reportBox" class="card" style="display:none">
@@ -79,6 +87,7 @@ input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-ra
 </main>
 
 <script type="module">
+/* ---------- Firebase ---------- */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
@@ -95,6 +104,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
+/* ---------- Helpers ---------- */
 const $=s=>document.querySelector(s);
 const labels={
   preBreakfast:'قبل الإفطار', postBreakfast:'بعد الإفطار',
@@ -106,6 +116,7 @@ const order = ['preBreakfast','postBreakfast','preLunch','postLunch','preDinner'
 
 let uid=null, initChildId=new URL(location.href).searchParams.get('child');
 
+/* ---------- Auth ---------- */
 onAuthStateChanged(auth, async (u)=>{
   if(!u){ location.href='index.html'; return; }
   uid=u.uid;
@@ -117,11 +128,11 @@ onAuthStateChanged(auth, async (u)=>{
   }
 });
 
+/* ---------- UI init ---------- */
 function setDefaults(){
   const d=new Date(), iso=d.toISOString().slice(0,10);
   $('#from').value=iso; $('#to').value=iso;
 }
-
 async function loadChildren(){
   const sel=$('#childSel'); sel.innerHTML='<option value="">— تحميل —</option>';
   const q=await getDocs(collection(db,'users',uid,'children'));
@@ -131,20 +142,22 @@ async function loadChildren(){
   });
 }
 
+/* ---------- Actions ---------- */
 $('#btnPrint').addEventListener('click', ()=>window.print());
 $('#run').addEventListener('click', buildReport);
+$('#btnBlank').addEventListener('click', printBlankSheet);
 
-/* بناء جدول أفقي: كل صف = تاريخ، الأعمدة = الأوقات */
+/* جدول أفقي: كل صف = تاريخ */
 async function buildReport(){
   const childId=$('#childSel').value, from=$('#from').value, to=$('#to').value;
   if(!childId || !from || !to) return alert('اختاري الطفل وحددي الفترة');
 
-  // بيانات الطفل لعرضها كتعريف
+  // بيانات الطفل لعرضها أعلى التقرير
   const cs=await getDoc(doc(db,'users',uid,'children',childId));
   const c=cs.data()||{};
   $('#childMeta').innerHTML = `
-    الاسم: ${c.name||'—'} • الوزن: ${c.weight??'—'} كجم • الطول: ${c.height??'—'} سم
-    • حدود: منخفض &lt; ${c.lowThreshold??'—'} — مرتفع &gt; ${c.highThreshold??'—'}
+    <b>الطفل:</b> ${c.name||'—'} • <b>الوزن:</b> ${c.weight??'—'} كجم • <b>الطول:</b> ${c.height??'—'} سم
+    • <b>حدود:</b> منخفض &lt; ${c.lowThreshold??'—'} — مرتفع &gt; ${c.highThreshold??'—'}
   `;
 
   const dates = enumerateDates(from,to);
@@ -152,16 +165,14 @@ async function buildReport(){
   const byDate = {}; dates.forEach((d,i)=> byDate[d] = snaps[i].data() || { date:d, readings:{} });
 
   const tbl=$('#rep'); tbl.innerHTML='';
-  // رأس الأعمدة: التاريخ + الأوقات
+  // THEAD
   const thead=document.createElement('thead');
   const htr=document.createElement('tr');
   const thDate=document.createElement('th'); thDate.textContent='التاريخ'; htr.appendChild(thDate);
-  order.forEach(slot=>{
-    const th=document.createElement('th'); th.textContent=labels[slot]; htr.appendChild(th);
-  });
+  order.forEach(slot=>{ const th=document.createElement('th'); th.textContent=labels[slot]; htr.appendChild(th); });
   thead.appendChild(htr); tbl.appendChild(thead);
 
-  // الجسم: صف لكل تاريخ
+  // TBODY
   const tbody=document.createElement('tbody');
   dates.forEach(d=>{
     const tr=document.createElement('tr');
@@ -170,7 +181,7 @@ async function buildReport(){
       const r=(byDate[d].readings||{})[slot];
       const td=document.createElement('td');
       if(!r || r.value==null){
-        td.innerHTML = '—'; // القياس غير موجود
+        td.textContent='—';
       }else{
         const state = r.status==='low'?'low':(r.status==='high'?'high':'ok');
         const corr  = r.correctionDoses!=null ? `جرعة تصحيحي: ${r.correctionDoses}` : '';
@@ -192,6 +203,52 @@ async function buildReport(){
   $('#reportBox').style.display='block';
 }
 
+/* طباعة ورقة فارغة: 7 أيام، التواريخ والقياسات فاضية */
+async function printBlankSheet(){
+  const childId=$('#childSel').value;
+  if(!childId) return alert('اختاري الطفل أولاً');
+
+  // جلب بيانات الطفل لوضعها في الهيدر
+  const cs=await getDoc(doc(db,'users',uid,'children',childId));
+  const c=cs.data()||{};
+  $('#childMeta').innerHTML = `
+    <b>الطفل:</b> ${c.name||'—'} • <b>الوزن:</b> ${c.weight??'—'} كجم • <b>الطول:</b> ${c.height??'—'} سم
+    • <b>حدود:</b> منخفض &lt; ${c.lowThreshold??'—'} — مرتفع &gt; ${c.highThreshold??'—'}
+    • <b>الفترة:</b> ورقة فارغة (٧ أيام)
+  `;
+
+  const tbl=$('#rep'); tbl.innerHTML='';
+  const thead=document.createElement('thead');
+  const htr=document.createElement('tr');
+  const thDate=document.createElement('th'); thDate.textContent='التاريخ'; htr.appendChild(thDate);
+  order.forEach(slot=>{ const th=document.createElement('th'); th.textContent=labels[slot]; htr.appendChild(th); });
+  thead.appendChild(htr); tbl.appendChild(thead);
+
+  const tbody=document.createElement('tbody');
+  for(let i=0;i<7;i++){ // ٧ أيام فارغة
+    const tr=document.createElement('tr');
+    const tdDate=document.createElement('td'); tdDate.className='date'; tdDate.innerHTML='&nbsp;'; tr.appendChild(tdDate);
+    order.forEach(()=>{ // خلايا فارغة للكتابة اليدوية
+      const td=document.createElement('td');
+      td.innerHTML=`
+        <div class="cell">
+          <div class="line">القياس: ________</div>
+          <div class="line">جرعة التصحيحي: ________</div>
+          <div class="line">ملاحظات: __________________________</div>
+          <div class="line">الحالة: ________</div>
+        </div>`;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  }
+  tbl.appendChild(tbody);
+
+  $('#reportBox').style.display='block';
+  // اطبع مباشرة
+  setTimeout(()=>window.print(), 50);
+}
+
+/* Utilities */
 function enumerateDates(from,to){
   const res=[]; let d=new Date(from); const end=new Date(to);
   while(d<=end){ res.push(d.toISOString().slice(0,10)); d.setDate(d.getDate()+1); }
