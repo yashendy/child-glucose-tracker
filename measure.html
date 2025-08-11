@@ -4,29 +4,19 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>تسجيل القياسات — متابعة سكر الأطفال</title>
 <style>
-:root{--brand:#0ea5e9;--brand2:#6ee7b7;--line:#e5e7eb;--ink:#0f172a;--muted:#6b7280;--bg:#f6fbff;--card:#fff;--ok:#ecfdf5;--low:#fff7e6;--high:#ffeef0;--green:#16a34a;--amber:#b45309;--red:#dc2626}
-*{box-sizing:border-box}body{margin:0;font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif;background:var(--bg);color:var(--ink)}
-header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
-main{max-width:1100px;margin:auto;padding:18px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 1px 8px rgba(0,0,0,.05);margin-bottom:14px}
-h2{margin:0 0 10px}
-label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
-select,input,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
-.grid{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr))}
-@media(max-width:900px){.grid{grid-template-columns:1fr}}
-.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.btn{border:none;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
+:root{--brand:#0ea5e9;--brand2:#6ee7b7;--line:#e5e7eb;--ink:#0f172a;--muted:#6b7280;--bg:#f6fbff;--card:#fff;--danger:#ef4444;--warn:#facc15}
+body{margin:0;font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif;background:var(--bg);color:var(--ink)}
+header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:14px;display:flex;justify-content:space-between;align-items:center}
+main{max-width:900px;margin:auto;padding:18px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+input,select{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.btn{padding:10px 14px;border:none;border-radius:8px;font-weight:bold;cursor:pointer}
 .btn.primary{background:var(--brand);color:#fff}
-.btn.gray{background:#eef2f7}
-.note{color:var(--muted);font-size:13px}
-.badge{display:inline-flex;gap:6px;align-items:center;font-weight:800;padding:6px 10px;border-radius:10px}
-.ok{background:var(--ok);color:var(--green)}
-.low{background:var(--low);color:var(--amber)}
-.high{background:var(--high);color:var(--red)}
-.table{width:100%;border-collapse:collapse;margin-top:10px}
-.table th,.table td{border:1px solid var(--line);padding:8px;text-align:center}
-.small{font-size:12px;color:var(--muted)}
-.hide{display:none!important}
+.note{font-size:13px;color:var(--muted)}
+.status-low{color:#92400e;background:#fef3c7;padding:4px 8px;border-radius:6px}
+.status-high{color:#b91c1c;background:#fee2e2;padding:4px 8px;border-radius:6px}
 .toast{position:fixed;bottom:16px;left:16px;background:#111;color:#fff;padding:10px 14px;border-radius:12px;opacity:0;transform:translateY(8px);transition:.3s}
 .toast.show{opacity:1;transform:none}
 </style>
@@ -34,89 +24,40 @@ select,input,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);
 <body>
 <header>
   <div>تسجيل القياسات</div>
-  <div class="row">
-    <a class="btn gray" href="dashboard.html">لوحة التحكم</a>
-    <a class="btn gray" href="child.html">إدارة الأطفال</a>
-  </div>
+  <a href="dashboard.html" class="btn">⬅ رجوع</a>
 </header>
 
 <main>
   <div class="card">
-    <h2>اختيار الطفل والتاريخ</h2>
-    <div class="grid">
-      <div>
-        <label>الطفل</label>
-        <select id="childSel"><option value="">— اختاري الطفل —</option></select>
-        <div class="small" id="thresholdInfo"></div>
-      </div>
-      <div>
-        <label>التاريخ</label>
-        <input id="date" type="date">
-      </div>
-      <div>
-        <label>اختيار الوقت</label>
-        <select id="slot">
-          <option value="">— اختاري الوقت —</option>
-          <option value="beforeSleep">قبل النوم</option>
-          <option value="duringSleep">أثناء النوم</option>
-          <option value="uponWake">عند الاستيقاظ</option>
-          <option value="preBreakfast">قبل الإفطار</option>
-          <option value="postBreakfast">بعد الإفطار</option>
-          <option value="preLunch">قبل الغداء</option>
-          <option value="postLunch">بعد الغداء</option>
-          <option value="preDinner">قبل العشاء</option>
-          <option value="postDinner">بعد العشاء</option>
-        </select>
-      </div>
-    </div>
+    <label>اختر الطفل</label>
+    <select id="childSel"></select>
   </div>
 
   <div class="card">
-    <h2>إدخال القياس</h2>
-    <div class="grid" style="grid-template-columns:1fr 1fr 1fr">
-      <div>
-        <label>القراءة (mmol/L)</label>
-        <input id="reading" type="number" step="0.1" min="0" placeholder="اكتبي القراءة">
-        <div id="stOk" class="badge ok hide">● ضمن المدى</div>
-        <div id="stLow" class="badge low hide">⬇︎ منخفض — يجب الرفع</div>
-        <div id="stHigh" class="badge high hide">⬆︎ مرتفع — يرجى التصحيح</div>
-      </div>
-      <div>
-        <label>ملاحظة</label>
-        <input id="note" placeholder="اختياري — وصف مختصر">
-        <div id="extraLow" class="hide" style="margin-top:8px">
-          <label>اترفع بإيه؟</label>
-          <input id="raisedWith" placeholder="عصير/أقراص جلوكوز...">
-        </div>
-        <div id="extraHigh" class="hide" style="margin-top:8px">
-          <label>عدد جرعات التصحيحي</label>
-          <input id="corrDoses" type="number" min="0" step="1" placeholder="0">
-        </div>
-      </div>
-      <div>
-        <label>&nbsp;</label>
-        <div class="row">
-          <button id="save" class="btn primary">حفظ القياس</button>
-          <button id="clear" class="btn gray">مسح الحقول</button>
-        </div>
-        <div class="small" style="margin-top:8px">سيتم الحفظ داخل اليوم المختار تحت الوقت المختار.</div>
-      </div>
-    </div>
-  </div>
+    <label>التاريخ</label>
+    <input type="date" id="m_date">
 
-  <div class="card">
-    <h2>قراءات اليوم المختار</h2>
-    <table class="table" id="tbl">
-      <thead>
-        <tr>
-          <th>الوقت</th>
-          <th>القراءة</th>
-          <th>الحالة</th>
-          <th>ملاحظات</th>
-        </tr>
-      </thead>
-      <tbody id="rows"><tr><td colspan="4" class="small">اختاري طفلًا وتاريخًا لعرض القراءات.</td></tr></tbody>
-    </table>
+    <label>الوقت</label>
+    <select id="m_time">
+      <option>قبل الإفطار</option>
+      <option>بعد الإفطار</option>
+      <option>قبل الغداء</option>
+      <option>بعد الغداء</option>
+      <option>قبل العشاء</option>
+      <option>بعد العشاء</option>
+      <option>قبل النوم</option>
+      <option>أثناء النوم</option>
+      <option>عند الاستيقاظ</option>
+    </select>
+
+    <label>القياس (mmol/L)</label>
+    <input type="number" step="0.1" id="m_value">
+
+    <div id="status" class="note"></div>
+
+    <div class="row" style="margin-top:10px">
+      <button id="saveBtn" class="btn primary">حفظ القياس</button>
+    </div>
   </div>
 </main>
 
@@ -125,7 +66,7 @@ select,input,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
@@ -133,151 +74,78 @@ const firebaseConfig = {
   projectId: "child-glucose-tracker",
   storageBucket: "child-glucose-tracker.firebasestorage.app",
   messagingSenderId: "294563325904",
-  appId: "1:294563325904:web:39562550bf305fc01abbd5",
-  measurementId: "G-TWC063TD6X"
+  appId: "1:294563325904:web:39562550bf305fc01abbd5"
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
 const $=s=>document.querySelector(s);
-const toast=(m)=>{const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1600);};
+const toast=(m)=>{const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);};
 
-const slotLabels = {
-  beforeSleep:'قبل النوم', duringSleep:'أثناء النوم', uponWake:'عند الاستيقاظ',
-  preBreakfast:'قبل الإفطار', postBreakfast:'بعد الإفطار',
-  preLunch:'قبل الغداء', postLunch:'بعد الغداء',
-  preDinner:'قبل العشاء', postDinner:'بعد العشاء'
-};
-
-let uid=null, thresholds={low:4,high:10}, currentChildId=null, initChildId=null;
-
-// اقرأ child من الرابط
-(function readQuery(){
-  const url=new URL(location.href);
-  initChildId = url.searchParams.get('child'); // ممكن تكون null
-})();
+let uid=null;
+let low=null, high=null;
+const urlParams = new URLSearchParams(location.search);
+const initChildId = urlParams.get('child');
 
 onAuthStateChanged(auth, async (u)=>{
-  if(!u){ location.href='index.html'; return; }
+  if(!u) return location.href='index.html';
   uid=u.uid;
   await loadChildren();
-  setToday();
-
-  // لو في child باللينك وحاضر في القائمة، اختاره آليًا
-  if(initChildId){
-    const opt = Array.from($('#childSel').options).find(o=>o.value===initChildId);
-    if(opt){ $('#childSel').value = initChildId; $('#childSel').dispatchEvent(new Event('change')); }
-  }
 });
 
-function setToday(){
-  const d=new Date(); const iso=d.toISOString().slice(0,10);
-  $('#date').value=iso;
-}
-
 async function loadChildren(){
-  const sel=$('#childSel'); sel.innerHTML='<option value="">— جاري التحميل —</option>';
+  const sel=$('#childSel'); sel.innerHTML='';
   const q=await getDocs(collection(db,'users',uid,'children'));
-  sel.innerHTML='<option value="">— اختاري الطفل —</option>';
   q.forEach(s=>{
     const opt=document.createElement('option');
-    opt.value=s.id; opt.textContent=s.data().name||'بدون اسم';
+    opt.value=s.id; opt.textContent=s.data().name || 'بدون اسم';
     sel.appendChild(opt);
   });
+
+  // اختيار تلقائي للطفل إذا فيه child باللينك
+  if(initChildId){
+    sel.value = initChildId;
+    sel.dispatchEvent(new Event('change'));
+    sel.disabled = true;
+  } else {
+    sel.dispatchEvent(new Event('change'));
+  }
 }
 
 $('#childSel').addEventListener('change', async ()=>{
-  currentChildId=$('#childSel').value || null;
-  if(!currentChildId){ $('#thresholdInfo').textContent=''; $('#rows').innerHTML='<tr><td colspan="4" class="small">اختاري طفلًا وتاريخًا.</td></tr>'; return; }
-  const cSnap = await getDoc(doc(db,'users',uid,'children',currentChildId));
-  const child = cSnap.data()||{};
-  thresholds.low  = child.lowThreshold ?? 4;
-  thresholds.high = child.highThreshold ?? 10;
-  $('#thresholdInfo').textContent = `المستويات: منخفض < ${thresholds.low} • مرتفع > ${thresholds.high}`;
-  refreshDay();
+  const cid=$('#childSel').value;
+  if(!cid) return;
+  const snap=await getDoc(doc(db,'users',uid,'children',cid));
+  const data=snap.data();
+  low=data.lowThreshold ?? null;
+  high=data.highThreshold ?? null;
 });
-$('#date').addEventListener('change', refreshDay);
 
-async function refreshDay(){
-  const dateId = $('#date').value;
-  if(!currentChildId || !dateId){ return; }
-  const mRef = doc(db,'users',uid,'children',currentChildId,'measurements',dateId);
-  const snap = await getDoc(mRef);
-  const readings = (snap.data()||{}).readings || {};
-  const tbody=$('#rows'); tbody.innerHTML='';
-  const keys = Object.keys(slotLabels);
-  let any=false;
-  keys.forEach(k=>{
-    const r=readings[k];
-    if(r && r.value!=null){
-      any=true;
-      const tr=document.createElement('tr');
-      tr.innerHTML = `
-        <td>${slotLabels[k]}</td>
-        <td>${r.value}</td>
-        <td>${statusBadge(r.status)}</td>
-        <td>${r.note || r.raisedWith || (r.correctionDoses!=null?('تصحيحي: '+r.correctionDoses):'') || ''}</td>
-      `;
-      tbody.appendChild(tr);
-    }
+$('#m_value').addEventListener('input', ()=>{
+  const val=parseFloat($('#m_value').value);
+  if(isNaN(val)) { $('#status').textContent=''; return; }
+  if(low!=null && val<low){
+    $('#status').innerHTML=`<span class="status-low">⬇ منخفض — يجب الرفع</span>`;
+  } else if(high!=null && val>high){
+    $('#status').innerHTML=`<span class="status-high">⬆ مرتفع — يرجى التصحيح</span>`;
+  } else {
+    $('#status').innerHTML=`<span style="color:green">✅ ضمن النطاق</span>`;
+  }
+});
+
+$('#saveBtn').addEventListener('click', async ()=>{
+  const cid=$('#childSel').value;
+  const date=$('#m_date').value;
+  const time=$('#m_time').value;
+  const val=parseFloat($('#m_value').value);
+  if(!cid || !date || isNaN(val)) return toast('أكمل البيانات');
+  await addDoc(collection(db,'users',uid,'children',cid,'measurements'),{
+    date,time,value:val,createdAt:serverTimestamp()
   });
-  if(!any){ tbody.innerHTML='<tr><td colspan="4" class="small">لا توجد قراءات لليوم المختار بعد.</td></tr>'; }
-}
-
-function evaluate(val){
-  if(val==='' || isNaN(Number(val))) return null;
-  const n=Number(val);
-  if(n < thresholds.low)  return 'low';
-  if(n > thresholds.high) return 'high';
-  return 'ok';
-}
-function statusBadge(st){
-  if(st==='low') return `<span class="badge low">⬇︎ منخفض</span>`;
-  if(st==='high')return `<span class="badge high">⬆︎ مرتفع</span>`;
-  if(st==='ok')  return `<span class="badge ok">✔️ ضمن المدى</span>`;
-  return '';
-}
-
-const stOk=$('#stOk'), stLow=$('#stLow'), stHigh=$('#stHigh'), extraLow=$('#extraLow'), extraHigh=$('#extraHigh');
-$('#reading').addEventListener('input', ()=>{
-  [stOk,stLow,stHigh].forEach(e=>e.classList.add('hide'));
-  extraLow.classList.add('hide'); extraHigh.classList.add('hide');
-  const st=evaluate($('#reading').value);
-  if(st==='low'){ stLow.classList.remove('hide'); extraLow.classList.remove('hide'); }
-  else if(st==='high'){ stHigh.classList.remove('hide'); extraHigh.classList.remove('hide'); }
-  else if(st==='ok'){ stOk.classList.remove('hide'); }
-});
-
-$('#clear').addEventListener('click', ()=>{
-  $('#reading').value=''; $('#note').value=''; $('#raisedWith').value=''; $('#corrDoses').value='';
-  [stOk,stLow,stHigh].forEach(e=>e.classList.add('hide'));
-  extraLow.classList.add('hide'); extraHigh.classList.add('hide');
-});
-
-$('#save').addEventListener('click', async ()=>{
-  const childId=currentChildId, dateId=$('#date').value, slot=$('#slot').value;
-  const val=$('#reading').value; const st=evaluate(val);
-  if(!childId) return toast('اختاري الطفل أولًا');
-  if(!dateId)  return toast('اختاري التاريخ');
-  if(!slot)    return toast('اختاري الوقت');
-  if(st==null) return toast('أدخلي قراءة صحيحة');
-
-  const payload = {
-    value: Number(val), status: st,
-    note: $('#note').value.trim() || null,
-    raisedWith: (st==='low' ? ($('#raisedWith').value.trim() || null) : null),
-    correctionDoses: (st==='high' && $('#corrDoses').value!=='' ? Number($('#corrDoses').value) : null),
-    label: slotLabels[slot]
-  };
-
-  const mRef = doc(db,'users',uid,'children',childId,'measurements',dateId);
-  const snap = await getDoc(mRef);
-  const base = snap.exists()? (snap.data()) : { date: dateId, readings:{} };
-  base.readings[slot] = payload;
-  await setDoc(mRef, base);
-  toast('تم حفظ القياس ✅');
-  refreshDay();
+  toast('تم الحفظ ✅');
+  $('#m_value').value='';
+  $('#status').textContent='';
 });
 </script>
 </body>
