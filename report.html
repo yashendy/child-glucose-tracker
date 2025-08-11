@@ -4,50 +4,88 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>تقرير القياسات — متابعة سكر الأطفال</title>
 <style>
-:root{--brand:#0ea5e9;--brand2:#6ee7b7;--line:#e5e7eb;--ink:#0f172a;--muted:#6b7280;--bg:#f6fbff;--card:#fff}
-body{margin:0;font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif;background:var(--bg);color:var(--ink)}
-header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:14px;display:flex;justify-content:space-between;align-items:center}
-main{max-width:900px;margin:auto;padding:18px}
-.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
-label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
-input,select{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px}
-table{width:100%;border-collapse:collapse;margin-top:10px}
-th,td{border:1px solid var(--line);padding:8px;text-align:center}
+:root{
+  --brand:#0ea5e9;--brand2:#6ee7b7;--line:#e5e7eb;--ink:#0f172a;--muted:#6b7280;
+  --bg:#f6fbff;--card:#fff;--ok:#16a34a;--low:#b45309;--high:#dc2626;
+  --okbg:#ecfdf5;--lowbg:#fff7ed;--highbg:#fee2e2;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif}
+header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:14px;display:flex;justify-content:space-between;align-items:center;z-index:5}
+main{max-width:1200px;margin:auto;padding:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 6px 24px rgba(0,0,0,.04);margin-bottom:14px}
+
+/* form */
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.grid{display:grid;gap:12px}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:900px){.g4{grid-template-columns:1fr 1fr}}
+
+/* table */
+.table{width:100%;border-collapse:separate;border-spacing:0}
+.table th,.table td{border:1px solid var(--line);padding:10px;vertical-align:top}
+.table th{background:#f8fafc;font-weight:800;text-align:center}
+.table td.time{background:#fbfdff;white-space:nowrap;font-weight:700}
+.headdate{font-weight:900}
+.cell{display:flex;flex-direction:column;gap:4px}
+.line{font-size:13px}
+.val{font-weight:800}
+.state.ok{color:var(--ok);background:var(--okbg);padding:2px 8px;border-radius:999px;width:max-content}
+.state.low{color:var(--low);background:var(--lowbg);padding:2px 8px;border-radius:999px;width:max-content}
+.state.high{color:var(--high);background:var(--highbg);padding:2px 8px;border-radius:999px;width:max-content}
+.note{color:var(--muted)}
+.meta{color:#0f172ab3}
+
+/* print */
+@media print{
+  header,.controls{display:none!important}
+  body{background:#fff}
+  .card{border:0;box-shadow:none;padding:0;margin:0}
+}
 </style>
 </head>
 <body>
 <header>
   <div>تقرير القياسات</div>
-  <a href="dashboard.html" class="btn">⬅ رجوع</a>
+  <div>
+    <a href="dashboard.html" style="color:#fff;text-decoration:none;border:1px solid #ffffff66;padding:8px 12px;border-radius:10px">رجوع</a>
+    <button id="btnPrint" style="margin-inline-start:8px;border:none;background:#ffffff22;color:#fff;border:1px solid #ffffff66;padding:8px 12px;border-radius:10px;cursor:pointer">طباعة</button>
+  </div>
 </header>
 
 <main>
-  <div class="card">
-    <label>اختر الطفل</label>
-    <select id="childSel"></select>
+  <section class="card controls">
+    <div class="grid g4">
+      <div>
+        <label>الطفل</label>
+        <select id="childSel"><option value="">— اختاري الطفل —</option></select>
+      </div>
+      <div>
+        <label>من تاريخ</label>
+        <input id="from" type="date">
+      </div>
+      <div>
+        <label>إلى تاريخ</label>
+        <input id="to" type="date">
+      </div>
+      <div style="display:flex;align-items:end">
+        <button id="run" style="width:100%;padding:10px 12px;border:none;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer">عرض التقرير</button>
+      </div>
+    </div>
+    <div id="childMeta" class="meta" style="margin-top:8px"></div>
+  </section>
 
-    <label>من تاريخ</label>
-    <input type="date" id="fromDate">
-    <label>إلى تاريخ</label>
-    <input type="date" id="toDate">
-
-    <button id="loadBtn" style="margin-top:10px">عرض التقرير</button>
-  </div>
-
-  <div class="card">
-    <table id="reportTable">
-      <thead>
-        <tr><th>التاريخ</th><th>الوقت</th><th>القياس</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+  <section id="reportBox" class="card" style="display:none">
+    <table id="rep" class="table"></table>
+  </section>
 </main>
 
 <script type="module">
+/* Firebase */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
@@ -61,49 +99,120 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
-let uid=null;
-const urlParams = new URLSearchParams(location.search);
-const initChildId = urlParams.get('child');
+const $=s=>document.querySelector(s);
+const labels={
+  preBreakfast:'قبل الإفطار', postBreakfast:'بعد الإفطار',
+  preLunch:'قبل الغداء',     postLunch:'بعد الغداء',
+  preDinner:'قبل العشاء',    postDinner:'بعد العشاء',
+  beforeSleep:'قبل النوم',   duringSleep:'أثناء النوم', uponWake:'عند الاستيقاظ'
+};
+const order = ['preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','uponWake'];
+
+let uid=null, initChildId=new URL(location.href).searchParams.get('child');
 
 onAuthStateChanged(auth, async (u)=>{
-  if(!u) return location.href='index.html';
+  if(!u){ location.href='index.html'; return; }
   uid=u.uid;
   await loadChildren();
+  setDefaults();
+  if(initChildId){
+    const opt=[...$('#childSel').options].find(o=>o.value===initChildId);
+    if(opt){ $('#childSel').value=initChildId; $('#childSel').disabled=true; }
+  }
 });
 
-async function loadChildren(){
-  const sel=document.querySelector('#childSel'); sel.innerHTML='';
-  const q=await getDocs(collection(db,'users',uid,'children'));
-  q.forEach(s=>{
-    const opt=document.createElement('option');
-    opt.value=s.id; opt.textContent=s.data().name || 'بدون اسم';
-    sel.appendChild(opt);
-  });
-
-  if(initChildId){
-    sel.value = initChildId;
-    sel.dispatchEvent(new Event('change'));
-    sel.disabled = true;
-  }
+function setDefaults(){
+  const d=new Date(), iso=d.toISOString().slice(0,10);
+  $('#from').value=iso; $('#to').value=iso;
 }
 
-document.querySelector('#loadBtn').addEventListener('click', async ()=>{
-  const cid=document.querySelector('#childSel').value;
-  const from=document.querySelector('#fromDate').value;
-  const to=document.querySelector('#toDate').value;
-  if(!cid || !from || !to) return alert('أكمل البيانات');
-  const tbody=document.querySelector('#reportTable tbody');
-  tbody.innerHTML='';
-  const q=await getDocs(collection(db,'users',uid,'children',cid,'measurements'));
+async function loadChildren(){
+  const sel=$('#childSel'); sel.innerHTML='<option value="">— تحميل —</option>';
+  const q=await getDocs(collection(db,'users',uid,'children'));
+  sel.innerHTML='<option value="">— اختاري الطفل —</option>';
   q.forEach(s=>{
-    const m=s.data();
-    if(m.date>=from && m.date<=to){
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td>${m.date}</td><td>${m.time}</td><td>${m.value}</td>`;
-      tbody.appendChild(tr);
-    }
+    const o=document.createElement('option'); o.value=s.id; o.textContent=s.data().name||'بدون اسم'; sel.appendChild(o);
   });
-});
+}
+
+$('#btnPrint').addEventListener('click', ()=>window.print());
+$('#run').addEventListener('click', buildReport);
+
+/* build report grid: rows = times (يمين), columns = dates */
+async function buildReport(){
+  const childId=$('#childSel').value, from=$('#from').value, to=$('#to').value;
+  if(!childId || !from || !to) return alert('اختاري الطفل وحددي الفترة');
+
+  // بيانات الطفل (للهيدر الصغير)
+  const cs=await getDoc(doc(db,'users',uid,'children',childId));
+  const c=cs.data()||{};
+  const info=`الاسم: ${c.name||'—'} • العمر التقريبي: ${age(c.dob)||'—'} • الوزن: ${c.weight??'—'} كجم • الطول: ${c.height??'—'} سم • حدود: منخفض &lt; ${c.lowThreshold??'—'} — مرتفع &gt; ${c.highThreshold??'—'}`;
+  $('#childMeta').innerHTML=info;
+
+  // بنجيب الأيام بين from و to
+  const dates = enumerateDates(from,to);
+  // fetch docs parallel
+  const snaps = await Promise.all(dates.map(d=>getDoc(doc(db,'users',uid,'children',childId,'measurements',d))));
+  const byDate = {};
+  dates.forEach((d,i)=>{ byDate[d] = snaps[i].data() || { date:d, readings:{} }; });
+
+  // بناء الجدول
+  const tbl = $('#rep'); tbl.innerHTML='';
+  // THEAD: أول خلية فاضية للـ "الوقت" (يمين)، ثم تواريخ
+  const thead = document.createElement('thead');
+  const htr = document.createElement('tr');
+  const th0 = document.createElement('th'); th0.textContent='الوقت'; htr.appendChild(th0);
+  dates.forEach(d=>{
+    const th=document.createElement('th'); th.innerHTML=`<div class="headdate">${d}</div>`;
+    htr.appendChild(th);
+  });
+  thead.appendChild(htr); tbl.appendChild(thead);
+
+  // TBODY: لكل وقت صف؛ العمود الأول هو اسم الوقت (يمين)
+  const tbody = document.createElement('tbody');
+  order.forEach(slot=>{
+    const tr=document.createElement('tr');
+    const tTime=document.createElement('td'); tTime.className='time'; tTime.textContent = labels[slot]; tr.appendChild(tTime);
+
+    dates.forEach(d=>{
+      const r = (byDate[d].readings||{})[slot];
+      const td=document.createElement('td');
+      if(!r || r.value==null){
+        td.innerHTML = '<div class="note">—</div>';
+      }else{
+        const state = r.status==='low'?'low':(r.status==='high'?'high':'ok');
+        const corr  = r.correctionDoses!=null ? `جرعة تصحيحي: ${r.correctionDoses}` : null;
+        const note  = r.note || r.raisedWith || null;
+        td.innerHTML = `
+          <div class="cell">
+            <div class="line val">القياس: ${r.value}</div>
+            ${corr?`<div class="line"> ${corr}</div>`:''}
+            ${note?`<div class="line note">ملاحظة: ${escapeHTML(note)}</div>`:''}
+            <div class="line state ${state}">${stateLabel(state)}</div>
+          </div>`;
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);
+
+  $('#reportBox').style.display='block';
+}
+
+function enumerateDates(from,to){
+  const res=[]; let d=new Date(from); const end=new Date(to);
+  while(d<=end){ res.push(d.toISOString().slice(0,10)); d.setDate(d.getDate()+1); }
+  return res;
+}
+function age(dob){
+  if(!dob) return null;
+  const d=new Date(dob), now=new Date(); let y=now.getFullYear()-d.getFullYear();
+  const m=now.getMonth()-d.getMonth(); const dm=now.getDate()-d.getDate();
+  if(m<0 || (m===0 && dm<0)) y--; return y>=0?`${y} سنة`:'—';
+}
+function stateLabel(s){ return s==='low'?'⬇︎ منخفض':(s==='high'?'⬆︎ مرتفع':'✔️ طبيعي'); }
+function escapeHTML(str){ return str.replace(/[&<>"']/g,(c)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
 </script>
 </body>
 </html>
