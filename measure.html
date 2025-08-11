@@ -13,24 +13,16 @@
 *{box-sizing:border-box}
 body{margin:0; background:var(--bg); color:var(--ink);
   font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif;}
-header{
-  position:sticky; top:0; z-index:2; background:linear-gradient(90deg,var(--brand),var(--brand2));
-  color:#fff; padding:14px 18px; display:flex; align-items:center; justify-content:space-between;
-}
+header{position:sticky; top:0; background:linear-gradient(90deg,var(--brand),var(--brand2)); color:#fff; padding:14px 18px; display:flex; align-items:center; justify-content:space-between;}
 header a.btn{background:#ffffff22;color:#fff;border:1px solid #ffffff55}
 main{max-width:1100px;margin:auto;padding:20px}
-.card{
-  background:var(--card); border:1px solid var(--line); border-radius:16px;
-  box-shadow:0 10px 30px rgba(0,0,0,.03); padding:16px; margin-bottom:16px;
-}
+.card{background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.03); padding:16px; margin-bottom:16px;}
 h2{margin:0 0 12px}
 .grid{display:grid; gap:12px}
 .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media (max-width:900px){ .g3{grid-template-columns:1fr} }
 label{display:block; font-size:13px; color:var(--muted); margin:0 0 6px}
-select,input{
-  width:100%; padding:12px 12px; border:1px solid var(--line); border-radius:12px; background:#fff
-}
+select,input{width:100%; padding:12px 12px; border:1px solid var(--line); border-radius:12px; background:#fff}
 .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
 .btn{border:none; border-radius:10px; padding:10px 14px; font-weight:800; cursor:pointer}
 .btn.primary{background:var(--brand); color:#fff}
@@ -59,7 +51,6 @@ th{background:#f8fafc; color:#0f172a}
 </header>
 
 <main>
-  <!-- اختيار الطفل/التاريخ/الوقت -->
   <section class="card">
     <h2>اختيار الطفل والتاريخ</h2>
     <div class="grid g3">
@@ -91,7 +82,6 @@ th{background:#f8fafc; color:#0f172a}
     </div>
   </section>
 
-  <!-- إدخال القياس -->
   <section class="card">
     <h2>إدخال القياس</h2>
     <div class="grid g3">
@@ -118,7 +108,7 @@ th{background:#f8fafc; color:#0f172a}
         </div>
         <div id="extraHigh" class="hide" style="margin-top:8px">
           <label>جرعة التصحيحي (المُعطاة)</label>
-          <input id="corrGiven" type="number" step="0.5" min="0" placeholder="مثلاً 2.5">
+          <input id="corrGiven" type="number" step="0.5" min="0" placeholder="مثلاً 2">
         </div>
       </div>
     </div>
@@ -129,7 +119,6 @@ th{background:#f8fafc; color:#0f172a}
     </div>
   </section>
 
-  <!-- جدول اليوم -->
   <section class="card">
     <h2>قراءات اليوم المختار</h2>
     <table class="table">
@@ -153,50 +142,33 @@ th{background:#f8fafc; color:#0f172a}
 <div id="toast" class="toast"></div>
 
 <script type="module">
-/* ---------- Firebase ---------- */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { getFirestore, collection, getDocs, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
-  authDomain: "child-glucose-tracker.firebaseapp.com",
-  projectId: "child-glucose-tracker",
-  storageBucket: "child-glucose-tracker.firebasestorage.app",
-  messagingSenderId: "294563325904",
-  appId: "1:294563325904:web:39562550bf305fc01abbd5"
-};
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app);
+const firebaseConfig={apiKey:"AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",authDomain:"child-glucose-tracker.firebaseapp.com",projectId:"child-glucose-tracker",storageBucket:"child-glucose-tracker.firebasestorage.app",messagingSenderId:"294563325904",appId:"1:294563325904:web:39562550bf305fc01abbd5"};
+const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getFirestore(app);
 
-/* ---------- Helpers ---------- */
 const $=s=>document.querySelector(s);
 const toast=(m)=>{const t=$('.toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1700);};
 
-const labels={
-  preBreakfast:'قبل الإفطار', postBreakfast:'بعد الإفطار',
-  preLunch:'قبل الغداء',     postLunch:'بعد الغداء',
-  preDinner:'قبل العشاء',    postDinner:'بعد العشاء',
-  beforeSleep:'قبل النوم',   duringSleep:'أثناء النوم', uponWake:'عند الاستيقاظ'
-};
+const labels={preBreakfast:'قبل الإفطار',postBreakfast:'بعد الإفطار',preLunch:'قبل الغداء',postLunch:'بعد الغداء',preDinner:'قبل العشاء',postDinner:'بعد العشاء',beforeSleep:'قبل النوم',duringSleep:'أثناء النوم',uponWake:'عند الاستيقاظ'};
 const order=['preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','uponWake'];
 
 let uid=null, childId=null, low=4, high=10, target=6.5, cfMmol=null;
 const initChildId=new URL(location.href).searchParams.get('child');
 
-/* ---------- Auth ---------- */
 onAuthStateChanged(auth, async (u)=>{
   if(!u){ location.href='index.html'; return; }
   uid=u.uid; await loadChildren(); setToday();
-  if(initChildId){
-    $('#childSel').value=initChildId; $('#childSel').disabled=true;
-    await onChildChanged();
-  }
+  if(initChildId){ $('#childSel').value=initChildId; $('#childSel').disabled=true; await onChildChanged(); }
 });
 
-/* ---------- UI init ---------- */
-function setToday(){ const d=new Date(); $('#dateSel').value=d.toISOString().slice(0,10); }
+function setToday(){
+  const url=new URL(location.href); const dateFromUrl=url.searchParams.get('date');
+  if(dateFromUrl){ $('#dateSel').value=dateFromUrl; }
+  else { const d=new Date(); $('#dateSel').value=d.toISOString().slice(0,10); }
+}
 async function loadChildren(){
   const sel=$('#childSel'); sel.innerHTML='<option value="">— تحميل —</option>';
   const q=await getDocs(collection(db,'users',uid,'children'));
@@ -206,76 +178,57 @@ async function loadChildren(){
 
 $('#childSel').addEventListener('change', onChildChanged);
 $('#dateSel').addEventListener('change', refreshDay);
-$('#slotSel').addEventListener('change', checkDuplicateAndStatus);
+$('#slotSel').addEventListener('change', ()=>onReadingChange());
 $('#reading').addEventListener('input', onReadingChange);
 $('#clearBtn').addEventListener('click', clearInputs);
 $('#saveBtn').addEventListener('click', onSave);
 
-/* ---------- Load child thresholds & ISF/target ---------- */
 async function onChildChanged(){
-  childId=$('#childSel').value||null;
-  if(!childId){ $('#thrInfo').textContent=''; $('#cfInfo').textContent=''; $('#rows').innerHTML=emptyRow(); return; }
+  childId=$('#childSel').value||null; if(!childId){ $('#thrInfo').textContent=''; $('#cfInfo').textContent=''; $('#rows').innerHTML=emptyRow(); return; }
   const cs=await getDoc(doc(db,'users',uid,'children',childId));
-  const c=cs.data()||{};
-  low=c.lowThreshold??4; high=c.highThreshold??10;
-  target=c.targetMmol??6.5;
+  const c=cs.data()||{}; low=c.lowThreshold??4; high=c.highThreshold??10; target=c.targetMmol??6.5;
   cfMmol= c.correctionFactorMmol ?? (c.correctionFactorMgDl!=null ? (Number(c.correctionFactorMgDl)/18) : null);
   $('#thrInfo').textContent=`الحدود: منخفض < ${low} • مرتفع > ${high} • الهدف: ${target}`;
-  $('#cfInfo').textContent = cfMmol? `معامل التصحيح: ${round2(cfMmol)} mmol/L لكل 1U` : '⚠️ لم يتم ضبط معامل التصحيح';
+  $('#cfInfo').textContent=cfMmol?`معامل التصحيح: ${Math.round(cfMmol*100)/100} mmol/L لكل 1U`:'⚠️ لم يتم ضبط معامل التصحيح';
   refreshDay();
 }
 
-/* ---------- State / UI ---------- */
 function emptyRow(){ return `<tr><td colspan="6" class="small">لا توجد قراءات لليوم المختار بعد.</td></tr>`; }
 
-function evaluate(v){
-  if(v==='' || !Number.isFinite(Number(v))) return null;
-  const n=Number(v);
-  if(n<low) return 'low'; if(n>high) return 'high'; return 'ok';
-}
+function evaluate(v){ if(v===''||!Number.isFinite(Number(v)))return null; const n=Number(v); if(n<low)return'low'; if(n>high)return'high'; return'ok'; }
 
 function onReadingChange(){
   const v=Number($('#reading').value);
   [$('#bOk'),$('#bLow'),$('#bHigh')].forEach(e=>e.classList.add('hide'));
   $('#extraLow').classList.add('hide'); $('#extraHigh').classList.add('hide'); $('#suggestWrap').classList.add('hide');
   if(!Number.isFinite(v)) return;
-
   const st=evaluate(v);
   if(st==='low'){ $('#bLow').classList.remove('hide'); $('#extraLow').classList.remove('hide'); }
   else if(st==='high'){
     $('#bHigh').classList.remove('hide'); $('#extraHigh').classList.remove('hide');
-    // حساب الجرعة المقترحة لو عندنا ISF & target
-    const seg = suggestedCorrection(v);
-    if(seg!=null){ $('#corrSuggestion').textContent=seg; $('#suggestWrap').classList.remove('hide'); }
-  } else if(st==='ok'){ $('#bOk').classList.remove('hide'); }
+    const seg=suggestedCorrection(v); if(seg!=null){ $('#corrSuggestion').textContent=seg; $('#suggestWrap').classList.remove('hide'); }
+  } else { $('#bOk').classList.remove('hide'); }
 }
 
-/* اقتراح التصحيح: تقريب لأقرب 0.5U + حدود أمان (0..10U) */
+/* تقريب لأقرب 1U + حدود 0..10U */
 function suggestedCorrection(reading){
-  if(cfMmol==null || !Number.isFinite(reading)) return null;
-  const excess = reading - target;
-  if(excess<=0) return 0;
-  let u = excess / cfMmol;
-  u = Math.max(0, Math.min(10, u));         // حدود أمان
-  const rounded = Math.round(u*2)/2;        // أقرب 0.5U
-  return rounded;
+  if(cfMmol==null||!Number.isFinite(reading)) return null;
+  const excess=reading-target; if(excess<=0) return 0;
+  let u=excess/cfMmol; u=Math.max(0,Math.min(10,u)); return Math.round(u);
 }
 
 function clearInputs(){
-  $('#reading').value=''; $('#note').value=''; $('#raisedWith').value='';
-  $('#mealDose').value=''; $('#corrGiven').value='';
+  $('#reading').value=''; $('#note').value=''; $('#raisedWith').value=''; $('#mealDose').value=''; $('#corrGiven').value='';
   [$('#bOk'),$('#bLow'),$('#bHigh')].forEach(e=>e.classList.add('hide'));
   $('#extraLow').classList.add('hide'); $('#extraHigh').classList.add('hide'); $('#suggestWrap').classList.add('hide');
 }
 
-/* ---------- Duplicate check + table refresh ---------- */
 let todayDocSnap=null;
 async function refreshDay(){
-  const dateId=$('#dateSel').value;
-  if(!childId || !dateId) return;
+  const dateId=$('#dateSel').value; if(!childId||!dateId) return;
   const ref=doc(db,'users',uid,'children',childId,'measurements',dateId);
-  todayDocSnap = await getDoc(ref);
-  const readings=(todayDocSnap.data()||{}).readings || {};
+  todayDocSnap=await getDoc(ref);
+  const readings=(todayDocSnap.data()||{}).readings||{};
   const tbody=$('#rows'); tbody.innerHTML='';
   let any=false;
   order.forEach(k=>{
@@ -286,71 +239,42 @@ async function refreshDay(){
         <tr>
           <td>${labels[k]}</td>
           <td>${r.value}</td>
-          <td>${statusBadge(r.status)}</td>
+          <td>${badge(r.status)}</td>
           <td>${r.mealDose!=null? r.mealDose : '—'}</td>
           <td>${r.correctionGiven!=null? r.correctionGiven : '—'}</td>
           <td>${r.note || r.raisedWith || ''}</td>
-        </tr>
-      `);
+        </tr>`);
     }
   });
   if(!any) tbody.innerHTML=emptyRow();
 }
+function badge(st){ if(st==='low')return`<span class="badge b-low">منخفض</span>`; if(st==='high')return`<span class="badge b-high">مرتفع</span>`; if(st==='ok')return`<span class="badge b-ok">طبيعي</span>`; return''; }
 
-function statusBadge(st){
-  if(st==='low') return `<span class="badge b-low">منخفض</span>`;
-  if(st==='high')return `<span class="badge b-high">مرتفع</span>`;
-  if(st==='ok')  return `<span class="badge b-ok">طبيعي</span>`;
-  return '';
-}
-
-async function checkDuplicateAndStatus(){
-  // مجرد إعادة تقييم لعرض الاقتراح عند تغيير الوقت، ومنع التكرار عند الحفظ
-  onReadingChange();
-}
-
-/* ---------- Save ---------- */
 async function onSave(){
   if(!childId) return toast('اختاري الطفل أولًا');
   const dateId=$('#dateSel').value; if(!dateId) return toast('اختاري التاريخ');
   const slot=$('#slotSel').value; if(!slot) return toast('اختاري الوقت');
+  const val=Number($('#reading').value); if(!Number.isFinite(val)) return toast('أدخلي قراءة صحيحة');
 
-  const val=Number($('#reading').value);
-  if(!Number.isFinite(val)) return toast('أدخلي قراءة صحيحة');
-
-  // منع التكرار
   const ref=doc(db,'users',uid,'children',childId,'measurements',dateId);
-  const snap = todayDocSnap && todayDocSnap.id===dateId ? todayDocSnap : await getDoc(ref);
-  const base = snap.exists()? snap.data() : { date:dateId, readings:{} };
-  if(base.readings[slot] && base.readings[slot].value!=null){
-    return toast('تم تسجيل هذا الوقت مسبقًا لهذا اليوم ❗');
-  }
+  const snap=todayDocSnap && todayDocSnap.id===dateId? todayDocSnap : await getDoc(ref);
+  const base=snap.exists()? snap.data() : { date:dateId, readings:{} };
+  if(base.readings[slot] && base.readings[slot].value!=null) return toast('تم تسجيل هذا الوقت مسبقًا لهذا اليوم ❗');
 
   const st=evaluate(val);
-  const payload={
-    value: val,
-    status: st,
-    note: $('#note').value.trim() || null,
-    mealDose: valNum('#mealDose'),
-    correctionGiven: (st==='high' ? valNum('#corrGiven') : null),
-    correctionSuggested: (st==='high' ? suggestedCorrection(val) : null),
-    raisedWith: (st==='low' ? ($('#raisedWith').value.trim() || null) : null),
-    label: labels[slot]
+  base.readings[slot]={
+    value:val, status:st,
+    note:$('#note').value.trim()||null,
+    mealDose:valNum('#mealDose'),
+    correctionGiven:(st==='high'?valNum('#corrGiven'):null),
+    correctionSuggested:(st==='high'?suggestedCorrection(val):null),
+    raisedWith:(st==='low'?($('#raisedWith').value.trim()||null):null),
+    label:labels[slot]
   };
-
-  base.readings[slot]=payload;
-  await setDoc(ref, base);
-  toast('تم حفظ القياس ✅');
-  clearInputs();
-  todayDocSnap=null; // لإعادة الجلب
-  refreshDay();
+  await setDoc(ref,base);
+  toast('تم حفظ القياس ✅'); clearInputs(); todayDocSnap=null; refreshDay();
 }
-
-function valNum(sel){
-  const v=$(sel).value; if(v===''||v==null) return null;
-  const n=Number(v); return Number.isFinite(n)? n : null;
-}
-function round2(n){ return Math.round(n*100)/100; }
+function valNum(sel){ const v=$(sel).value; if(v===''||v==null) return null; const n=Number(v); return Number.isFinite(n)?n:null; }
 </script>
 </body>
 </html>
