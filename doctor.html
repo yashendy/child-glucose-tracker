@@ -16,14 +16,16 @@ header .btn{color:#fff;text-decoration:none;border:1px solid #ffffff66;padding:8
 main{max-width:1250px;margin:auto;padding:16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 6px 24px rgba(0,0,0,.04);margin-bottom:12px}
 label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
-input,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
 .grid{display:grid;gap:10px}
 .g4{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:900px){.g4{grid-template-columns:1fr 1fr}}
 .controls .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:end}
 .btn-main{padding:10px;border:none;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer}
+
 .alert{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:10px;border-radius:10px;margin:8px 0}
-.summary{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+
+.summary{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px}
 @media(max-width:1100px){.summary{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .sum{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px;text-align:center}
 .sum .k{font-size:12px;color:var(--muted)}
@@ -31,9 +33,13 @@ input,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-rad
 .sum.low{background:var(--lowbg);color:var(--low)}
 .sum.ok{background:var(--okbg);color:var(--ok)}
 .sum.high{background:var(--highbg);color:var(--high)}
+
+/* رأس فارغ لبيانات الطفل */
 .blank-header{display:flex;flex-wrap:wrap;gap:18px;row-gap:10px;margin:10px 0 12px;font-weight:700}
 .blank-header .bh-item{display:inline-block;min-width:230px}
 .blank-header .line{display:inline-block;border-bottom:1px dashed #9aa6b2;min-width:160px;height:1.2em;vertical-align:middle;margin-inline-start:8px}
+
+/* جدول التقرير */
 .table{width:100%;border-collapse:separate;border-spacing:0}
 .table th,.table td{border:1px solid var(--line);padding:8px;vertical-align:top;text-align:right}
 .table thead th{background:#f8fafc;font-weight:800;text-align:right}
@@ -43,9 +49,15 @@ input,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-rad
 .badge.ok{background:var(--okbg);color:var(--ok)}
 .badge.low{background:var(--lowbg);color:var(--low)}
 .badge.high{background:var(--highbg);color:var(--high)}
+
+/* قسم التعليقات */
+.notes-list{margin-top:8px}
+.note-item{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px;margin-top:6px;font-size:13px}
+
+/* الطباعة */
 @media print{
   @page{ size: A4 landscape; margin: 8mm }
-  header,.controls,.actions{display:none!important}
+  header,.controls,.actions .btn{display:none!important}
   body{background:#fff;font-size:11px}
   .card{border:0;box-shadow:none;padding:0;margin:0}
   .table th,.table td{padding:4px}
@@ -57,12 +69,13 @@ input,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-rad
   <div>متابعة الطبيب — ملخص القياسات</div>
   <div>
     <a class="btn" href="dashboard.html">رجوع</a>
-    <button id="btnPrint" class="btn" type="button">طباعة</button>
+    <button id="btnPrint" class="btn" type="button">طباعة PDF</button>
     <button id="btnXLSX" class="btn" type="button">تصدير Excel</button>
   </div>
 </header>
 
 <main>
+  <!-- رأس الصفحة: اختيار الطفل والفترة + رأس فارغ لبيانات الطفلة -->
   <section class="card controls">
     <div class="grid g4">
       <div>
@@ -77,6 +90,7 @@ input,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-rad
     <div id="visitAlert" class="alert" style="display:none"></div>
     <div id="meta" class="small" style="margin-top:6px"></div>
 
+    <!-- الخانات الفارغة في أعلى الصفحة للطباعة -->
     <div id="blankHeader" class="blank-header">
       <span class="bh-item">الاسم:<span class="line"></span></span>
       <span class="bh-item">الوزن:<span class="line"></span></span>
@@ -86,6 +100,7 @@ input,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-rad
     </div>
   </section>
 
+  <!-- ملخص رقمي أعلى/أقل و TIR ... -->
   <section class="card">
     <h3 style="margin:0 0 8px">ملخّص الفترة</h3>
     <div class="summary">
@@ -95,14 +110,46 @@ input,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-rad
       <div class="sum high"><div class="k">مرتفع</div><div class="v" id="s_high">—</div></div>
       <div class="sum"><div class="k">% داخل النطاق</div><div class="v" id="s_tir">—%</div></div>
       <div class="sum"><div class="k">متوسط القراءة</div><div class="v" id="s_avg">—</div></div>
+      <div class="sum"><div class="k">أعلى / أقل</div><div class="v" id="s_minmax">—</div></div>
     </div>
   </section>
 
+  <!-- مخططات -->
   <section class="card">
-    <h3 style="margin:0 0 8px">متوسط لكل وقت</h3>
-    <div id="slotMeans" class="small">—</div>
+    <h3 style="margin:0 0 8px">مخططات</h3>
+    <div class="grid" style="grid-template-columns:1fr 1fr">
+      <canvas id="chartDaily"></canvas>
+      <canvas id="chartSlots"></canvas>
+    </div>
   </section>
 
+  <!-- ملخص دوائي -->
+  <section class="card">
+    <h3 style="margin:0 0 8px">الملخص الدوائي</h3>
+    <div class="summary" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+      <div class="sum"><div class="k">إجمالي جرعات الوجبة</div><div class="v" id="m_meal_total">—</div></div>
+      <div class="sum"><div class="k">متوسط/اليوم (وجبة)</div><div class="v" id="m_meal_avg">—</div></div>
+      <div class="sum"><div class="k">إجمالي التصحيحي</div><div class="v" id="m_corr_total">—</div></div>
+      <div class="sum"><div class="k">متوسط/اليوم (تصحيحي)</div><div class="v" id="m_corr_avg">—</div></div>
+    </div>
+  </section>
+
+  <!-- مقارنة كل أسبوعين -->
+  <section class="card">
+    <h3 style="margin:0 0 8px">مقارنة كل أسبوعين</h3>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>الفترة</th><th>TIR%</th><th>متوسط</th><th>منخفض</th><th>طبيعي</th><th>مرتفع</th>
+        </tr>
+      </thead>
+      <tbody id="twoweekRows">
+        <tr><td colspan="6" class="small">سيتم تقسيم الفترة المختارة إلى أسابيعين متتالية.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- جدول تفصيلي -->
   <section class="card">
     <h3 style="margin:0 0 8px">الجدول التفصيلي</h3>
     <table class="table" id="tbl">
@@ -120,14 +167,26 @@ input,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-rad
       </tbody>
     </table>
   </section>
+
+  <!-- تعليقات الطبيب -->
+  <section class="card">
+    <h3 style="margin:0 0 8px">تعليقات الطبيب على الفترة</h3>
+    <textarea id="doctorComment" rows="4" placeholder="اكتبِ ملاحظات الطبيب على الفترة الحالية..."></textarea>
+    <div class="actions" style="margin-top:8px">
+      <button id="saveComment" class="btn-main">حفظ التعليق</button>
+    </div>
+    <div class="notes-list" id="commentsList"></div>
+  </section>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
+<!-- مكتبات خارجية -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, getDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc, setDoc, query, where, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig={apiKey:"AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",authDomain:"child-glucose-tracker.firebaseapp.com",projectId:"child-glucose-tracker",storageBucket:"child-glucose-tracker.firebasestorage.app",messagingSenderId:"294563325904",appId:"1:294563325904:web:39562550bf305fc01abbd5"};
 const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getFirestore(app);
@@ -137,7 +196,8 @@ const labels={preBreakfast:'قبل الإفطار',postBreakfast:'بعد الإ�
 const order=['preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','uponWake'];
 
 let uid=null, initChildId=new URL(location.href).searchParams.get('child');
-let cachedDetailed=[];
+let cachedDetailed=[], chartDaily=null, chartSlots=null;
+let currentChild=null, currentFrom=null, currentTo=null;
 
 onAuthStateChanged(auth, async (u)=>{
   if(!u){ location.href='index.html'; return; }
@@ -157,12 +217,18 @@ $('#childSel').addEventListener('change', showVisitAlert);
 function showVisitAlert(){
   const id=$('#childSel').value; if(!id) return $('#visitAlert').style.display='none';
   getDoc(doc(db,'users',uid,'children',id)).then(s=>{
-    const c=s.data()||{}; if(!c.doctorVisitDate){ $('#visitAlert').style.display='none'; return; }
+    const c=s.data()||{}; currentChild=c;
+    const visit=c.doctorVisitDate;
     const todayISO=new Date().toISOString().slice(0,10);
-    const diffDays=Math.ceil((new Date(c.doctorVisitDate)-new Date(todayISO))/(1000*60*60*24));
-    if(diffDays<=2 && diffDays>=0){
-      $('#visitAlert').style.display='block';
-      $('#visitAlert').textContent=`تنبيه: زيارة الطبيب يوم ${c.doctorVisitDate} — باقي ${diffDays} يوم.`;
+    if(visit){
+      const diffDays=Math.ceil((new Date(visit)-new Date(todayISO))/(1000*60*60*24));
+      if(diffDays<=2 && diffDays>=0){
+        $('#visitAlert').style.display='block';
+        $('#visitAlert').textContent=`موعد الزيارة القادمة: ${visit} — باقي ${diffDays} يوم.`;
+      }else{
+        $('#visitAlert').style.display='block';
+        $('#visitAlert').textContent=`موعد الزيارة القادمة: ${visit}`;
+      }
     }else $('#visitAlert').style.display='none';
   });
 }
@@ -170,61 +236,179 @@ function showVisitAlert(){
 $('#btnPrint').addEventListener('click', ()=>window.print());
 $('#run').addEventListener('click', buildReport);
 $('#btnXLSX').addEventListener('click', exportXLSX);
+$('#saveComment').addEventListener('click', saveDoctorComment);
 
 async function buildReport(){
   const id=$('#childSel').value, from=$('#from').value, to=$('#to').value;
   if(!id||!from||!to) return alert('اختاري الطفل وحددي الفترة');
+  currentFrom=from; currentTo=to;
 
   const cs=await getDoc(doc(db,'users',uid,'children',id)); const c=cs.data()||{};
+  currentChild=c;
   $('#meta').innerHTML=`الاسم: ${c.name||'—'} • الوزن: ${c.weight??'—'} كجم • الطول: ${c.height??'—'} سم • حدود: منخفض &lt; ${c.lowThreshold??'—'} — مرتفع &gt; ${c.highThreshold??'—'} • الفترة: ${from} → ${to}`;
 
   const col=collection(db,'users',uid,'children',id,'measurements');
   const qy=query(col, where('date','>=',from), where('date','<=',to), orderBy('date','asc'));
   const qs=await getDocs(qy);
 
-  let total=0,cLow=0,cOk=0,cHigh=0,sum=0;
+  let total=0,cLow=0,cOk=0,cHigh=0,sum=0, minR=Infinity, maxR=-Infinity, minD='—', maxD='—';
   const slotAgg={}; order.forEach(k=>slotAgg[k]={sum:0,count:0});
   cachedDetailed=[];
 
+  // لتحليل جرعات الانسولين
+  let mealTotal=0, corrTotal=0;
+  const perDayDose=new Map(); // date => {meal,corr}
+
+  // للخط البياني: متوسط اليوم
+  const dailyAvgLabels=[]; const dailyAvgValues=[];
   const tbody=$('#rows'); tbody.innerHTML='';
   if(qs.empty){ tbody.innerHTML='<tr><td colspan="10" class="small">لا توجد قراءات في هذه الفترة.</td></tr>'; }
   else{
     qs.forEach(s=>{
       const d=s.data(); const readings=d.readings||{};
+      // متوسط اليوم
+      let daySum=0, dayCnt=0;
+
       const tr=document.createElement('tr');
       const tdDate=document.createElement('td'); tdDate.className='date'; tdDate.textContent=d.date; tr.appendChild(tdDate);
 
       const rowExport={date:d.date};
+      let dayMeal=0, dayCorr=0;
+
       order.forEach(slot=>{
         const r=readings[slot]; const td=document.createElement('td');
         if(!r||r.value==null){ td.textContent='—'; rowExport[slot]=''; }
         else{
-          total++; sum+=Number(r.value)||0;
+          const val=Number(r.value)||0;
+          total++; sum+=val;
           if(r.status==='low')cLow++; else if(r.status==='high')cHigh++; else cOk++;
-          slotAgg[slot].sum+=Number(r.value)||0; slotAgg[slot].count++;
+          if(val<minR){minR=val; minD=d.date;} if(val>maxR){maxR=val; maxD=d.date;}
+          daySum+=val; dayCnt++;
+
+          slotAgg[slot].sum+=val; slotAgg[slot].count++;
 
           const cls=r.status==='low'?'low':(r.status==='high'?'high':'ok');
-          const meal=r.mealDose!=null?`جرعة: ${r.mealDose}U`:''; const corr=r.correctionGiven!=null?`تصحيحي: ${r.correctionGiven}U`:''; const note=r.note||r.raisedWith||'';
+          const meal=r.mealDose!=null?`جرعة: ${r.mealDose}U`:''; 
+          const corr=r.correctionGiven!=null?`تصحيحي: ${r.correctionGiven}U`:''; 
+          const note=r.note||r.raisedWith||'';
           td.innerHTML=`
             <div><b>${r.value}</b> <span class="badge ${cls}">${cls==='ok'?'طبيعي':(cls==='low'?'منخفض':'مرتفع')}</span></div>
             ${meal?`<div class="small">${meal}</div>`:''}
             ${corr?`<div class="small">${corr}</div>`:''}
             ${note?`<div class="small">ملاحظة: ${escapeHTML(note)}</div>`:''}`;
+
           rowExport[slot]=[r.value, meal?` | ${meal}`:'', corr?` | ${corr}`:'', note?` | ملاحظة: ${note}`:''].join('');
+
+          // جرعات
+          if(r.mealDose!=null){ mealTotal+=Number(r.mealDose); dayMeal+=Number(r.mealDose); }
+          if(r.correctionGiven!=null){ corrTotal+=Number(r.correctionGiven); dayCorr+=Number(r.correctionGiven); }
         }
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
       cachedDetailed.push(rowExport);
+
+      // حفظ جرعات اليوم
+      perDayDose.set(d.date,{meal:dayMeal,corr:dayCorr});
+
+      // متوسط اليوم
+      dailyAvgLabels.push(d.date);
+      dailyAvgValues.push(dayCnt? (daySum/dayCnt).toFixed(2): null);
     });
   }
 
   $('#s_total').textContent=total; $('#s_low').textContent=cLow; $('#s_ok').textContent=cOk; $('#s_high').textContent=cHigh;
   const tir= total? Math.round((cOk/total)*100) : 0; $('#s_tir').textContent=`${tir}%`;
   const avg= total? (sum/total).toFixed(1) : '—'; $('#s_avg').textContent=avg;
+  $('#s_minmax').textContent = (Number.isFinite(minR)&&Number.isFinite(maxR)) ? `${minR} (${minD}) / ${maxR} (${maxD})` : '—';
 
+  // متوسط لكل وقت
   const parts=order.map(k=>{ const a=slotAgg[k]; const m=a.count?(a.sum/a.count).toFixed(1):'—'; return `<span style="display:inline-block;margin-inline-end:10px"><b>${labels[k]}:</b> ${m}</span>`; }).join('');
   $('#slotMeans').innerHTML=parts;
+
+  // المُلخص الدوائي
+  const daysWithData=perDayDose.size || 1;
+  $('#m_meal_total').textContent=mealTotal.toFixed(1);
+  $('#m_corr_total').textContent=corrTotal.toFixed(1);
+  $('#m_meal_avg').textContent=(mealTotal/daysWithData).toFixed(2);
+  $('#m_corr_avg').textContent=(corrTotal/daysWithData).toFixed(2);
+
+  // الرسم البياني
+  renderCharts(dailyAvgLabels, dailyAvgValues, slotAgg);
+
+  // مقارنة كل أسبوعين
+  buildTwoWeekCompare(perDayDose, from, to, slotAgg, total, cLow, cOk, cHigh, sum);
+
+  // تحميل التعليقات المرتبطة بالفترة
+  await loadDoctorComments(id, from, to);
+}
+
+function renderCharts(dailyLabels, dailyValues, slotAgg){
+  const ctx1=$('#chartDaily'); const ctx2=$('#chartSlots');
+  if(chartDaily) chartDaily.destroy(); if(chartSlots) chartSlots.destroy();
+
+  chartDaily=new Chart(ctx1,{type:'line',data:{
+      labels:dailyLabels,
+      datasets:[{label:'متوسط اليوم (mmol/L)',data:dailyValues,borderColor:'#0ea5e9',backgroundColor:'rgba(14,165,233,.15)',tension:.3,spanGaps:true}]
+    },
+    options:{plugins:{legend:{display:true}},scales:{x:{ticks:{autoSkip:true,maxTicksLimit:14}}}}
+  );
+
+  const slotLabels=order.map(k=>labels[k]);
+  const slotMeans=order.map(k=>{const a=slotAgg[k]; return a.count?(a.sum/a.count).toFixed(2):0;});
+  chartSlots=new Chart(ctx2,{type:'bar',data:{
+      labels:slotLabels,
+      datasets:[{label:'متوسط الوقت',data:slotMeans,backgroundColor:'#6ee7b7',borderColor:'#059669'}]
+    },
+    options:{plugins:{legend:{display:true}},scales:{x:{ticks:{autoSkip:false}}}}
+  );
+}
+
+function buildTwoWeekCompare(perDayDose, from, to, slotAgg, total, cLow, cOk, cHigh, sum){
+  const tbody=$('#twoweekRows'); tbody.innerHTML='';
+  const start=new Date(from); const end=new Date(to);
+  const blocks=[];
+  let bStart=new Date(start);
+  while(bStart<=end){
+    let bEnd=new Date(bStart); bEnd.setDate(bEnd.getDate()+13); if(bEnd>end) bEnd=new Date(end);
+    blocks.push([fmt(bStart), fmt(bEnd)]);
+    bStart.setDate(bStart.getDate()+14);
+  }
+  if(blocks.length===0){ tbody.innerHTML='<tr><td colspan="6" class="small">لا توجد فترات.</td></tr>'; return; }
+
+  // لبناء الإحصاءات لكل بلوك، نحتاج السجلات. سنعيد استخدام cachedDetailed (قيم فقط).
+  // سنجمع من detailed: للأسف لا يحوي status. لكن لدينا إجماليات عامة فقط.
+  // لذلك سنعيد حساب سريع من DOM (أو الأفضل: نضيف states عند البناء — اختصرنا: سنستخدم جدول DOM).
+  const rows=[...document.querySelectorAll('#rows tr')].map(tr=>{
+    const tds=tr.querySelectorAll('td'); if(tds.length<2)return null;
+    const date=tds[0].textContent.trim(); if(!date||date==='—')return null;
+    const values=[...tds].slice(1).map(td=>{
+      const v=td.querySelector('b')?.textContent;
+      const stEl=td.querySelector('.badge'); const st=stEl? (stEl.classList.contains('low')?'low':(stEl.classList.contains('high')?'high':'ok')) : null;
+      return v?{value:Number(v),status:st}:null;
+    });
+    return {date,values};
+  }).filter(Boolean);
+
+  const calcBlock=(d1,d2)=>{
+    let t=0,low=0,ok=0,high=0,s=0;
+    rows.forEach(r=>{
+      const d=new Date(r.date);
+      if(d>=new Date(d1)&&d<=new Date(d2)){
+        r.values.forEach(x=>{
+          if(x){ t++; s+=x.value; if(x.status==='low')low++; else if(x.status==='high')high++; else ok++; }
+        });
+      }
+    });
+    return {t,low,ok,high,avg: t? (s/t).toFixed(2) : '—', tir: t? Math.round((ok/t)*100): 0};
+  };
+
+  blocks.forEach(([a,b])=>{
+    const st=calcBlock(a,b);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${a} → ${b}</td><td>${st.tir}%</td><td>${st.avg}</td><td>${st.low}</td><td>${st.ok}</td><td>${st.high}</td>`;
+    tbody.appendChild(tr);
+  });
 }
 
 function exportXLSX(){
@@ -238,7 +422,8 @@ function exportXLSX(){
     ['طبيعي', $('#s_ok').textContent],
     ['مرتفع', $('#s_high').textContent],
     ['داخل النطاق %', $('#s_tir').textContent],
-    ['متوسط القراءة', $('#s_avg').textContent]
+    ['متوسط القراءة', $('#s_avg').textContent],
+    ['أعلى / أقل', $('#s_minmax').textContent]
   ];
   const head=['التاريخ', ...order.map(k=>labels[k])];
   const rows=cachedDetailed.map(r=>[r.date, ...order.map(k=>r[k]??'')]);
@@ -249,6 +434,44 @@ function exportXLSX(){
   XLSX.writeFile(wb, `doctor_followup_${childText}_${from}_to_${to}.xlsx`);
 }
 
+/* تعليقات الطبيب */
+async function loadDoctorComments(childId, from, to){
+  const key=`${from}_${to}`;
+  const col=collection(db,'users',uid,'children',childId,'doctorNotes');
+  // تحميل آخر 3 تعليقات (مشروطة بالفترة أو عامة)
+  const qs=await getDocs(col);
+  const all=[];
+  qs.forEach(d=>{ all.push({id:d.id,...d.data()}); });
+  // الحالية:
+  const current=all.find(x=>x.period===key);
+  $('#doctorComment').value=current?.text||'';
+  // عرض أحدث 3
+  all.sort((a,b)=> (b.createdAt||'').localeCompare(a.createdAt||''));
+  const list=$('#commentsList'); list.innerHTML='';
+  all.slice(0,3).forEach(x=>{
+    const div=document.createElement('div');
+    div.className='note-item';
+    div.textContent=`[${x.period}] ${x.text||''}`;
+    list.appendChild(div);
+  });
+  // احفظ childId/f/t لاستعمال الحفظ
+  $('#saveComment').dataset.child=childId;
+  $('#saveComment').dataset.period=key;
+}
+
+async function saveDoctorComment(){
+  const childId=this.dataset.child, period=this.dataset.period;
+  if(!childId||!period) return alert('اعرضي المتابعة أولًا ثم احفظي التعليق.');
+  const text=$('#doctorComment').value.trim();
+  const col=collection(db,'users',uid,'children',childId,'doctorNotes');
+  // نجعل المستند باســم الفترة كي يكتب فوقه عند تعديل نفس الفترة
+  await setDoc(doc(col,period),{text,period,createdAt:new Date().toISOString()});
+  alert('تم حفظ تعليق الطبيب ✅');
+  await loadDoctorComments(childId, currentFrom, currentTo);
+}
+
+/* Utilities */
+function fmt(d){ const x=new Date(d); return x.toISOString().slice(0,10); }
 function escapeHTML(str){ return (str||'').replace(/[&<>"']/g,(c)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
 </script>
 </body>
