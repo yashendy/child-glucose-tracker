@@ -11,7 +11,7 @@ main{max-width:1000px;margin:auto;padding:18px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 1px 8px rgba(0,0,0,.05);margin-bottom:14px}
 h2{margin:0 0 10px}
 label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
-input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
 .grid{display:grid;gap:12px}
 .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
 .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -45,7 +45,7 @@ input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-ra
     <div class="grid g3">
       <div><label>اسم الطفل</label><input id="name"></div>
       <div><label>تاريخ الميلاد</label><input id="dob" type="date"></div>
-      <div><label>الرقم الطبي (اختياري)</label><input id="mrn" placeholder=""></div>
+      <div><label>الرقم الطبي (اختياري)</label><input id="mrn"></div>
       <div><label>الوزن (كجم)</label><input id="weight" type="number" step="0.1"></div>
       <div><label>الطول (سم)</label><input id="height" type="number" step="0.1"></div>
     </div>
@@ -54,17 +54,26 @@ input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-ra
   <div class="card">
     <h2>الحدود والجرعات</h2>
     <div class="grid g3">
-      <div><label>الحد المنخفض (mmol/L)</label><input id="lowThreshold" type="number" step="0.1" placeholder="مثلاً 4"></div>
-      <div><label>الحد المرتفع (mmol/L)</label><input id="highThreshold" type="number" step="0.1" placeholder="مثلاً 10"></div>
-      <div><label>الهدف (Target) mmol/L</label><input id="targetMmol" type="number" step="0.1" placeholder="مثلاً 6.5"></div>
+      <div><label>الحد المنخفض (mmol/L)</label><input id="lowThreshold" type="number" step="0.1"></div>
+      <div><label>الحد المرتفع (mmol/L)</label><input id="highThreshold" type="number" step="0.1"></div>
+      <div><label>الهدف (Target) mmol/L</label><input id="targetMmol" type="number" step="0.1"></div>
 
-      <div><label>معامل التصحيح (ISF) — mmol/L لكل 1U</label><input id="cfMmol" type="number" step="0.01" placeholder="مثلاً 2.5"></div>
-      <div><label>أو ISF (mg/dL) لكل 1U</label><input id="cfMgdl" type="number" step="1" placeholder="مثلاً 50"></div>
+      <div><label>معامل التصحيح (ISF) — mmol/L لكل 1U</label><input id="cfMmol" type="number" step="0.01"></div>
+      <div><label>أو ISF (mg/dL) لكل 1U</label><input id="cfMgdl" type="number" step="1"></div>
 
       <div><label>جرعة الترسيبا (وحدة)</label><input id="tresiba" type="number" step="0.5"></div>
-      <div><label>جرعة النوفو (وحدة) — اختيارى</label><input id="novo" type="number" step="0.5"></div>
+      <div><label>جرعة النوفو (وحدة) — اختياري</label><input id="novo" type="number" step="0.5"></div>
     </div>
     <div class="note" style="margin-top:8px">لو أدخلتِ ISF بـ mg/dL سنحوّله تلقائيًا إلى mmol/L (بالقسمة على 18) عند الاستعمال.</div>
+  </div>
+
+  <div class="card">
+    <h2>زيارة الطبيب</h2>
+    <div class="grid g3">
+      <div><label>تاريخ الزيارة القادمة</label><input id="doctorVisitDate" type="date"></div>
+      <div><label>اسم الطبيب (اختياري)</label><input id="doctorName"></div>
+      <div><label>ملاحظات الزيارة (اختياري)</label><input id="doctorNotes"></div>
+    </div>
     <div class="row" style="margin-top:10px">
       <button id="save" class="btn primary">حفظ البيانات</button>
     </div>
@@ -76,7 +85,7 @@ input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-ra
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
@@ -121,33 +130,29 @@ $('#childSel').addEventListener('change', async ()=>{
   $('#targetMmol').value=c.targetMmol??'';
   $('#cfMmol').value=c.correctionFactorMmol??''; $('#cfMgdl').value=c.correctionFactorMgDl??'';
   $('#tresiba').value=c.tresiba??''; $('#novo').value=c.novo??'';
+  $('#doctorVisitDate').value=c.doctorVisitDate??''; $('#doctorName').value=c.doctorName??''; $('#doctorNotes').value=c.doctorNotes??'';
 });
 
 $('#save').addEventListener('click', async ()=>{
   const id=$('#childSel').value;
   if(!id) return toast('اختاري الطفل أولاً');
   const payload={
-    name:$('#name').value.trim() || null,
-    dob:$('#dob').value || null,
-    mrn:$('#mrn').value.trim() || null,
-    weight: valNum('#weight'),
-    height: valNum('#height'),
-    lowThreshold: valNum('#lowThreshold'),
-    highThreshold: valNum('#highThreshold'),
+    name:valStr('#name'), dob:valStr('#dob'), mrn:valStr('#mrn'),
+    weight: valNum('#weight'), height: valNum('#height'),
+    lowThreshold: valNum('#lowThreshold'), highThreshold: valNum('#highThreshold'),
     targetMmol: valNum('#targetMmol'),
-    correctionFactorMmol: valNum('#cfMmol'),
-    correctionFactorMgDl: valNum('#cfMgdl'),
-    tresiba: valNum('#tresiba'),
-    novo: valNum('#novo')
+    correctionFactorMmol: valNum('#cfMmol'), correctionFactorMgDl: valNum('#cfMgdl'),
+    tresiba: valNum('#tresiba'), novo: valNum('#novo'),
+    doctorVisitDate: valStr('#doctorVisitDate'),
+    doctorName: valStr('#doctorName'),
+    doctorNotes: valStr('#doctorNotes')
   };
   await updateDoc(doc(db,'users',uid,'children',id), payload);
   toast('تم الحفظ ✅');
 });
 
-function valNum(sel){
-  const v=$(sel).value; if(v===''||v==null) return null;
-  const n=Number(v); return Number.isFinite(n)? n : null;
-}
+function valNum(sel){ const v=$(sel).value; if(v==='') return null; const n=Number(v); return Number.isFinite(n)?n:null; }
+function valStr(sel){ const v=$(sel).value?.trim(); return v? v : null; }
 </script>
 </body>
 </html>
