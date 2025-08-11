@@ -5,7 +5,7 @@
 <title>التقارير — متابعة سكر الأطفال</title>
 <style>
 :root{--brand:#0ea5e9;--brand2:#6ee7b7;--line:#e5e7eb;--ink:#0f172a;--muted:#6b7280;--bg:#f6fbff;--card:#fff;--ok:#ecfdf5;--low:#fff7e6;--high:#ffeef0;--green:#16a34a;--amber:#b45309;--red:#dc2626}
-*{box-sizing:border-box}body{margin:0;font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif;background:var(--bg);color:var(--ink)}
+*{box-sizing:border-box}body{margin:0;font:15px/1.6 system ui,"Tajawal","Noto Sans Arabic",sans-serif;background:var(--bg);color:var(--ink)}
 header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
 main{max-width:1100px;margin:auto;padding:18px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 1px 8px rgba(0,0,0,.05);margin-bottom:14px}
@@ -125,13 +125,24 @@ const toast=(m)=>{const t=$('#toast');t.textContent=m;t.classList.add('show');se
 const slots=['beforeSleep','duringSleep','uponWake','preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner'];
 const labels={beforeSleep:'قبل النوم',duringSleep:'أثناء النوم',uponWake:'عند الاستيقاظ',preBreakfast:'قبل الإفطار',postBreakfast:'بعد الإفطار',preLunch:'قبل الغداء',postLunch:'بعد الغداء',preDinner:'قبل العشاء',postDinner:'بعد العشاء'};
 
-let uid=null, currentChild=null, thresholds={low:4,high:10};
+let uid=null, currentChild=null, thresholds={low:4,high:10}, initChildId=null;
+
+// اقرأ child من الرابط
+(function readQuery(){
+  const url=new URL(location.href);
+  initChildId = url.searchParams.get('child'); // null لو مش موجود
+})();
 
 onAuthStateChanged(auth, async (u)=>{
   if(!u){ location.href='index.html'; return; }
   uid=u.uid;
   await loadChildren();
   setDefaults();
+
+  if(initChildId){
+    const opt = Array.from($('#childSel').options).find(o=>o.value===initChildId);
+    if(opt){ $('#childSel').value=initChildId; $('#childSel').dispatchEvent(new Event('change')); }
+  }
 });
 
 function setDefaults(){
@@ -167,7 +178,6 @@ $('#run').addEventListener('click', async ()=>{
   if(!from || !to) return toast('حددي الفترة');
   if(from>to) return toast('تاريخ "من" يجب أن يكون قبل "إلى"');
 
-  // تأكدنا من بيانات الطفل
   if(!currentChild){
     const snap=await getDoc(doc(db,'users',uid,'children',id));
     currentChild={ id, ...snap.data() };
@@ -175,13 +185,10 @@ $('#run').addEventListener('click', async ()=>{
     thresholds.high=currentChild.highThreshold ?? 10;
   }
 
-  // جلب القياسات بين التاريخين: الوثائق باسم YYYY-MM-DD
   const col = collection(db,'users',uid,'children',id,'measurements');
-  // Firestore بيحتاج index لو استخدمنا where + orderBy على نفس الحقل؛ لو طلب Index اقبليه.
   const qy = query(col, where('date','>=',from), where('date','<=',to), orderBy('date','asc'));
   const qs = await getDocs(qy);
 
-  // عرض الهيدر
   const age = calcAge(currentChild.dob);
   $('#infoTop').innerHTML = `
     <div><b>الاسم:</b> ${currentChild.name||'—'}</div>
@@ -195,7 +202,6 @@ $('#run').addEventListener('click', async ()=>{
     <div><b>التصحيحي:</b> ${currentChild.correction || '—'}</div>
   `;
 
-  // بناء الجدول + الملخص
   let lowC=0, okC=0, highC=0;
   const tbody=$('#rows'); tbody.innerHTML='';
   if(qs.empty){
@@ -205,13 +211,13 @@ $('#run').addEventListener('click', async ()=>{
       const d=s.data(); const readings=d.readings||{};
       const tds = slots.map(k=>{
         const r=readings[k];
-        if(!r || r.value==null) return '<td class="small">—</td>';
+        if(!r || r.value==null) return '<td class="note">—</td>';
         if(r.status==='low') lowC++;
         else if(r.status==='high') highC++;
         else okC++;
         const badge = r.status==='low' ? 'low' : (r.status==='high'?'high':'ok');
         const msg = r.note || r.raisedWith || (r.correctionDoses!=null?('تصحيحي: '+r.correctionDoses):'');
-        return `<td><div class="badge ${badge}">${r.value}</div>${msg?`<div class="small">${msg}</div>`:''}</td>`;
+        return `<td><div class="badge ${badge}">${r.value}</div>${msg?`<div class="note">${msg}</div>`:''}</td>`;
       }).join('');
       const dayNote = d.dayNote || '';
       const tr = `<tr><td><b>${d.date}</b></td>${tds}<td>${dayNote}</td></tr>`;
