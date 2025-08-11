@@ -100,7 +100,7 @@ input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);b
     </div>
   </section>
 
-  <!-- ملخص رقمي أعلى/أقل و TIR ... -->
+  <!-- ملخص رقمي -->
   <section class="card">
     <h3 style="margin:0 0 8px">ملخّص الفترة</h3>
     <div class="summary">
@@ -186,7 +186,7 @@ input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);b
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, getDoc, setDoc, query, where, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc, setDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig={apiKey:"AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",authDomain:"child-glucose-tracker.firebaseapp.com",projectId:"child-glucose-tracker",storageBucket:"child-glucose-tracker.firebasestorage.app",messagingSenderId:"294563325904",appId:"1:294563325904:web:39562550bf305fc01abbd5"};
 const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getFirestore(app);
@@ -255,20 +255,16 @@ async function buildReport(){
   const slotAgg={}; order.forEach(k=>slotAgg[k]={sum:0,count:0});
   cachedDetailed=[];
 
-  // لتحليل جرعات الانسولين
   let mealTotal=0, corrTotal=0;
-  const perDayDose=new Map(); // date => {meal,corr}
+  const perDayDose=new Map();
 
-  // للخط البياني: متوسط اليوم
   const dailyAvgLabels=[]; const dailyAvgValues=[];
   const tbody=$('#rows'); tbody.innerHTML='';
   if(qs.empty){ tbody.innerHTML='<tr><td colspan="10" class="small">لا توجد قراءات في هذه الفترة.</td></tr>'; }
   else{
     qs.forEach(s=>{
       const d=s.data(); const readings=d.readings||{};
-      // متوسط اليوم
       let daySum=0, dayCnt=0;
-
       const tr=document.createElement('tr');
       const tdDate=document.createElement('td'); tdDate.className='date'; tdDate.textContent=d.date; tr.appendChild(tdDate);
 
@@ -299,7 +295,6 @@ async function buildReport(){
 
           rowExport[slot]=[r.value, meal?` | ${meal}`:'', corr?` | ${corr}`:'', note?` | ملاحظة: ${note}`:''].join('');
 
-          // جرعات
           if(r.mealDose!=null){ mealTotal+=Number(r.mealDose); dayMeal+=Number(r.mealDose); }
           if(r.correctionGiven!=null){ corrTotal+=Number(r.correctionGiven); dayCorr+=Number(r.correctionGiven); }
         }
@@ -308,10 +303,7 @@ async function buildReport(){
       tbody.appendChild(tr);
       cachedDetailed.push(rowExport);
 
-      // حفظ جرعات اليوم
       perDayDose.set(d.date,{meal:dayMeal,corr:dayCorr});
-
-      // متوسط اليوم
       dailyAvgLabels.push(d.date);
       dailyAvgValues.push(dayCnt? (daySum/dayCnt).toFixed(2): null);
     });
@@ -322,27 +314,22 @@ async function buildReport(){
   const avg= total? (sum/total).toFixed(1) : '—'; $('#s_avg').textContent=avg;
   $('#s_minmax').textContent = (Number.isFinite(minR)&&Number.isFinite(maxR)) ? `${minR} (${minD}) / ${maxR} (${maxD})` : '—';
 
-  // متوسط لكل وقت
   const parts=order.map(k=>{ const a=slotAgg[k]; const m=a.count?(a.sum/a.count).toFixed(1):'—'; return `<span style="display:inline-block;margin-inline-end:10px"><b>${labels[k]}:</b> ${m}</span>`; }).join('');
   $('#slotMeans').innerHTML=parts;
 
-  // المُلخص الدوائي
   const daysWithData=perDayDose.size || 1;
   $('#m_meal_total').textContent=mealTotal.toFixed(1);
   $('#m_corr_total').textContent=corrTotal.toFixed(1);
   $('#m_meal_avg').textContent=(mealTotal/daysWithData).toFixed(2);
   $('#m_corr_avg').textContent=(corrTotal/daysWithData).toFixed(2);
 
-  // الرسم البياني
   renderCharts(dailyAvgLabels, dailyAvgValues, slotAgg);
+  buildTwoWeekCompare(from, to);
 
-  // مقارنة كل أسبوعين
-  buildTwoWeekCompare(perDayDose, from, to, slotAgg, total, cLow, cOk, cHigh, sum);
-
-  // تحميل التعليقات المرتبطة بالفترة
   await loadDoctorComments(id, from, to);
 }
 
+let chartDaily=null, chartSlots=null;
 function renderCharts(dailyLabels, dailyValues, slotAgg){
   const ctx1=$('#chartDaily'); const ctx2=$('#chartSlots');
   if(chartDaily) chartDaily.destroy(); if(chartSlots) chartSlots.destroy();
@@ -364,7 +351,7 @@ function renderCharts(dailyLabels, dailyValues, slotAgg){
   );
 }
 
-function buildTwoWeekCompare(perDayDose, from, to, slotAgg, total, cLow, cOk, cHigh, sum){
+function buildTwoWeekCompare(from, to){
   const tbody=$('#twoweekRows'); tbody.innerHTML='';
   const start=new Date(from); const end=new Date(to);
   const blocks=[];
@@ -376,9 +363,6 @@ function buildTwoWeekCompare(perDayDose, from, to, slotAgg, total, cLow, cOk, cH
   }
   if(blocks.length===0){ tbody.innerHTML='<tr><td colspan="6" class="small">لا توجد فترات.</td></tr>'; return; }
 
-  // لبناء الإحصاءات لكل بلوك، نحتاج السجلات. سنعيد استخدام cachedDetailed (قيم فقط).
-  // سنجمع من detailed: للأسف لا يحوي status. لكن لدينا إجماليات عامة فقط.
-  // لذلك سنعيد حساب سريع من DOM (أو الأفضل: نضيف states عند البناء — اختصرنا: سنستخدم جدول DOM).
   const rows=[...document.querySelectorAll('#rows tr')].map(tr=>{
     const tds=tr.querySelectorAll('td'); if(tds.length<2)return null;
     const date=tds[0].textContent.trim(); if(!date||date==='—')return null;
@@ -438,15 +422,12 @@ function exportXLSX(){
 async function loadDoctorComments(childId, from, to){
   const key=`${from}_${to}`;
   const col=collection(db,'users',uid,'children',childId,'doctorNotes');
-  // تحميل آخر 3 تعليقات (مشروطة بالفترة أو عامة)
   const qs=await getDocs(col);
   const all=[];
   qs.forEach(d=>{ all.push({id:d.id,...d.data()}); });
-  // الحالية:
   const current=all.find(x=>x.period===key);
   $('#doctorComment').value=current?.text||'';
-  // عرض أحدث 3
-  all.sort((a,b)=> (b.createdAt||'').localeCompare(a.createdAt||''));
+  all.sort((a,b)=> (b.createdAt||'').localeCompare(a.createdAt||'')); // الأحدث أولاً
   const list=$('#commentsList'); list.innerHTML='';
   all.slice(0,3).forEach(x=>{
     const div=document.createElement('div');
@@ -454,7 +435,6 @@ async function loadDoctorComments(childId, from, to){
     div.textContent=`[${x.period}] ${x.text||''}`;
     list.appendChild(div);
   });
-  // احفظ childId/f/t لاستعمال الحفظ
   $('#saveComment').dataset.child=childId;
   $('#saveComment').dataset.period=key;
 }
@@ -464,7 +444,6 @@ async function saveDoctorComment(){
   if(!childId||!period) return alert('اعرضي المتابعة أولًا ثم احفظي التعليق.');
   const text=$('#doctorComment').value.trim();
   const col=collection(db,'users',uid,'children',childId,'doctorNotes');
-  // نجعل المستند باســم الفترة كي يكتب فوقه عند تعديل نفس الفترة
   await setDoc(doc(col,period),{text,period,createdAt:new Date().toISOString()});
   alert('تم حفظ تعليق الطبيب ✅');
   await loadDoctorComments(childId, currentFrom, currentTo);
