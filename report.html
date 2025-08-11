@@ -16,29 +16,40 @@ header .btn{color:#fff;text-decoration:none;border:1px solid #ffffff66;padding:8
 main{max-width:1200px;margin:auto;padding:16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 6px 24px rgba(0,0,0,.04);margin-bottom:12px}
 
+/* فورم التحكم */
 label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
 input,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
 .grid{display:grid;gap:10px}
 .g4{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:900px){.g4{grid-template-columns:1fr 1fr}}
 
+#childMeta{color:#0f172ab3;font-size:12px;margin-top:6px}
+
+/* الهيدر الفارغ أعلى الورقة */
+.blank-header{display:flex;flex-wrap:wrap;gap:18px;row-gap:10px;margin:10px 0 12px;font-weight:700}
+.blank-header .bh-item{display:inline-block;min-width:230px}
+.blank-header .line{display:inline-block;border-bottom:1px dashed #9aa6b2;min-width:150px;height:1.2em;vertical-align:middle;margin-inline-start:8px}
+
+/* الجدول */
 .table{width:100%;border-collapse:separate;border-spacing:0}
-.table th,.table td{border:1px solid var(--line);padding:8px;vertical-align:top;text-align:center}
-.table thead th{background:#f8fafc;font-weight:800}
+.table th,.table td{
+  border:1px solid var(--line);
+  padding:8px;
+  vertical-align:top;
+  text-align:right; /* محاذاة يمين */
+}
+.table thead th{background:#f8fafc;font-weight:800;text-align:right} /* يمين للهيدر كمان */
 .table td.date{background:#fbfdff;white-space:nowrap;font-weight:800}
 
 .cell{display:flex;flex-direction:column;gap:3px}
 .line{font-size:12px}
-.state{padding:2px 8px;border-radius:999px;width:max-content;margin:auto}
+.state{padding:2px 8px;border-radius:999px;width:max-content;margin:0} /* بدون تمركز وسط */
 .state.ok{color:var(--ok);background:var(--okbg)}
 .state.low{color:var(--low);background:var(--lowbg)}
 .state.high{color:var(--high);background:var(--highbg)}
 .note{color:var(--muted)}
 
-.print-row{display:flex;gap:6px}
-#childMeta{color:#0f172ab3;font-size:12px;margin-top:6px}
-
-/* الطباعة: A4 Landscape + تصغير الخط والمسافات لتكفي 7 أيام */
+/* الطباعة: A4 Landscape + تصغير الخط لتكفي 7 أيام */
 @media print{
   @page{ size: A4 landscape; margin: 8mm }
   header,.controls{display:none!important}
@@ -79,6 +90,11 @@ input,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-rad
       </div>
     </div>
     <div id="childMeta"></div>
+
+    <!-- يظهر فقط عند طباعة الورقة الفارغة -->
+    <div id="blankHeader" class="blank-header" style="display:none">
+      <!-- يتم ملؤه برمجيًا -->
+    </div>
   </section>
 
   <section id="reportBox" class="card" style="display:none">
@@ -152,6 +168,9 @@ async function buildReport(){
   const childId=$('#childSel').value, from=$('#from').value, to=$('#to').value;
   if(!childId || !from || !to) return alert('اختاري الطفل وحددي الفترة');
 
+  // إظهار بيانات الطفل (وإخفاء هيدر الورقة الفارغة)
+  $('#blankHeader').style.display='none';
+
   // بيانات الطفل لعرضها أعلى التقرير
   const cs=await getDoc(doc(db,'users',uid,'children',childId));
   const c=cs.data()||{};
@@ -203,19 +222,26 @@ async function buildReport(){
   $('#reportBox').style.display='block';
 }
 
-/* طباعة ورقة فارغة: 7 أيام، التواريخ والقياسات فاضية */
+/* طباعة ورقة فارغة: هيدر أعلى + جدول 7 أيام فارغ */
 async function printBlankSheet(){
   const childId=$('#childSel').value;
   if(!childId) return alert('اختاري الطفل أولاً');
 
-  // جلب بيانات الطفل لوضعها في الهيدر
+  // جلب بيانات الطفل لوضعها في الهيدر الفارغ (لكن بخانات كتابة)
   const cs=await getDoc(doc(db,'users',uid,'children',childId));
   const c=cs.data()||{};
-  $('#childMeta').innerHTML = `
-    <b>الطفل:</b> ${c.name||'—'} • <b>الوزن:</b> ${c.weight??'—'} كجم • <b>الطول:</b> ${c.height??'—'} سم
-    • <b>حدود:</b> منخفض &lt; ${c.lowThreshold??'—'} — مرتفع &gt; ${c.highThreshold??'—'}
-    • <b>الفترة:</b> ورقة فارغة (٧ أيام)
+
+  // إخفاء childMeta وإظهار blankHeader
+  $('#childMeta').innerHTML='';
+  const bh = $('#blankHeader');
+  bh.innerHTML = `
+    <span class="bh-item">الاسم:<span class="line"></span></span>
+    <span class="bh-item">الوزن:<span class="line"></span></span>
+    <span class="bh-item">الطول:<span class="line"></span></span>
+    <span class="bh-item">معامل التصحيحي:<span class="line"></span></span>
+    <span class="bh-item">جرعة الترسيبا:<span class="line"></span></span>
   `;
+  bh.style.display='flex';
 
   const tbl=$('#rep'); tbl.innerHTML='';
   const thead=document.createElement('thead');
