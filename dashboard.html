@@ -6,14 +6,11 @@
 <style>
 :root{
   --brand:#0ea5e9;--brand2:#6ee7b7;--line:#e5e7eb;--ink:#0f172a;--muted:#6b7280;
-  --bg:#f6fbff;--card:#fff;--danger:#ef4444;--ok:#22c55e;--chip:#eef6ff
+  --bg:#f6fbff;--card:#fff;--chip:#eef6ff
 }
 *{box-sizing:border-box}
 body{margin:0;font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif;background:var(--bg);color:var(--ink)}
-header{
-  position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));
-  color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between
-}
+header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
 header .title{font-weight:800}
 main{max-width:1200px;margin:auto;padding:18px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 1px 8px rgba(0,0,0,.05);margin-bottom:14px}
@@ -26,15 +23,17 @@ input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10
 @media(max-width:1000px){.grid.cols-3{grid-template-columns:1fr 1fr}}
 @media(max-width:720px){.grid.cols-2,.grid.cols-3{grid-template-columns:1fr}}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.btn{border:none;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
+.btn{border:none;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}
 .btn.primary{background:var(--brand);color:#fff}
 .btn.secondary{background:#10b981;color:#fff}
 .btn.gray{background:#eef2f7}
-.btn.danger{background:var(--danger);color:#fff}
+.btn.purple{background:#7c3aed;color:#fff}
 .note{color:var(--muted);font-size:13px}
 .toast{position:fixed;bottom:16px;left:16px;background:#111;color:#fff;padding:10px 14px;border-radius:12px;opacity:0;transform:translateY(8px);transition:.3s}
 .toast.show{opacity:1;transform:none}
 .quick{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:900px){.quick{grid-template-columns:1fr 1fr}}
+@media(max-width:620px){.quick{grid-template-columns:1fr}}
 .quick a{display:flex;gap:10px;align-items:center;justify-content:center;text-decoration:none;background:#ffffff;border:1px solid var(--line);border-radius:12px;padding:14px;color:#0f172a;font-weight:800}
 .quick a:hover{border-color:#cbd5e1}
 .kids{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -59,18 +58,22 @@ input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10
 </header>
 
 <main>
-  <!-- إجراءات سريعة عامة -->
+  <!-- إجراءات سريعة -->
   <section class="card">
-    <h2>إجراءات سريعة</h2>
-    <div class="quick">
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <h2 style="margin:0">إجراءات سريعة</h2>
+      <span class="note">ممكن تستخدمي الأزرار العامة دي أو الأزرار الخاصة تحت كل طفل لفتح الصفحة مباشرة للطفل المختار.</span>
+    </div>
+    <div class="quick" style="margin-top:10px">
       <a href="child.html">👧 إدارة الأطفال</a>
       <a href="measure.html">🩺 تسجيل القياسات (عام)</a>
       <a href="report.html">📄 عرض التقارير (عام)</a>
+      <!-- الزر الجديد لصفحة الطبيب (عام) -->
+      <a href="doctor.html">🧑‍⚕️ متابعة الطبيب (عام)</a>
     </div>
-    <div class="note" style="margin-top:6px">ممكن تستخدمي الأزرار العامة دي أو الأزرار الخاصة تحت كل طفل لفتح الصفحة مباشرة للطفل المختار.</div>
   </section>
 
-  <!-- بيانات ولي الأمر -->
+  <!-- بيانات وليّ الأمر -->
   <section class="card">
     <h2>بيانات وليّ الأمر</h2>
     <div id="hello" class="note">تحميل...</div>
@@ -83,19 +86,15 @@ input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10
     </div>
     <div class="row" style="margin-top:10px">
       <button id="saveParent" class="btn primary">حفظ التعديلات</button>
-      <span class="note">يتم الحفظ في قاعدة بيانات Firestore.</span>
+      <span class="note">يتم الحفظ في Firestore.</span>
     </div>
   </section>
 
-  <!-- الأطفال -->
+  <!-- أطفالك -->
   <section class="card">
-    <div class="row" style="justify-content:space-between;align-items:center">
-      <h2 style="margin:0">أطفالي</h2>
-      <a class="btn primary" href="child.html">+ إضافة/إدارة طفل</a>
-    </div>
-
+    <h2>أطفالي</h2>
     <div id="kids" class="kids" style="margin-top:10px">
-      <div class="empty">لا يوجد أطفال بعد — اضغطي “+ إضافة/إدارة طفل”.</div>
+      <div class="empty">لا يوجد أطفال بعد — اضغطي “👧 إدارة الأطفال”.</div>
     </div>
   </section>
 </main>
@@ -103,49 +102,31 @@ input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10
 <div id="toast" class="toast"></div>
 
 <script type="module">
-/* Firebase */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
-  authDomain: "child-glucose-tracker.firebaseapp.com",
-  projectId: "child-glucose-tracker",
-  storageBucket: "child-glucose-tracker.firebasestorage.app",
-  messagingSenderId: "294563325904",
-  appId: "1:294563325904:web:39562550bf305fc01abbd5",
-  measurementId: "G-TWC063TD6X"
-};
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app);
+const firebaseConfig={apiKey:"AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",authDomain:"child-glucose-tracker.firebaseapp.com",projectId:"child-glucose-tracker",storageBucket:"child-glucose-tracker.firebasestorage.app",messagingSenderId:"294563325904",appId:"1:294563325904:web:39562550bf305fc01abbd5"};
+const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getFirestore(app);
 
-/* Helpers */
 const $=s=>document.querySelector(s);
 const toast=(m)=>{const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1700);};
 
-/* State */
 let uid=null;
 
-/* Auth guard */
 onAuthStateChanged(auth, async (u)=>{
   if(!u){ location.href='index.html'; return; }
   uid=u.uid;
-  $('#hello').textContent=`مرحبًا ${u.displayName || ''} — UID: ${u.uid}`;
+  $('#hello').textContent=`مرحبًا ${u.displayName||''} — UID: ${u.uid}`;
   await loadParent();
   await loadKids();
 });
 
-/* Parent info load/save */
 async function loadParent(){
   const ref=doc(db,'users',uid); const snap=await getDoc(ref);
   const p=(snap.data()||{}).parentInfo||{};
-  $('#guardianName').value=p.guardianName||'';
-  $('#fullName').value=p.name||'';
-  $('#civilId').value=p.civilId||'';
-  $('#phone').value=p.phone||'';
-  $('#email').value=p.email||'';
+  $('#guardianName').value=p.guardianName||''; $('#fullName').value=p.name||'';
+  $('#civilId').value=p.civilId||''; $('#phone').value=p.phone||''; $('#email').value=p.email||'';
 }
 $('#saveParent').addEventListener('click', async ()=>{
   const ref=doc(db,'users',uid); const snap=await getDoc(ref); const root=snap.data()||{};
@@ -160,38 +141,48 @@ $('#saveParent').addEventListener('click', async ()=>{
   toast('تم حفظ التعديلات ✅');
 });
 
-/* Kids listing with deep links */
 async function loadKids(){
   const box=$('#kids'); box.innerHTML='';
   const q=await getDocs(collection(db,'users',uid,'children'));
-  if(q.empty){
-    box.innerHTML='<div class="empty">لا يوجد أطفال بعد — اضغطي “+ إضافة/إدارة طفل”.</div>';
-    return;
-  }
+  if(q.empty){ box.innerHTML='<div class="empty">لا يوجد أطفال بعد — اضغطي “👧 إدارة الأطفال”.</div>'; return; }
+
+  const todayISO=new Date().toISOString().slice(0,10);
+
   q.forEach(s=>{
     const c=s.data(); const id=s.id;
+
+    // شارة تنبيه زيارة الطبيب إن كانت خلال يومين
+    let visitBadge='';
+    if(c.doctorVisitDate){
+      const diffDays=Math.ceil((new Date(c.doctorVisitDate)-new Date(todayISO))/(1000*60*60*24));
+      if(diffDays<=2 && diffDays>=0){
+        visitBadge=`<span class="chip" style="background:#fff0e5;color:#b45309">🧑‍⚕️ زيارة الطبيب بعد ${diffDays} يوم</span>`;
+      }
+    }
+
     const card=document.createElement('div'); card.className='kid';
     card.innerHTML=`
       <div class="head">
-        <div class="name">${c.name || 'بدون اسم'}</div>
+        <div class="name">${c.name||'بدون اسم'}</div>
         <div class="chips">
-          <span class="chip">منخفض &lt; <b>${c.lowThreshold ?? '—'}</b></span>
-          <span class="chip">مرتفع &gt; <b>${c.highThreshold ?? '—'}</b></span>
-          ${c.targetMmol!=null ? `<span class="chip">الهدف ${c.targetMmol}</span>` : ''}
+          <span class="chip">منخفض &lt; <b>${c.lowThreshold??'—'}</b></span>
+          <span class="chip">مرتفع &gt; <b>${c.highThreshold??'—'}</b></span>
+          ${c.targetMmol!=null?`<span class="chip">الهدف ${c.targetMmol}</span>`:''}
+          ${visitBadge}
         </div>
       </div>
       <div class="row actions">
         <a class="btn secondary" href="measure.html?child=${id}">تسجيل قياسات</a>
-        <a class="btn gray" href="report.html?child=${id}">عرض التقارير</a>
-        <a class="btn primary" href="child.html?child=${id}">تعديل بيانات الطفل</a>
+        <a class="btn primary" href="report.html?child=${id}">عرض التقارير</a>
+        <a class="btn purple"  href="doctor.html?child=${id}">🧑‍⚕️ متابعة الطبيب</a>
+        <a class="btn gray"     href="child.html?child=${id}">تعديل بيانات الطفل</a>
       </div>
-      <div class="note">الطول: ${c.height ?? '—'} سم • الوزن: ${c.weight ?? '—'} كجم • تريسيبا: ${c.tresiba ?? '—'} • نوفو: ${c.novo ?? '—'}</div>
+      <div class="note">الطول: ${c.height??'—'} سم • الوزن: ${c.weight??'—'} كجم • تريسيبا: ${c.tresiba??'—'} • نوفو: ${c.novo??'—'}</div>
     `;
     box.appendChild(card);
   });
 }
 
-/* Logout */
 $('#btnLogout').addEventListener('click', ()=>signOut(auth).then(()=>location.href='index.html'));
 </script>
 </body>
