@@ -5,61 +5,57 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>تسجيل القياسات — متابعة سكر الأطفال</title>
 <style>
-  :root{
-    --brand:#0ea5e9; --brand2:#6ee7b7; --card:#fff; --line:#e5e7eb;
-    --ink:#0f172a; --muted:#64748b; --ok:#22c55e; --low:#b45309; --high:#dc2626;
-    --bg:#f7fbff;
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0; background:var(--bg); color:var(--ink);
-    font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif;
-  }
-  header{
-    position:sticky; top:0; z-index:2;
-    background:linear-gradient(90deg,var(--brand),var(--brand2)); color:#fff;
-    padding:14px 18px; display:flex; align-items:center; justify-content:space-between;
-  }
-  header a.btn{background:#ffffff22;color:#fff;border:1px solid #ffffff55}
-  main{max-width:1100px;margin:auto;padding:20px}
-  .card{
-    background:var(--card); border:1px solid var(--line); border-radius:16px;
-    box-shadow:0 10px 30px rgba(0,0,0,.03); padding:16px; margin-bottom:16px;
-  }
-  h2{margin:0 0 12px}
-  .grid{display:grid; gap:12px}
-  .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
-  @media (max-width:900px){ .g3{grid-template-columns:1fr} }
-  label{display:block; font-size:13px; color:var(--muted); margin:0 0 6px}
-  select,input{
-    width:100%; padding:12px 12px; border:1px solid var(--line); border-radius:12px; background:#fff
-  }
-  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-  .btn{
-    border:none; border-radius:10px; padding:10px 14px; font-weight:800; cursor:pointer;
-  }
-  .btn.primary{background:var(--brand); color:#fff}
-  .btn.gray{background:#eef2f7}
-  .note{color:var(--muted); font-size:13px}
-  .badge{display:inline-flex; gap:6px; align-items:center; padding:6px 10px; border-radius:999px; font-weight:800}
-  .b-ok{background:#ecfdf5; color:var(--ok)}
-  .b-low{background:#fff7ed; color:var(--low)}
-  .b-high{background:#fee2e2; color:var(--high)}
-  table{width:100%; border-collapse:collapse}
-  th,td{border:1px solid var(--line); padding:10px; text-align:center}
-  th{background:#f8fafc; color:#0f172a}
-  .toast{
-    position:fixed; bottom:16px; left:16px; background:#111; color:#fff; padding:10px 14px;
-    border-radius:12px; opacity:0; transform:translateY(8px); transition:.28s; z-index:3
-  }
-  .toast.show{opacity:1; transform:none}
-  .hide{display:none!important}
+:root{
+  --brand:#0ea5e9; --brand2:#6ee7b7; --card:#fff; --line:#e5e7eb;
+  --ink:#0f172a; --muted:#64748b; --ok:#22c55e; --low:#b45309; --high:#dc2626;
+  --bg:#f7fbff;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--bg); color:var(--ink);
+  font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif;}
+header{
+  position:sticky; top:0; z-index:2; background:linear-gradient(90deg,var(--brand),var(--brand2));
+  color:#fff; padding:14px 18px; display:flex; align-items:center; justify-content:space-between;
+}
+header a.btn{background:#ffffff22;color:#fff;border:1px solid #ffffff55}
+main{max-width:1100px;margin:auto;padding:20px}
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.03); padding:16px; margin-bottom:16px;
+}
+h2{margin:0 0 12px}
+.grid{display:grid; gap:12px}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:900px){ .g3{grid-template-columns:1fr} }
+label{display:block; font-size:13px; color:var(--muted); margin:0 0 6px}
+select,input{
+  width:100%; padding:12px 12px; border:1px solid var(--line); border-radius:12px; background:#fff
+}
+.row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+.btn{border:none; border-radius:10px; padding:10px 14px; font-weight:800; cursor:pointer}
+.btn.primary{background:var(--brand); color:#fff}
+.btn.gray{background:#eef2f7}
+.note{color:var(--muted); font-size:13px}
+.badge{display:inline-flex; gap:6px; align-items:center; padding:6px 10px; border-radius:999px; font-weight:800}
+.b-ok{background:#ecfdf5; color:var(--ok)}
+.b-low{background:#fff7ed; color:var(--low)}
+.b-high{background:#fee2e2; color:var(--high)}
+.table{width:100%; border-collapse:collapse}
+th,td{border:1px solid var(--line); padding:10px; text-align:right}
+th{background:#f8fafc; color:#0f172a}
+.small{font-size:12px;color:var(--muted)}
+.toast{position:fixed;bottom:16px;left:16px;background:#111;color:#fff;padding:10px 14px;border-radius:12px;opacity:0;transform:translateY(8px);transition:.28s;z-index:3}
+.toast.show{opacity:1;transform:none}
+.hide{display:none!important}
+.suggest{display:inline-block;background:#eef6ff;color:#0369a1;padding:6px 10px;border-radius:999px;font-weight:800}
 </style>
 </head>
 <body>
 <header>
   <div>تسجيل القياسات</div>
-  <a class="btn" href="dashboard.html">⬅ رجوع للوحة التحكم</a>
+  <div class="row">
+    <a class="btn" href="dashboard.html">⬅ لوحة التحكم</a>
+  </div>
 </header>
 
 <main>
@@ -69,10 +65,9 @@
     <div class="grid g3">
       <div>
         <label>الطفل</label>
-        <select id="childSel">
-          <option value="">— اختاري الطفل —</option>
-        </select>
+        <select id="childSel"><option value="">— اختاري الطفل —</option></select>
         <div id="thrInfo" class="note" style="margin-top:6px"></div>
+        <div id="cfInfo" class="note" style="margin-top:4px"></div>
       </div>
       <div>
         <label>التاريخ</label>
@@ -102,39 +97,54 @@
     <div class="grid g3">
       <div>
         <label>القراءة (mmol/L)</label>
-        <input id="reading" type="number" step="0.1" min="0" placeholder="اكتب القراءة" />
+        <input id="reading" type="number" step="0.1" min="0" placeholder="اكتبي القراءة" />
         <div id="bOk" class="badge b-ok hide">✔️ ضمن المدى</div>
         <div id="bLow" class="badge b-low hide">⬇︎ منخفض — يجب الرفع</div>
         <div id="bHigh" class="badge b-high hide">⬆︎ مرتفع — يرجى التصحيح</div>
       </div>
       <div>
+        <label>جرعة الوجبة (وحدة) — اختياري</label>
+        <input id="mealDose" type="number" step="0.5" min="0" placeholder="مثلاً 3">
+        <div id="suggestWrap" class="hide" style="margin-top:8px">
+          <span class="suggest">الجرعة التصحيحية المقترحة: <span id="corrSuggestion">—</span> وحدة</span>
+        </div>
+      </div>
+      <div>
         <label>ملاحظة</label>
         <input id="note" placeholder="اختياري — وصف مختصر" />
-      </div>
-      <div style="display:flex;align-items:end">
-        <div class="row" style="gap:8px">
-          <button id="saveBtn" class="btn primary">حفظ القياس</button>
-          <button id="clearBtn" class="btn gray">مسح الحقول</button>
+        <div id="extraLow" class="hide" style="margin-top:8px">
+          <label>اترفع بإيه؟</label>
+          <input id="raisedWith" placeholder="عصير/أقراص جلوكوز...">
         </div>
-        <div class="note" style="margin-inline-start:10px">سيتم الحفظ داخل اليوم المختار تحت الوقت المختار.</div>
+        <div id="extraHigh" class="hide" style="margin-top:8px">
+          <label>جرعة التصحيحي (المُعطاة)</label>
+          <input id="corrGiven" type="number" step="0.5" min="0" placeholder="مثلاً 2.5">
+        </div>
       </div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button id="saveBtn" class="btn primary">حفظ القياس</button>
+      <button id="clearBtn" class="btn gray">مسح الحقول</button>
+      <span class="note">يمنع تسجيل نفس الوقت مرتين في اليوم نفسه.</span>
     </div>
   </section>
 
   <!-- جدول اليوم -->
   <section class="card">
     <h2>قراءات اليوم المختار</h2>
-    <table>
+    <table class="table">
       <thead>
         <tr>
           <th>الوقت</th>
-          <th>القراءة</th>
+          <th>القياس</th>
           <th>الحالة</th>
+          <th>جرعة الوجبة</th>
+          <th>التصحيحي (المُعطاة)</th>
           <th>ملاحظات</th>
         </tr>
       </thead>
       <tbody id="rows">
-        <tr><td colspan="4" class="note">لا توجد قراءات لليوم المختار بعد.</td></tr>
+        <tr><td colspan="6" class="small">لا توجد قراءات لليوم المختار بعد.</td></tr>
       </tbody>
     </table>
   </section>
@@ -143,7 +153,7 @@
 <div id="toast" class="toast"></div>
 
 <script type="module">
-/* ---------------- Firebase ---------------- */
+/* ---------- Firebase ---------- */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { getFirestore, collection, getDocs, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
@@ -154,154 +164,193 @@ const firebaseConfig = {
   projectId: "child-glucose-tracker",
   storageBucket: "child-glucose-tracker.firebasestorage.app",
   messagingSenderId: "294563325904",
-  appId: "1:294563325904:web:39562550bf305fc01abbd5",
+  appId: "1:294563325904:web:39562550bf305fc01abbd5"
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
-/* ---------------- Helpers ---------------- */
-const $ = s=>document.querySelector(s);
-const toast=(m)=>{const t=$("#toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),1700);};
+/* ---------- Helpers ---------- */
+const $=s=>document.querySelector(s);
+const toast=(m)=>{const t=$('.toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1700);};
+
 const labels={
   preBreakfast:'قبل الإفطار', postBreakfast:'بعد الإفطار',
   preLunch:'قبل الغداء',     postLunch:'بعد الغداء',
   preDinner:'قبل العشاء',    postDinner:'بعد العشاء',
   beforeSleep:'قبل النوم',   duringSleep:'أثناء النوم', uponWake:'عند الاستيقاظ'
 };
-let uid=null, childId=null, low=4, high=10;
+const order=['preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','uponWake'];
 
-/* ---------------- Auth ---------------- */
+let uid=null, childId=null, low=4, high=10, target=6.5, cfMmol=null;
+const initChildId=new URL(location.href).searchParams.get('child');
+
+/* ---------- Auth ---------- */
 onAuthStateChanged(auth, async (u)=>{
   if(!u){ location.href='index.html'; return; }
-  uid=u.uid;
-  await loadChildren();
-  setToday();
-  // child من الرابط
-  const idFromUrl=new URL(location.href).searchParams.get('child');
-  if(idFromUrl){
-    $("#childSel").value=idFromUrl;
-    $("#childSel").disabled=true;
+  uid=u.uid; await loadChildren(); setToday();
+  if(initChildId){
+    $('#childSel').value=initChildId; $('#childSel').disabled=true;
     await onChildChanged();
   }
 });
 
-/* ---------------- UI logic ---------------- */
-function setToday(){
-  const d=new Date();
-  const iso=d.toISOString().slice(0,10);
-  $("#dateSel").value=iso;
-}
-
+/* ---------- UI init ---------- */
+function setToday(){ const d=new Date(); $('#dateSel').value=d.toISOString().slice(0,10); }
 async function loadChildren(){
-  const sel=$("#childSel"); sel.innerHTML='<option value="">— اختاري الطفل —</option>';
+  const sel=$('#childSel'); sel.innerHTML='<option value="">— تحميل —</option>';
   const q=await getDocs(collection(db,'users',uid,'children'));
-  q.forEach(s=>{
-    const opt=document.createElement('option');
-    opt.value=s.id; opt.textContent=s.data().name||'بدون اسم';
-    sel.appendChild(opt);
-  });
+  sel.innerHTML='<option value="">— اختاري الطفل —</option>';
+  q.forEach(s=>{ const o=document.createElement('option'); o.value=s.id; o.textContent=s.data().name||'بدون اسم'; sel.appendChild(o); });
 }
 
-$("#childSel").addEventListener("change", onChildChanged);
-$("#dateSel").addEventListener("change", refreshDay);
+$('#childSel').addEventListener('change', onChildChanged);
+$('#dateSel').addEventListener('change', refreshDay);
+$('#slotSel').addEventListener('change', checkDuplicateAndStatus);
+$('#reading').addEventListener('input', onReadingChange);
+$('#clearBtn').addEventListener('click', clearInputs);
+$('#saveBtn').addEventListener('click', onSave);
 
+/* ---------- Load child thresholds & ISF/target ---------- */
 async function onChildChanged(){
-  childId=$("#childSel").value || null;
-  if(!childId){ $("#thrInfo").textContent=''; $("#rows").innerHTML=rowEmpty(); return; }
-  // حدود الطفل
+  childId=$('#childSel').value||null;
+  if(!childId){ $('#thrInfo').textContent=''; $('#cfInfo').textContent=''; $('#rows').innerHTML=emptyRow(); return; }
   const cs=await getDoc(doc(db,'users',uid,'children',childId));
   const c=cs.data()||{};
-  low = c.lowThreshold ?? 4;
-  high= c.highThreshold ?? 10;
-  $("#thrInfo").textContent = `المستويات: منخفض < ${low} • مرتفع > ${high}`;
+  low=c.lowThreshold??4; high=c.highThreshold??10;
+  target=c.targetMmol??6.5;
+  cfMmol= c.correctionFactorMmol ?? (c.correctionFactorMgDl!=null ? (Number(c.correctionFactorMgDl)/18) : null);
+  $('#thrInfo').textContent=`الحدود: منخفض < ${low} • مرتفع > ${high} • الهدف: ${target}`;
+  $('#cfInfo').textContent = cfMmol? `معامل التصحيح: ${round2(cfMmol)} mmol/L لكل 1U` : '⚠️ لم يتم ضبط معامل التصحيح';
   refreshDay();
 }
 
-function rowEmpty(){ return `<tr><td colspan="4" class="note">لا توجد قراءات لليوم المختار بعد.</td></tr>`; }
+/* ---------- State / UI ---------- */
+function emptyRow(){ return `<tr><td colspan="6" class="small">لا توجد قراءات لليوم المختار بعد.</td></tr>`; }
 
+function evaluate(v){
+  if(v==='' || !Number.isFinite(Number(v))) return null;
+  const n=Number(v);
+  if(n<low) return 'low'; if(n>high) return 'high'; return 'ok';
+}
+
+function onReadingChange(){
+  const v=Number($('#reading').value);
+  [$('#bOk'),$('#bLow'),$('#bHigh')].forEach(e=>e.classList.add('hide'));
+  $('#extraLow').classList.add('hide'); $('#extraHigh').classList.add('hide'); $('#suggestWrap').classList.add('hide');
+  if(!Number.isFinite(v)) return;
+
+  const st=evaluate(v);
+  if(st==='low'){ $('#bLow').classList.remove('hide'); $('#extraLow').classList.remove('hide'); }
+  else if(st==='high'){
+    $('#bHigh').classList.remove('hide'); $('#extraHigh').classList.remove('hide');
+    // حساب الجرعة المقترحة لو عندنا ISF & target
+    const seg = suggestedCorrection(v);
+    if(seg!=null){ $('#corrSuggestion').textContent=seg; $('#suggestWrap').classList.remove('hide'); }
+  } else if(st==='ok'){ $('#bOk').classList.remove('hide'); }
+}
+
+/* اقتراح التصحيح: تقريب لأقرب 0.5U + حدود أمان (0..10U) */
+function suggestedCorrection(reading){
+  if(cfMmol==null || !Number.isFinite(reading)) return null;
+  const excess = reading - target;
+  if(excess<=0) return 0;
+  let u = excess / cfMmol;
+  u = Math.max(0, Math.min(10, u));         // حدود أمان
+  const rounded = Math.round(u*2)/2;        // أقرب 0.5U
+  return rounded;
+}
+
+function clearInputs(){
+  $('#reading').value=''; $('#note').value=''; $('#raisedWith').value='';
+  $('#mealDose').value=''; $('#corrGiven').value='';
+  [$('#bOk'),$('#bLow'),$('#bHigh')].forEach(e=>e.classList.add('hide'));
+  $('#extraLow').classList.add('hide'); $('#extraHigh').classList.add('hide'); $('#suggestWrap').classList.add('hide');
+}
+
+/* ---------- Duplicate check + table refresh ---------- */
+let todayDocSnap=null;
 async function refreshDay(){
-  const dateId=$("#dateSel").value;
+  const dateId=$('#dateSel').value;
   if(!childId || !dateId) return;
   const ref=doc(db,'users',uid,'children',childId,'measurements',dateId);
-  const snap=await getDoc(ref);
-  const readings=(snap.data()||{}).readings || {};
-  const tbody=$("#rows"); tbody.innerHTML='';
+  todayDocSnap = await getDoc(ref);
+  const readings=(todayDocSnap.data()||{}).readings || {};
+  const tbody=$('#rows'); tbody.innerHTML='';
   let any=false;
-  Object.keys(labels).forEach(k=>{
+  order.forEach(k=>{
     const r=readings[k];
     if(r && r.value!=null){
       any=true;
-      const stBadge = r.status==='low' ? `<span class="badge b-low">منخفض</span>` :
-                      r.status==='high'? `<span class="badge b-high">مرتفع</span>` :
-                                         `<span class="badge b-ok">طبيعي</span>`;
-      const note = r.note || r.raisedWith || (r.correctionDoses!=null?('تصحيحي: '+r.correctionDoses):'') || '';
-      const tr = `<tr>
-        <td>${labels[k]}</td>
-        <td>${r.value}</td>
-        <td>${stBadge}</td>
-        <td>${note}</td>
-      </tr>`;
-      tbody.insertAdjacentHTML('beforeend', tr);
+      tbody.insertAdjacentHTML('beforeend', `
+        <tr>
+          <td>${labels[k]}</td>
+          <td>${r.value}</td>
+          <td>${statusBadge(r.status)}</td>
+          <td>${r.mealDose!=null? r.mealDose : '—'}</td>
+          <td>${r.correctionGiven!=null? r.correctionGiven : '—'}</td>
+          <td>${r.note || r.raisedWith || ''}</td>
+        </tr>
+      `);
     }
   });
-  if(!any) tbody.innerHTML=rowEmpty();
+  if(!any) tbody.innerHTML=emptyRow();
 }
 
-/* تقييم الحالة */
-const bOk=$("#bOk"), bLow=$("#bLow"), bHigh=$("#bHigh");
-$("#reading").addEventListener("input", ()=>{
-  [bOk,bLow,bHigh].forEach(e=>e.classList.add("hide"));
-  const v=Number($("#reading").value);
-  if(!v && v!==0) return;
-  if(v<low){ bLow.classList.remove("hide"); }
-  else if(v>high){ bHigh.classList.remove("hide"); }
-  else { bOk.classList.remove("hide"); }
-});
+function statusBadge(st){
+  if(st==='low') return `<span class="badge b-low">منخفض</span>`;
+  if(st==='high')return `<span class="badge b-high">مرتفع</span>`;
+  if(st==='ok')  return `<span class="badge b-ok">طبيعي</span>`;
+  return '';
+}
 
-/* مسح */
-$("#clearBtn").addEventListener("click", ()=>{
-  $("#reading").value=''; $("#note").value='';
-  [bOk,bLow,bHigh].forEach(e=>e.classList.add("hide"));
-});
+async function checkDuplicateAndStatus(){
+  // مجرد إعادة تقييم لعرض الاقتراح عند تغيير الوقت، ومنع التكرار عند الحفظ
+  onReadingChange();
+}
 
-/* حفظ القياس مع منع تكرار نفس الوقت في نفس اليوم */
-$("#saveBtn").addEventListener("click", async ()=>{
+/* ---------- Save ---------- */
+async function onSave(){
   if(!childId) return toast('اختاري الطفل أولًا');
-  const dateId=$("#dateSel").value; if(!dateId) return toast('اختاري التاريخ');
-  const slot=$("#slotSel").value; if(!slot) return toast('اختاري الوقت');
-  const val=Number($("#reading").value);
+  const dateId=$('#dateSel').value; if(!dateId) return toast('اختاري التاريخ');
+  const slot=$('#slotSel').value; if(!slot) return toast('اختاري الوقت');
+
+  const val=Number($('#reading').value);
   if(!Number.isFinite(val)) return toast('أدخلي قراءة صحيحة');
 
-  // حمّلي مستند اليوم
-  const ref=doc(db,'users',uid,'children',childId,'measurements',dateId);
-  const snap=await getDoc(ref);
-  const base=snap.exists()? snap.data() : { date:dateId, readings:{} };
-
   // منع التكرار
+  const ref=doc(db,'users',uid,'children',childId,'measurements',dateId);
+  const snap = todayDocSnap && todayDocSnap.id===dateId ? todayDocSnap : await getDoc(ref);
+  const base = snap.exists()? snap.data() : { date:dateId, readings:{} };
   if(base.readings[slot] && base.readings[slot].value!=null){
-    toast('تم تسجيل هذا الوقت مسبقًا لهذا اليوم ❗'); // لا نسمح بالتبديل
-    return;
+    return toast('تم تسجيل هذا الوقت مسبقًا لهذا اليوم ❗');
   }
 
-  // احسب الحالة
-  let status='ok';
-  if(val<low) status='low';
-  else if(val>high) status='high';
-
-  base.readings[slot] = {
+  const st=evaluate(val);
+  const payload={
     value: val,
-    status,
-    note: $("#note").value.trim() || null,
+    status: st,
+    note: $('#note').value.trim() || null,
+    mealDose: valNum('#mealDose'),
+    correctionGiven: (st==='high' ? valNum('#corrGiven') : null),
+    correctionSuggested: (st==='high' ? suggestedCorrection(val) : null),
+    raisedWith: (st==='low' ? ($('#raisedWith').value.trim() || null) : null),
     label: labels[slot]
   };
 
-  await setDoc(ref, base); // حفظ بالكامل (يضمن الدمج لأننا بنبني الجسم)
+  base.readings[slot]=payload;
+  await setDoc(ref, base);
   toast('تم حفظ القياس ✅');
-  $("#reading").value=''; $("#note").value='';
-  [bOk,bLow,bHigh].forEach(e=>e.classList.add("hide"));
+  clearInputs();
+  todayDocSnap=null; // لإعادة الجلب
   refreshDay();
-});
+}
+
+function valNum(sel){
+  const v=$(sel).value; if(v===''||v==null) return null;
+  const n=Number(v); return Number.isFinite(n)? n : null;
+}
+function round2(n){ return Math.round(n*100)/100; }
 </script>
 </body>
 </html>
