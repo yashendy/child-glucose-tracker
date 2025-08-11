@@ -31,7 +31,7 @@ input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10
 .note{color:var(--muted);font-size:13px}
 .toast{position:fixed;bottom:16px;left:16px;background:#111;color:#fff;padding:10px 14px;border-radius:12px;opacity:0;transform:translateY(8px);transition:.3s}
 .toast.show{opacity:1;transform:none}
-.quick{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr))}
+.quick{display:grid;gap:12px;grid-template-columns:repeat(4,minmax(0,1fr))}
 @media(max-width:900px){.quick{grid-template-columns:1fr 1fr}}
 @media(max-width:620px){.quick{grid-template-columns:1fr}}
 .quick a{display:flex;gap:10px;align-items:center;justify-content:center;text-decoration:none;background:#ffffff;border:1px solid var(--line);border-radius:12px;padding:14px;color:#0f172a;font-weight:800}
@@ -125,7 +125,9 @@ let uid=null;
 onAuthStateChanged(auth, async (u)=>{
   if(!u){ location.href='index.html'; return; }
   uid=u.uid;
-  $('#hello').textContent=`مرحبًا ${u.displayName || ''} — UID: ${u.uid}`;
+  // معلومات سريعة للمستخدم
+  const name=u.displayName || '';
+  $('#hello').textContent = name ? `مرحبًا ${name}` : `مرحبًا`;
   await loadParent();
   await loadKids();
 });
@@ -178,17 +180,15 @@ async function loadKids(){
       }
     }
 
-    // ⚠️ تجهيز شارة الهدف بدون template داخل template
-    let targetChip = '';
-    if (c.targetMmol != null) {
-      targetChip = '<span class="chip">الهدف '+ c.targetMmol +'</span>';
-    }
+    // شارة الهدف (بدون template داخل template لتجنب أخطاء)
+    let targetChip='';
+    if(c.targetMmol!=null){ targetChip='<span class="chip">الهدف '+c.targetMmol+'</span>'; }
 
     const card=document.createElement('div');
     card.className='kid';
     card.innerHTML =
       '<div class="head">'+
-        '<div class="name">'+ (c.name||'بدون اسم') +'</div>'+
+        '<div class="name">'+(c.name||'بدون اسم')+'</div>'+
         '<div class="chips">'+
           '<span class="chip">منخفض &lt; <b>'+ (c.lowThreshold ?? '—') +'</b></span>'+
           '<span class="chip">مرتفع &gt; <b>'+ (c.highThreshold ?? '—') +'</b></span>'+
