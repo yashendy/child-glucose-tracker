@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>لوحة التحكم — متابعة سكر الأطفال</title>
+<style>
+:root{--brand:#0ea5e9;--brand2:#6ee7b7;--line:#e5e7eb;--ink:#0f172a;--muted:#6b7280;--bg:#f6fbff;--card:#fff;--danger:#ef4444}
+*{box-sizing:border-box}body{margin:0;font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif;background:var(--bg);color:var(--ink)}
+header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
+header .title{font-weight:800}
+main{max-width:1100px;margin:auto;padding:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 1px 8px rgba(0,0,0,.05);margin-bottom:14px}
+h2{margin:0 0 10px}
+label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
+input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{border:none;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
+.btn.primary{background:var(--brand);color:#fff}
+.btn.gray{background:#eef2f7}
+.btn.danger{background:var(--danger);color:#fff}
+.note{color:var(--muted);font-size:13px}
+.tag{background:#eaf6ff;color:#0369a1;padding:6px 10px;border-radius:999px;display:inline-flex;gap:6px;align-items:center}
+.toast{position:fixed;bottom:16px;left:16px;background:#111;color:#fff;padding:10px 14px;border-radius:12px;opacity:0;transform:translateY(8px);transition:.3s}
+.toast.show{opacity:1;transform:none}
+.kids{display:flex;gap:10px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<header>
+  <div class="title">لوحة التحكم</div>
+  <div class="row">
+    <a class="btn gray" href="index.html">الصفحة الرئيسية</a>
+    <button id="btnLogout" class="btn gray">خروج</button>
+  </div>
+</header>
+
+<main>
+  <div class="card">
+    <h2>بيانات وليّ الأمر</h2>
+    <div id="hello" class="note">تحميل...</div>
+    <div class="grid" style="margin-top:10px">
+      <div><label>اسم وليّ الأمر</label><input id="guardianName"></div>
+      <div><label>الاسم (اختياري)</label><input id="fullName"></div>
+      <div><label>الرقم المدني</label><input id="civilId"></div>
+      <div><label>رقم الهاتف</label><input id="phone"></div>
+      <div><label>البريد الإلكتروني</label><input id="email" disabled></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button id="saveParent" class="btn primary">حفظ التعديلات</button>
+      <span class="note">يتم الحفظ في قاعدة بيانات Firestore.</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>أطفالي</h2>
+    <div class="row" style="margin-bottom:8px">
+      <a class="btn primary" href="child.html">إدارة الأطفال</a>
+      <span class="note">أضِف طفلًا جديدًا أو عدّل البيانات وحدود الانخفاض/الارتفاع.</span>
+    </div>
+    <div id="kids" class="kids"></div>
+  </div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
+  authDomain: "child-glucose-tracker.firebaseapp.com",
+  projectId: "child-glucose-tracker",
+  storageBucket: "child-glucose-tracker.firebasestorage.app",
+  messagingSenderId: "294563325904",
+  appId: "1:294563325904:web:39562550bf305fc01abbd5",
+  measurementId: "G-TWC063TD6X"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+const $=s=>document.querySelector(s);
+const toast=(m)=>{const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1700);};
+
+let uid=null;
+onAuthStateChanged(auth, async (u)=>{
+  if(!u){ location.href='index.html'; return; }
+  uid=u.uid;
+  $('#hello').textContent=`مرحبًا ${u.displayName || ''} — UID: ${u.uid}`;
+  await loadParent();
+  await loadKids();
+});
+
+async function loadParent(){
+  const ref=doc(db,'users',uid); const snap=await getDoc(ref);
+  const p=(snap.data()||{}).parentInfo||{};
+  $('#guardianName').value=p.guardianName||'';
+  $('#fullName').value=p.name||'';
+  $('#civilId').value=p.civilId||'';
+  $('#phone').value=p.phone||'';
+  $('#email').value=p.email||'';
+}
+
+$('#saveParent').addEventListener('click', async ()=>{
+  const ref=doc(db,'users',uid); const snap=await getDoc(ref); const root=snap.data()||{};
+  root.parentInfo={
+    guardianName:$('#guardianName').value.trim(),
+    name:$('#fullName').value.trim(),
+    civilId:$('#civilId').value.trim(),
+    phone:$('#phone').value.trim(),
+    email:$('#email').value.trim()
+  };
+  await updateDoc(ref,root);
+  toast('تم حفظ التعديلات ✅');
+});
+
+async function loadKids(){
+  const box=$('#kids'); box.innerHTML='تحميل...';
+  const q=await getDocs(collection(db,'users',uid,'children'));
+  if(q.empty){ box.innerHTML='<span class="note">لا يوجد أطفال بعد — اذهب إلى "إدارة الأطفال".</span>'; return; }
+  box.innerHTML='';
+  q.forEach(s=>{
+    const c=s.data();
+    const el=document.createElement('span');
+    el.className='tag';
+    el.textContent=`${c.name} • الحدود: ${c.lowThreshold ?? '—'}/${c.highThreshold ?? '—'}`;
+    el.style.cursor='pointer';
+    el.onclick=()=>location.href='child.html?child='+s.id;
+    box.appendChild(el);
+  });
+}
+
+$('#btnLogout').addEventListener('click', ()=>signOut(auth).then(()=>location.href='index.html'));
+</script>
+</body>
+</html>
