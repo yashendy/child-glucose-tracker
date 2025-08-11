@@ -4,27 +4,57 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>لوحة التحكم — متابعة سكر الأطفال</title>
 <style>
-:root{--brand:#0ea5e9;--brand2:#6ee7b7;--line:#e5e7eb;--ink:#0f172a;--muted:#6b7280;--bg:#f6fbff;--card:#fff;--danger:#ef4444}
-*{box-sizing:border-box}body{margin:0;font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif;background:var(--bg);color:var(--ink)}
-header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
+:root{
+  --brand:#0ea5e9;--brand2:#6ee7b7;--line:#e5e7eb;--ink:#0f172a;--muted:#6b7280;
+  --bg:#f6fbff;--card:#fff;--danger:#ef4444;--ok:#22c55e;--chip:#eef6ff
+}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif;background:var(--bg);color:var(--ink)}
+header{
+  position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));
+  color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between
+}
 header .title{font-weight:800}
-main{max-width:1100px;margin:auto;padding:18px}
+main{max-width:1200px;margin:auto;padding:18px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 1px 8px rgba(0,0,0,.05);margin-bottom:14px}
 h2{margin:0 0 10px}
 label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
 input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
-.grid{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
-@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.grid{display:grid;gap:12px}
+.grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:1000px){.grid.cols-3{grid-template-columns:1fr 1fr}}
+@media(max-width:720px){.grid.cols-2,.grid.cols-3{grid-template-columns:1fr}}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .btn{border:none;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
 .btn.primary{background:var(--brand);color:#fff}
+.btn.secondary{background:#10b981;color:#fff}
 .btn.gray{background:#eef2f7}
 .btn.danger{background:var(--danger);color:#fff}
 .note{color:var(--muted);font-size:13px}
-.tag{background:#eaf6ff;color:#0369a1;padding:6px 10px;border-radius:999px;display:inline-flex;gap:6px;align-items:center}
 .toast{position:fixed;bottom:16px;left:16px;background:#111;color:#fff;padding:10px 14px;border-radius:12px;opacity:0;transform:translateY(8px);transition:.3s}
 .toast.show{opacity:1;transform:none}
-.kids{display:flex;gap:10px;flex-wrap:wrap}
+.quick{
+  display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr))
+}
+.quick a{
+  display:flex;gap:10px;align-items:center;justify-content:center;
+  text-decoration:none;background:#ffffff;border:1px solid var(--line);border-radius:12px;
+  padding:14px;color:#0f172a;font-weight:800
+}
+.quick a:hover{border-color:#cbd5e1}
+.kids{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:1100px){.kids{grid-template-columns:1fr 1fr}}
+@media(max-width:720px){.kids{grid-template-columns:1fr}}
+.kid{
+  border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px
+}
+.kid .head{display:flex;justify-content:space-between;align-items:center}
+.kid .name{font-weight:800}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{background:var(--chip);color:#0369a1;padding:6px 10px;border-radius:999px;font-size:12px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.empty{border:1px dashed var(--line);padding:14px;border-radius:12px;text-align:center;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -37,10 +67,21 @@ input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10
 </header>
 
 <main>
-  <div class="card">
+  <!-- إجراءات سريعة -->
+  <section class="card">
+    <h2>إجراءات سريعة</h2>
+    <div class="quick">
+      <a href="child.html">👧 إدارة الأطفال</a>
+      <a href="measure.html">🩺 تسجيل القياسات</a>
+      <a href="report.html">📄 عرض التقارير</a>
+    </div>
+  </section>
+
+  <!-- بيانات ولي الأمر -->
+  <section class="card">
     <h2>بيانات وليّ الأمر</h2>
     <div id="hello" class="note">تحميل...</div>
-    <div class="grid" style="margin-top:10px">
+    <div class="grid cols-2" style="margin-top:10px">
       <div><label>اسم وليّ الأمر</label><input id="guardianName"></div>
       <div><label>الاسم (اختياري)</label><input id="fullName"></div>
       <div><label>الرقم المدني</label><input id="civilId"></div>
@@ -51,21 +92,25 @@ input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10
       <button id="saveParent" class="btn primary">حفظ التعديلات</button>
       <span class="note">يتم الحفظ في قاعدة بيانات Firestore.</span>
     </div>
-  </div>
+  </section>
 
-  <div class="card">
-    <h2>أطفالي</h2>
-    <div class="row" style="margin-bottom:8px">
-      <a class="btn primary" href="child.html">إدارة الأطفال</a>
-      <span class="note">أضِف طفلًا جديدًا أو عدّل البيانات وحدود الانخفاض/الارتفاع.</span>
+  <!-- الأطفال -->
+  <section class="card">
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <h2 style="margin:0">أطفالي</h2>
+      <a class="btn primary" href="child.html">+ إضافة/إدارة طفل</a>
     </div>
-    <div id="kids" class="kids"></div>
-  </div>
+
+    <div id="kids" class="kids" style="margin-top:10px">
+      <div class="empty">لا يوجد أطفال بعد — اضغطي “+ إضافة/إدارة طفل”.</div>
+    </div>
+  </section>
 </main>
 
 <div id="toast" class="toast"></div>
 
 <script type="module">
+/* Firebase */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
@@ -83,10 +128,14 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
+/* Helpers */
 const $=s=>document.querySelector(s);
 const toast=(m)=>{const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1700);};
 
+/* State */
 let uid=null;
+
+/* Auth guard */
 onAuthStateChanged(auth, async (u)=>{
   if(!u){ location.href='index.html'; return; }
   uid=u.uid;
@@ -95,6 +144,7 @@ onAuthStateChanged(auth, async (u)=>{
   await loadKids();
 });
 
+/* Parent info load/save */
 async function loadParent(){
   const ref=doc(db,'users',uid); const snap=await getDoc(ref);
   const p=(snap.data()||{}).parentInfo||{};
@@ -104,7 +154,6 @@ async function loadParent(){
   $('#phone').value=p.phone||'';
   $('#email').value=p.email||'';
 }
-
 $('#saveParent').addEventListener('click', async ()=>{
   const ref=doc(db,'users',uid); const snap=await getDoc(ref); const root=snap.data()||{};
   root.parentInfo={
@@ -118,22 +167,38 @@ $('#saveParent').addEventListener('click', async ()=>{
   toast('تم حفظ التعديلات ✅');
 });
 
+/* Kids listing */
 async function loadKids(){
-  const box=$('#kids'); box.innerHTML='تحميل...';
+  const box=$('#kids'); box.innerHTML='';
   const q=await getDocs(collection(db,'users',uid,'children'));
-  if(q.empty){ box.innerHTML='<span class="note">لا يوجد أطفال بعد — اذهب إلى "إدارة الأطفال".</span>'; return; }
-  box.innerHTML='';
+  if(q.empty){
+    box.innerHTML='<div class="empty">لا يوجد أطفال بعد — اضغطي “+ إضافة/إدارة طفل”.</div>';
+    return;
+  }
   q.forEach(s=>{
     const c=s.data();
-    const el=document.createElement('span');
-    el.className='tag';
-    el.textContent=`${c.name} • الحدود: ${c.lowThreshold ?? '—'}/${c.highThreshold ?? '—'}`;
-    el.style.cursor='pointer';
-    el.onclick=()=>location.href='child.html?child='+s.id;
-    box.appendChild(el);
+    const id=s.id;
+    const card=document.createElement('div'); card.className='kid';
+    card.innerHTML=`
+      <div class="head">
+        <div class="name">${c.name || 'بدون اسم'}</div>
+        <div class="chips">
+          <span class="chip">منخفض &lt; <b>${c.lowThreshold ?? '—'}</b></span>
+          <span class="chip">مرتفع &gt; <b>${c.highThreshold ?? '—'}</b></span>
+        </div>
+      </div>
+      <div class="row actions">
+        <a class="btn secondary" href="measure.html">تسجيل قياسات</a>
+        <a class="btn gray" href="report.html">عرض التقارير</a>
+        <a class="btn primary" href="child.html?child=${id}">تعديل بيانات الطفل</a>
+      </div>
+      <div class="note">الطول: ${c.height ?? '—'} سم • الوزن: ${c.weight ?? '—'} كجم • تريسيبا: ${c.tresiba ?? '—'} • نوفو: ${c.novo ?? '—'}</div>
+    `;
+    box.appendChild(card);
   });
 }
 
+/* Logout */
 $('#btnLogout').addEventListener('click', ()=>signOut(auth).then(()=>location.href='index.html'));
 </script>
 </body>
