@@ -1,72 +1,152 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>تسجيل القياسات — متابعة سكر الأطفال</title>
 <style>
-:root{--brand:#0ea5e9;--brand2:#6ee7b7;--line:#e5e7eb;--ink:#0f172a;--muted:#6b7280;--bg:#f6fbff;--card:#fff;--danger:#ef4444;--warn:#facc15}
-body{margin:0;font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif;background:var(--bg);color:var(--ink)}
-header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:14px;display:flex;justify-content:space-between;align-items:center}
-main{max-width:900px;margin:auto;padding:18px}
-.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
-label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
-input,select{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px}
-.row{display:flex;gap:8px;flex-wrap:wrap}
-.btn{padding:10px 14px;border:none;border-radius:8px;font-weight:bold;cursor:pointer}
-.btn.primary{background:var(--brand);color:#fff}
-.note{font-size:13px;color:var(--muted)}
-.status-low{color:#92400e;background:#fef3c7;padding:4px 8px;border-radius:6px}
-.status-high{color:#b91c1c;background:#fee2e2;padding:4px 8px;border-radius:6px}
-.toast{position:fixed;bottom:16px;left:16px;background:#111;color:#fff;padding:10px 14px;border-radius:12px;opacity:0;transform:translateY(8px);transition:.3s}
-.toast.show{opacity:1;transform:none}
+  :root{
+    --brand:#0ea5e9; --brand2:#6ee7b7; --card:#fff; --line:#e5e7eb;
+    --ink:#0f172a; --muted:#64748b; --ok:#22c55e; --low:#b45309; --high:#dc2626;
+    --bg:#f7fbff;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif;
+  }
+  header{
+    position:sticky; top:0; z-index:2;
+    background:linear-gradient(90deg,var(--brand),var(--brand2)); color:#fff;
+    padding:14px 18px; display:flex; align-items:center; justify-content:space-between;
+  }
+  header a.btn{background:#ffffff22;color:#fff;border:1px solid #ffffff55}
+  main{max-width:1100px;margin:auto;padding:20px}
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    box-shadow:0 10px 30px rgba(0,0,0,.03); padding:16px; margin-bottom:16px;
+  }
+  h2{margin:0 0 12px}
+  .grid{display:grid; gap:12px}
+  .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  @media (max-width:900px){ .g3{grid-template-columns:1fr} }
+  label{display:block; font-size:13px; color:var(--muted); margin:0 0 6px}
+  select,input{
+    width:100%; padding:12px 12px; border:1px solid var(--line); border-radius:12px; background:#fff
+  }
+  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+  .btn{
+    border:none; border-radius:10px; padding:10px 14px; font-weight:800; cursor:pointer;
+  }
+  .btn.primary{background:var(--brand); color:#fff}
+  .btn.gray{background:#eef2f7}
+  .note{color:var(--muted); font-size:13px}
+  .badge{display:inline-flex; gap:6px; align-items:center; padding:6px 10px; border-radius:999px; font-weight:800}
+  .b-ok{background:#ecfdf5; color:var(--ok)}
+  .b-low{background:#fff7ed; color:var(--low)}
+  .b-high{background:#fee2e2; color:var(--high)}
+  table{width:100%; border-collapse:collapse}
+  th,td{border:1px solid var(--line); padding:10px; text-align:center}
+  th{background:#f8fafc; color:#0f172a}
+  .toast{
+    position:fixed; bottom:16px; left:16px; background:#111; color:#fff; padding:10px 14px;
+    border-radius:12px; opacity:0; transform:translateY(8px); transition:.28s; z-index:3
+  }
+  .toast.show{opacity:1; transform:none}
+  .hide{display:none!important}
 </style>
 </head>
 <body>
 <header>
   <div>تسجيل القياسات</div>
-  <a href="dashboard.html" class="btn">⬅ رجوع</a>
+  <a class="btn" href="dashboard.html">⬅ رجوع للوحة التحكم</a>
 </header>
 
 <main>
-  <div class="card">
-    <label>اختر الطفل</label>
-    <select id="childSel"></select>
-  </div>
-
-  <div class="card">
-    <label>التاريخ</label>
-    <input type="date" id="m_date">
-
-    <label>الوقت</label>
-    <select id="m_time">
-      <option>قبل الإفطار</option>
-      <option>بعد الإفطار</option>
-      <option>قبل الغداء</option>
-      <option>بعد الغداء</option>
-      <option>قبل العشاء</option>
-      <option>بعد العشاء</option>
-      <option>قبل النوم</option>
-      <option>أثناء النوم</option>
-      <option>عند الاستيقاظ</option>
-    </select>
-
-    <label>القياس (mmol/L)</label>
-    <input type="number" step="0.1" id="m_value">
-
-    <div id="status" class="note"></div>
-
-    <div class="row" style="margin-top:10px">
-      <button id="saveBtn" class="btn primary">حفظ القياس</button>
+  <!-- اختيار الطفل/التاريخ/الوقت -->
+  <section class="card">
+    <h2>اختيار الطفل والتاريخ</h2>
+    <div class="grid g3">
+      <div>
+        <label>الطفل</label>
+        <select id="childSel">
+          <option value="">— اختاري الطفل —</option>
+        </select>
+        <div id="thrInfo" class="note" style="margin-top:6px"></div>
+      </div>
+      <div>
+        <label>التاريخ</label>
+        <input id="dateSel" type="date" />
+      </div>
+      <div>
+        <label>اختيار الوقت</label>
+        <select id="slotSel">
+          <option value="">— اختاري الوقت —</option>
+          <option value="preBreakfast">قبل الإفطار</option>
+          <option value="postBreakfast">بعد الإفطار</option>
+          <option value="preLunch">قبل الغداء</option>
+          <option value="postLunch">بعد الغداء</option>
+          <option value="preDinner">قبل العشاء</option>
+          <option value="postDinner">بعد العشاء</option>
+          <option value="beforeSleep">قبل النوم</option>
+          <option value="duringSleep">أثناء النوم</option>
+          <option value="uponWake">عند الاستيقاظ</option>
+        </select>
+      </div>
     </div>
-  </div>
+  </section>
+
+  <!-- إدخال القياس -->
+  <section class="card">
+    <h2>إدخال القياس</h2>
+    <div class="grid g3">
+      <div>
+        <label>القراءة (mmol/L)</label>
+        <input id="reading" type="number" step="0.1" min="0" placeholder="اكتبي القراءة" />
+        <div id="bOk" class="badge b-ok hide">✔️ ضمن المدى</div>
+        <div id="bLow" class="badge b-low hide">⬇︎ منخفض — يجب الرفع</div>
+        <div id="bHigh" class="badge b-high hide">⬆︎ مرتفع — يرجى التصحيح</div>
+      </div>
+      <div>
+        <label>ملاحظة</label>
+        <input id="note" placeholder="اختياري — وصف مختصر" />
+      </div>
+      <div style="display:flex;align-items:end">
+        <div class="row" style="gap:8px">
+          <button id="saveBtn" class="btn primary">حفظ القياس</button>
+          <button id="clearBtn" class="btn gray">مسح الحقول</button>
+        </div>
+        <div class="note" style="margin-inline-start:10px">سيتم الحفظ داخل اليوم المختار تحت الوقت المختار.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- جدول اليوم -->
+  <section class="card">
+    <h2>قراءات اليوم المختار</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>الوقت</th>
+          <th>القراءة</th>
+          <th>الحالة</th>
+          <th>ملاحظات</th>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        <tr><td colspan="4" class="note">لا توجد قراءات لليوم المختار بعد.</td></tr>
+      </tbody>
+    </table>
+  </section>
 </main>
 
 <div id="toast" class="toast"></div>
 
 <script type="module">
+/* ---------------- Firebase ---------------- */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, getDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
@@ -74,78 +154,153 @@ const firebaseConfig = {
   projectId: "child-glucose-tracker",
   storageBucket: "child-glucose-tracker.firebasestorage.app",
   messagingSenderId: "294563325904",
-  appId: "1:294563325904:web:39562550bf305fc01abbd5"
+  appId: "1:294563325904:web:39562550bf305fc01abbd5",
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
-const $=s=>document.querySelector(s);
-const toast=(m)=>{const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);};
+/* ---------------- Helpers ---------------- */
+const $ = s=>document.querySelector(s);
+const toast=(m)=>{const t=$("#toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),1700);};
+const labels={
+  preBreakfast:'قبل الإفطار', postBreakfast:'بعد الإفطار',
+  preLunch:'قبل الغداء',     postLunch:'بعد الغداء',
+  preDinner:'قبل العشاء',    postDinner:'بعد العشاء',
+  beforeSleep:'قبل النوم',   duringSleep:'أثناء النوم', uponWake:'عند الاستيقاظ'
+};
+let uid=null, childId=null, low=4, high=10;
 
-let uid=null;
-let low=null, high=null;
-const urlParams = new URLSearchParams(location.search);
-const initChildId = urlParams.get('child');
-
+/* ---------------- Auth ---------------- */
 onAuthStateChanged(auth, async (u)=>{
-  if(!u) return location.href='index.html';
+  if(!u){ location.href='index.html'; return; }
   uid=u.uid;
   await loadChildren();
+  setToday();
+  // child من الرابط
+  const idFromUrl=new URL(location.href).searchParams.get('child');
+  if(idFromUrl){
+    $("#childSel").value=idFromUrl;
+    $("#childSel").disabled=true;
+    await onChildChanged();
+  }
 });
 
+/* ---------------- UI logic ---------------- */
+function setToday(){
+  const d=new Date();
+  const iso=d.toISOString().slice(0,10);
+  $("#dateSel").value=iso;
+}
+
 async function loadChildren(){
-  const sel=$('#childSel'); sel.innerHTML='';
+  const sel=$("#childSel"); sel.innerHTML='<option value="">— اختاري الطفل —</option>';
   const q=await getDocs(collection(db,'users',uid,'children'));
   q.forEach(s=>{
     const opt=document.createElement('option');
-    opt.value=s.id; opt.textContent=s.data().name || 'بدون اسم';
+    opt.value=s.id; opt.textContent=s.data().name||'بدون اسم';
     sel.appendChild(opt);
   });
-
-  // اختيار تلقائي للطفل إذا فيه child باللينك
-  if(initChildId){
-    sel.value = initChildId;
-    sel.dispatchEvent(new Event('change'));
-    sel.disabled = true;
-  } else {
-    sel.dispatchEvent(new Event('change'));
-  }
 }
 
-$('#childSel').addEventListener('change', async ()=>{
-  const cid=$('#childSel').value;
-  if(!cid) return;
-  const snap=await getDoc(doc(db,'users',uid,'children',cid));
-  const data=snap.data();
-  low=data.lowThreshold ?? null;
-  high=data.highThreshold ?? null;
-});
+$("#childSel").addEventListener("change", onChildChanged);
+$("#dateSel").addEventListener("change", refreshDay);
 
-$('#m_value').addEventListener('input', ()=>{
-  const val=parseFloat($('#m_value').value);
-  if(isNaN(val)) { $('#status').textContent=''; return; }
-  if(low!=null && val<low){
-    $('#status').innerHTML=`<span class="status-low">⬇ منخفض — يجب الرفع</span>`;
-  } else if(high!=null && val>high){
-    $('#status').innerHTML=`<span class="status-high">⬆ مرتفع — يرجى التصحيح</span>`;
-  } else {
-    $('#status').innerHTML=`<span style="color:green">✅ ضمن النطاق</span>`;
-  }
-});
+async function onChildChanged(){
+  childId=$("#childSel").value || null;
+  if(!childId){ $("#thrInfo").textContent=''; $("#rows").innerHTML=rowEmpty(); return; }
+  // حدود الطفل
+  const cs=await getDoc(doc(db,'users',uid,'children',childId));
+  const c=cs.data()||{};
+  low = c.lowThreshold ?? 4;
+  high= c.highThreshold ?? 10;
+  $("#thrInfo").textContent = `المستويات: منخفض < ${low} • مرتفع > ${high}`;
+  refreshDay();
+}
 
-$('#saveBtn').addEventListener('click', async ()=>{
-  const cid=$('#childSel').value;
-  const date=$('#m_date').value;
-  const time=$('#m_time').value;
-  const val=parseFloat($('#m_value').value);
-  if(!cid || !date || isNaN(val)) return toast('أكمل البيانات');
-  await addDoc(collection(db,'users',uid,'children',cid,'measurements'),{
-    date,time,value:val,createdAt:serverTimestamp()
+function rowEmpty(){ return `<tr><td colspan="4" class="note">لا توجد قراءات لليوم المختار بعد.</td></tr>`; }
+
+async function refreshDay(){
+  const dateId=$("#dateSel").value;
+  if(!childId || !dateId) return;
+  const ref=doc(db,'users',uid,'children',childId,'measurements',dateId);
+  const snap=await getDoc(ref);
+  const readings=(snap.data()||{}).readings || {};
+  const tbody=$("#rows"); tbody.innerHTML='';
+  let any=false;
+  Object.keys(labels).forEach(k=>{
+    const r=readings[k];
+    if(r && r.value!=null){
+      any=true;
+      const stBadge = r.status==='low' ? `<span class="badge b-low">منخفض</span>` :
+                      r.status==='high'? `<span class="badge b-high">مرتفع</span>` :
+                                         `<span class="badge b-ok">طبيعي</span>`;
+      const note = r.note || r.raisedWith || (r.correctionDoses!=null?('تصحيحي: '+r.correctionDoses):'') || '';
+      const tr = `<tr>
+        <td>${labels[k]}</td>
+        <td>${r.value}</td>
+        <td>${stBadge}</td>
+        <td>${note}</td>
+      </tr>`;
+      tbody.insertAdjacentHTML('beforeend', tr);
+    }
   });
-  toast('تم الحفظ ✅');
-  $('#m_value').value='';
-  $('#status').textContent='';
+  if(!any) tbody.innerHTML=rowEmpty();
+}
+
+/* تقييم الحالة */
+const bOk=$("#bOk"), bLow=$("#bLow"), bHigh=$("#bHigh");
+$("#reading").addEventListener("input", ()=>{
+  [bOk,bLow,bHigh].forEach(e=>e.classList.add("hide"));
+  const v=Number($("#reading").value);
+  if(!v && v!==0) return;
+  if(v<low){ bLow.classList.remove("hide"); }
+  else if(v>high){ bHigh.classList.remove("hide"); }
+  else { bOk.classList.remove("hide"); }
+});
+
+/* مسح */
+$("#clearBtn").addEventListener("click", ()=>{
+  $("#reading").value=''; $("#note").value='';
+  [bOk,bLow,bHigh].forEach(e=>e.classList.add("hide"));
+});
+
+/* حفظ القياس مع منع تكرار نفس الوقت في نفس اليوم */
+$("#saveBtn").addEventListener("click", async ()=>{
+  if(!childId) return toast('اختاري الطفل أولًا');
+  const dateId=$("#dateSel").value; if(!dateId) return toast('اختاري التاريخ');
+  const slot=$("#slotSel").value; if(!slot) return toast('اختاري الوقت');
+  const val=Number($("#reading").value);
+  if(!Number.isFinite(val)) return toast('أدخلي قراءة صحيحة');
+
+  // حمّلي مستند اليوم
+  const ref=doc(db,'users',uid,'children',childId,'measurements',dateId);
+  const snap=await getDoc(ref);
+  const base=snap.exists()? snap.data() : { date:dateId, readings:{} };
+
+  // منع التكرار
+  if(base.readings[slot] && base.readings[slot].value!=null){
+    toast('تم تسجيل هذا الوقت مسبقًا لهذا اليوم ❗'); // لا نسمح بالتبديل
+    return;
+  }
+
+  // احسب الحالة
+  let status='ok';
+  if(val<low) status='low';
+  else if(val>high) status='high';
+
+  base.readings[slot] = {
+    value: val,
+    status,
+    note: $("#note").value.trim() || null,
+    label: labels[slot]
+  };
+
+  await setDoc(ref, base); // حفظ بالكامل (يضمن الدمج لأننا بنبني الجسم)
+  toast('تم حفظ القياس ✅');
+  $("#reading").value=''; $("#note").value='';
+  [bOk,bLow,bHigh].forEach(e=>e.classList.add("hide"));
+  refreshDay();
 });
 </script>
 </body>
