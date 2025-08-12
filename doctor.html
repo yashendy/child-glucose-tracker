@@ -14,9 +14,15 @@
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 system-ui,"Tajawal","Noto Sans Arabic",sans-serif}
 header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;z-index:5}
 header .btn{color:#fff;text-decoration:none;border:1px solid #ffffff66;padding:8px 12px;border-radius:10px;margin-inline-start:6px;background:#ffffff22;cursor:pointer}
-main{max-width:1100px;margin:auto;padding:16px}
+main{max-width:1200px;margin:auto;padding:16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 6px 24px rgba(0,0,0,.04);margin-bottom:12px}
 .small{font-size:12px;color:var(--muted)}
+.grid{display:grid;gap:10px}
+.grid.cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:1000px){.grid.cols-4{grid-template-columns:1fr 1fr}}
+@media(max-width:720px){.grid.cols-3,.grid.cols-4{grid-template-columns:1fr}}
 .table{width:100%;border-collapse:separate;border-spacing:0}
 .table th,.table td{border:1px solid var(--line);padding:8px;vertical-align:top;text-align:right}
 .table thead th{background:#f8fafc;font-weight:800;text-align:right}
@@ -25,16 +31,34 @@ main{max-width:1100px;margin:auto;padding:16px}
 .badge.ok{background:var(--okbg);color:var(--ok)}
 .badge.low{background:var(--lowbg);color:var(--low)}
 .badge.high{background:var(--highbg);color:var(--high)}
+.kpi{border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;background:#fff}
+.kpi .k{font-size:12px;color:var(--muted)}
+.kpi .v{font-weight:900}
+.kpi.ok{background:var(--okbg);color:var(--ok)}
+.kpi.low{background:var(--lowbg);color:var(--low)}
+.kpi.high{background:var(--highbg);color:var(--high)}
+
+.controls .row{display:flex;gap:8px;align-items:end}
+.btn-main{padding:10px;border:none;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer;width:100%}
+
+/* الطباعة */
+@media print{
+  @page{ size: A4 landscape; margin: 8mm }
+  header,.no-print{display:none!important}
+  body{background:#fff;font-size:11px}
+  .card{border:0;box-shadow:none;padding:0;margin:0}
+  .table th,.table td{padding:4px}
+  #chartDonutWrap{display:none!important} /* اخفاء الدونت في الطباعة */
+}
 </style>
 </head>
 <body>
 <header>
   <div>متابعة الطبيب — ملخص القياسات</div>
-  <div>
+  <div class="no-print">
     <a class="btn" href="dashboard.html">رجوع</a>
     <button id="btnPrint" class="btn" type="button">طباعة PDF</button>
     <button id="btnXLSX"  class="btn" type="button">تصدير Excel</button>
-    <!-- أزرار إضافية -->
     <button id="btnPrintTable" class="btn" type="button">جدول القراءات فقط (PDF)</button>
     <button id="btnDoctorLog"  class="btn" type="button">سجل زيارات الطبيب</button>
   </div>
@@ -42,35 +66,81 @@ main{max-width:1100px;margin:auto;padding:16px}
 
 <main>
   <!-- فلاتر -->
-  <section class="card">
-    <div style="display:grid;gap:10px;grid-template-columns:repeat(4,minmax(0,1fr))">
+  <section class="card controls">
+    <div class="grid cols-4">
       <div>
         <label class="small">الطفل</label>
         <select id="childSel"><option value="">— اختاري الطفل —</option></select>
       </div>
-      <div><label class="small">من تاريخ</label><input id="from" type="date"></div>
-      <div><label class="small">إلى تاريخ</label><input id="to" type="date"></div>
-      <div style="display:flex;align-items:end">
-        <button id="run" style="width:100%;padding:10px;border:none;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer">عرض المتابعة</button>
+      <div>
+        <label class="small">من تاريخ</label>
+        <input id="from" type="date">
+      </div>
+      <div>
+        <label class="small">إلى تاريخ</label>
+        <input id="to" type="date">
+      </div>
+      <div class="row">
+        <div style="flex:1">
+          <label class="small">تجميع مخطط المتوسط</label>
+          <select id="agg">
+            <option value="daily">يومي</option>
+            <option value="weekly">أسبوعي</option>
+            <option value="monthly">شهري</option>
+            <option value="quarterly">كل 3 شهور</option>
+          </select>
+        </div>
+        <button id="run" class="btn-main">عرض المتابعة</button>
       </div>
     </div>
     <div id="meta" class="small" style="margin-top:6px"></div>
   </section>
 
-  <!-- ملخص -->
+  <!-- ملخص الفترة -->
   <section class="card">
-    <div style="display:grid;gap:10px;grid-template-columns:repeat(7,minmax(0,1fr))">
-      <div><div class="small">عدد القراءات</div><div id="s_total" style="font-weight:800">—</div></div>
-      <div><div class="small">منخفض</div><div id="s_low" style="font-weight:800">—</div></div>
-      <div><div class="small">طبيعي</div><div id="s_ok" style="font-weight:800">—</div></div>
-      <div><div class="small">مرتفع</div><div id="s_high" style="font-weight:800">—</div></div>
-      <div><div class="small">% داخل النطاق</div><div id="s_tir" style="font-weight:800">—%</div></div>
-      <div><div class="small">متوسط القراءة</div><div id="s_avg" style="font-weight:800">—</div></div>
-      <div><div class="small">أعلى / أقل</div><div id="s_minmax" style="font-weight:800">—</div></div>
+    <div class="grid cols-4">
+      <div class="kpi"><div class="k">عدد القراءات</div><div class="v" id="s_total">—</div></div>
+      <div class="kpi low"><div class="k">منخفض</div><div class="v" id="s_low">—</div></div>
+      <div class="kpi ok"><div class="k">طبيعي</div><div class="v" id="s_ok">—</div></div>
+      <div class="kpi high"><div class="k">مرتفع</div><div class="v" id="s_high">—</div></div>
+    </div>
+    <div class="grid cols-3" style="margin-top:10px">
+      <div class="kpi"><div class="k">% داخل النطاق</div><div class="v" id="s_tir">—%</div></div>
+      <div class="kpi"><div class="k">متوسط القراءة</div><div class="v" id="s_avg">—</div></div>
+      <div class="kpi"><div class="k">أقل / أعلى (مع التاريخ)</div><div class="v" id="s_minmax">—</div></div>
     </div>
   </section>
 
-  <!-- جدول -->
+  <!-- ملخص دوائي -->
+  <section class="card">
+    <h3 style="margin:0 0 8px">الملخص الدوائي</h3>
+    <div class="grid cols-4">
+      <div class="kpi"><div class="k">إجمالي جرعات الوجبة</div><div class="v" id="dose_meal_sum">—</div></div>
+      <div class="kpi"><div class="k">إجمالي جرعات التصحيحي</div><div class="v" id="dose_corr_sum">—</div></div>
+      <div class="kpi"><div class="k">متوسط/اليوم (وجبة)</div><div class="v" id="dose_meal_avgd">—</div></div>
+      <div class="kpi"><div class="k">متوسط/اليوم (تصحيحي)</div><div class="v" id="dose_corr_avgd">—</div></div>
+    </div>
+  </section>
+
+  <!-- مخططات -->
+  <section class="card no-print">
+    <div class="grid cols-3">
+      <div>
+        <div class="small" style="margin:0 0 4px">متوسط (mmol/L) — حسب التجميع</div>
+        <canvas id="chartAvg"></canvas>
+      </div>
+      <div>
+        <div class="small" style="margin:0 0 4px">متوسط كل وقت في اليوم (mmol/L)</div>
+        <canvas id="chartSlots"></canvas>
+      </div>
+      <div id="chartDonutWrap">
+        <div class="small" style="margin:0 0 4px">نسب Low / OK / High</div>
+        <canvas id="chartDonut"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- جدول تفصيلي -->
   <section class="card">
     <table class="table">
       <thead>
@@ -89,8 +159,9 @@ main{max-width:1100px;margin:auto;padding:16px}
   </section>
 </main>
 
-<!-- XLSX مكتبة عالمية -->
+<!-- مكتبات خارجية -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
@@ -98,67 +169,44 @@ import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 import { getFirestore, collection, getDocs, doc, getDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 /* Firebase */
-const firebaseConfig={
-  apiKey:"AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
-  authDomain:"child-glucose-tracker.firebaseapp.com",
-  projectId:"child-glucose-tracker",
-  storageBucket:"child-glucose-tracker.firebasestorage.app",
-  messagingSenderId:"294563325904",
-  appId:"1:294563325904:web:39562550bf305fc01abbd5"
-};
-const app=initializeApp(firebaseConfig);
-const auth=getAuth(app);
-const db=getFirestore(app);
+const firebaseConfig={apiKey:"AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",authDomain:"child-glucose-tracker.firebaseapp.com",projectId:"child-glucose-tracker",storageBucket:"child-glucose-tracker.firebasestorage.app",messagingSenderId:"294563325904",appId:"1:294563325904:web:39562550bf305fc01abbd5"};
+const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getFirestore(app);
 
-/* Helpers */
-function $(s){return document.querySelector(s);}
-const labels={
-  preBreakfast:'قبل الإفطار',postBreakfast:'بعد الإفطار',
-  preLunch:'قبل الغداء',postLunch:'بعد الغداء',
-  preDinner:'قبل العشاء',postDinner:'بعد العشاء',
-  beforeSleep:'قبل النوم',duringSleep:'أثناء النوم',uponWake:'عند الاستيقاظ'
-};
+/* Helpers & Consts */
+const $=s=>document.querySelector(s);
+const labels={preBreakfast:'قبل الإفطار',postBreakfast:'بعد الإفطار',preLunch:'قبل الغداء',postLunch:'بعد الغداء',preDinner:'قبل العشاء',postDinner:'بعد العشاء',beforeSleep:'قبل النوم',duringSleep:'أثناء النوم',uponWake:'عند الاستيقاظ'};
 const order=['preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','uponWake'];
+let uid=null, initChildId=new URL(location.href).searchParams.get('child');
+let cachedDetailed=[], childMeta=null;
 
-/* State */
-let uid=null;
-let initChildId=new URL(location.href).searchParams.get('child');
-let cachedDetailed=[];
+/* Charts refs */
+let chartAvg=null, chartSlots=null, chartDonut=null;
 
 /* Auth */
 onAuthStateChanged(auth, async (u)=>{
   if(!u){ location.href='index.html'; return; }
-  uid=u.uid;
-  await loadChildren();
-  setDefaults();
+  uid=u.uid; await loadChildren(); setDefaults();
   if(initChildId){
-    const opts=[...$('#childSel').options];
-    const opt=opts.find(o=>o.value===initChildId);
+    const opt=[...$('#childSel').options].find(o=>o.value===initChildId);
     if(opt){ $('#childSel').value=initChildId; $('#childSel').disabled=true; }
   }
 });
 
 /* UI init */
 function setDefaults(){
-  const d=new Date(); const iso=d.toISOString().slice(0,10);
+  const d=new Date(), iso=d.toISOString().slice(0,10);
   $('#from').value=iso; $('#to').value=iso;
 }
 async function loadChildren(){
   const sel=$('#childSel'); sel.innerHTML='<option value="">— تحميل —</option>';
   const q=await getDocs(collection(db,'users',uid,'children'));
   sel.innerHTML='<option value="">— اختاري الطفل —</option>';
-  q.forEach(s=>{
-    const o=document.createElement('option');
-    o.value=s.id; o.textContent=s.data().name||'بدون اسم';
-    sel.appendChild(o);
-  });
+  q.forEach(s=>{ const o=document.createElement('option'); o.value=s.id; o.textContent=s.data().name||'بدون اسم'; sel.appendChild(o); });
 }
 
 /* Buttons */
 $('#btnPrint').addEventListener('click', ()=>window.print());
 $('#btnXLSX').addEventListener('click', exportXLSX);
-$('#run').addEventListener('click', buildReport);
-
 $('#btnPrintTable').addEventListener('click', ()=>{
   const c=$('#childSel').value, f=$('#from').value, t=$('#to').value;
   if(!c||!f||!t){ alert('اختاري الطفل والفترة'); return; }
@@ -168,45 +216,41 @@ $('#btnDoctorLog').addEventListener('click', ()=>{
   const c=$('#childSel').value; if(!c){ alert('اختاري الطفل أولًا'); return; }
   window.open('doctor-log.html?child='+encodeURIComponent(c),'_blank');
 });
+$('#run').addEventListener('click', buildReport);
 
-/* Build report */
+/* Main */
 async function buildReport(){
   const id=$('#childSel').value, from=$('#from').value, to=$('#to').value;
   if(!id||!from||!to){ alert('اختاري الطفل وحددي الفترة'); return; }
 
-  const cs=await getDoc(doc(db,'users',uid,'children',id));
-  const c=cs.data()||{};
-  // العرض دائمًا mmol/L
-  const civil=c.childCivilId||'—';
-  const name=(c.name||'—');
-  const wt=(c.weight!=null?c.weight:'—');
-  const ht=(c.height!=null?c.height:'—');
-  const lo=(c.lowThreshold!=null?c.lowThreshold:'—');
-  const hi=(c.highThreshold!=null?c.highThreshold:'—');
-
-  // استخدمت &lt; و &gt; لتفادي أي مشاكل HTML
+  const cs=await getDoc(doc(db,'users',uid,'children',id)); childMeta=cs.data()||{};
+  const name=(childMeta.name||'—'), wt=(childMeta.weight??'—'), ht=(childMeta.height??'—');
+  const lo=(childMeta.lowThreshold??'—'), hi=(childMeta.highThreshold??'—');
   $('#meta').innerHTML=
-    'الاسم: '+name+
-    ' • الرقم المدني: '+civil+
-    ' • الوزن: '+wt+' كجم'+
-    ' • الطول: '+ht+' سم'+
-    ' • حدود: منخفض &lt; '+lo+' — مرتفع &gt; '+hi+
-    ' • الفترة: '+from+' → '+to+
-    ' • الوحدة: mmol/L';
+    'الاسم: '+escape(name)+' • الرقم المدني: '+escape(childMeta.childCivilId||'—')+
+    ' • الوزن: '+wt+' كجم • الطول: '+ht+' سم • حدود: منخفض &lt; '+lo+' — مرتفع &gt; '+hi+
+    ' • الفترة: '+from+' → '+to+' • الوحدة: mmol/L';
 
   const col=collection(db,'users',uid,'children',id,'measurements');
   const qy=query(col, where('date','>=',from), where('date','<=',to), orderBy('date','asc'));
   const qs=await getDocs(qy);
 
-  let total=0,cLow=0,cOk=0,cHigh=0,sum=0,minR=Infinity,maxR=-Infinity,minD='—',maxD='—';
+  let total=0,cLow=0,cOk=0,cHigh=0,sum=0, minR=Infinity, maxR=-Infinity, minD='—', maxD='—';
+  let doseMealSum=0, doseCorrSum=0;
+  const slotAgg={}; order.forEach(k=>slotAgg[k]={sum:0,count:0});
+
   cachedDetailed=[];
   const tbody=$('#rows'); tbody.innerHTML='';
+  const dayAverages=[]; // [{date, avg}]
+  const daysSet=new Set();
 
   if(qs.empty){
     tbody.innerHTML='<tr><td colspan="10" class="small">لا توجد قراءات.</td></tr>';
   }else{
     qs.forEach(s=>{
       const d=s.data(); const readings=d.readings||{};
+      let daySum=0, dayCnt=0;
+
       const tr=document.createElement('tr');
       const tdDate=document.createElement('td'); tdDate.className='date'; tdDate.textContent=d.date; tr.appendChild(tdDate);
 
@@ -217,71 +261,154 @@ async function buildReport(){
         if(!r||r.value==null){ td.textContent='—'; rowExport[slot]=''; }
         else{
           const mmol=Number(r.value)||0;
-          const disp=mmol.toFixed(1)+' mmol/L';
-          const st=r.status || (mmol<Number(c.lowThreshold)?'low':(mmol>Number(c.highThreshold)?'high':'ok'));
-          const cls=(st==='low')?'low':((st==='high')?'high':'ok');
-          const badge='<span class="badge '+cls+'">'+(st==='ok'?'طبيعي':(st==='low'?'منخفض':'مرتفع'))+'</span>';
-
-          td.innerHTML=
-            '<div><b>'+disp+'</b> '+badge+'</div>'+
-            (r.mealDose!=null?('<div class="small">جرعة: '+r.mealDose+'U</div>'):'')+
-            (r.correctionGiven!=null?('<div class="small">تصحيحي: '+r.correctionGiven+'U</div>'):'')+
-            ((r.note||r.raisedWith)?('<div class="small">ملاحظة: '+(r.note||r.raisedWith)+'</div>'):'');
-          rowExport[slot]=disp+
-            (r.mealDose!=null?(' | جرعة: '+r.mealDose+'U'):'')+
-            (r.correctionGiven!=null?(' | تصحيحي: '+r.correctionGiven+'U'):'')+
-            ((r.note||r.raisedWith)?(' | ملاحظة: '+(r.note||r.raisedWith)):'');
+          const st=r.status || (mmol<Number(childMeta.lowThreshold)?'low':(mmol>Number(childMeta.highThreshold)?'high':'ok'));
+          const cls = st==='low'?'low':(st==='high'?'high':'ok');
+          const badge = '<span class="badge '+cls+'">'+(st==='ok'?'طبيعي':(st==='low'?'منخفض':'مرتفع'))+'</span>';
+          const meal = r.mealDose!=null?('جرعة: '+r.mealDose+'U'):'';
+          const corr = r.correctionGiven!=null?('تصحيحي: '+r.correctionGiven+'U'):'';
+          const note = (r.note||r.raisedWith)?('ملاحظة: '+escape(r.note||r.raisedWith)):'';
+          td.innerHTML='<div><b>'+mmol.toFixed(1)+' mmol/L</b> '+badge+'</div>'+
+                       (meal?('<div class="small">'+meal+'</div>'):'')+
+                       (corr?('<div class="small">'+corr+'</div>'):'')+
+                       (note?('<div class="small">'+note+'</div>'):'');
+          rowExport[slot]= mmol.toFixed(1)+' mmol/L'+
+            (meal?(' | '+meal):'')+(corr?(' | '+corr):'')+
+            (note?(' | '+(r.note||r.raisedWith)):'');
+          // aggregates
           total++; sum+=mmol;
-          if(st==='low')cLow++; else if(st==='high')cHigh++; else cOk++;
+          if(st==='low') cLow++; else if(st==='high') cHigh++; else cOk++;
           if(mmol<minR){minR=mmol; minD=d.date;} if(mmol>maxR){maxR=mmol; maxD=d.date;}
+          daySum+=mmol; dayCnt++;
+          slotAgg[slot].sum+=mmol; slotAgg[slot].count++;
+          if(r.mealDose!=null) doseMealSum+=Number(r.mealDose)||0;
+          if(r.correctionGiven!=null) doseCorrSum+=Number(r.correctionGiven)||0;
         }
         tr.appendChild(td);
       });
+
       tbody.appendChild(tr);
       cachedDetailed.push(rowExport);
+
+      if(dayCnt>0) dayAverages.push({date:d.date, avg:Number((daySum/dayCnt).toFixed(2))});
+      daysSet.add(d.date);
     });
   }
 
+  // KPIs
   $('#s_total').textContent=total;
-  $('#s_low').textContent=cLow;
-  $('#s_ok').textContent=cOk;
-  $('#s_high').textContent=cHigh;
-  const tir= total? Math.round((cOk/total)*100) : 0; $('#s_tir').textContent=tir+'%';
+  $('#s_low').textContent=cLow; $('#s_ok').textContent=cOk; $('#s_high').textContent=cHigh;
+  const tir = total? Math.round((cOk/total)*100) : 0; $('#s_tir').textContent=tir+'%';
   $('#s_avg').textContent= total? (sum/total).toFixed(1)+' mmol/L' : '—';
-  $('#s_minmax').textContent=
-    (isFinite(minR)&&isFinite(maxR))
-      ? (minR.toFixed(1)+' / '+maxR.toFixed(1)+' mmol/L ('+minD+' - '+maxD+')')
-      : '—';
+  $('#s_minmax').textContent = (isFinite(minR)&&isFinite(maxR)) ?
+      (minR.toFixed(1)+' ('+minD+') / '+maxR.toFixed(1)+' ('+maxD+') mmol/L') : '—';
+
+  const daysCount = daysSet.size || 1;
+  $('#dose_meal_sum').textContent = doseMealSum.toFixed(1)+' U';
+  $('#dose_corr_sum').textContent = doseCorrSum.toFixed(1)+' U';
+  $('#dose_meal_avgd').textContent = (doseMealSum/daysCount).toFixed(2)+' U/يوم';
+  $('#dose_corr_avgd').textContent = (doseCorrSum/daysCount).toFixed(2)+' U/يوم';
+
+  // Charts
+  drawCharts(dayAverages, slotAgg, {low:cLow, ok:cOk, high:cHigh});
 }
 
-/* Export Excel */
-function exportXLSX(){
-  const XLSX=window.XLSX;
-  if(!XLSX){ alert('XLSX library not loaded'); return; }
+/* Aggregations */
+function groupByAgg(dayAverages, agg){
+  if(agg==='daily') return dayAverages.map(x=>({label:x.date, value:x.avg}));
 
-  const childSel=document.getElementById('childSel');
-  const childText=childSel && childSel.selectedOptions[0]? childSel.selectedOptions[0].textContent : 'child';
-  const from=document.getElementById('from').value, to=document.getElementById('to').value;
+  const buckets=new Map();
+  for(const {date, avg} of dayAverages){
+    const d=new Date(date+'T00:00:00');
+    let key='';
+    if(agg==='weekly'){
+      const wd=d.getUTCDay(); // 0..6
+      const start=new Date(d); start.setUTCDate(d.getUTCDate()-wd);
+      key=start.toISOString().slice(0,10); // week start
+    }else if(agg==='monthly'){
+      key = d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');
+    }else if(agg==='quarterly'){
+      const q = Math.floor(d.getUTCMonth()/3)+1;
+      key = d.getUTCFullYear()+'-Q'+q;
+    }
+    if(!buckets.has(key)) buckets.set(key,{sum:0,count:0});
+    buckets.get(key).sum+=avg; buckets.get(key).count++;
+  }
+  // sort keys
+  const keys=[...buckets.keys()].sort();
+  return keys.map(k=>({label:k, value:Number((buckets.get(k).sum/buckets.get(k).count).toFixed(2))}));
+}
 
-  const head=['التاريخ']; order.forEach(k=>head.push(labels[k]));
-  const rows=cachedDetailed.map(r=>{
-    const a=[r.date]; order.forEach(k=>a.push(r[k]||'')); return a;
+/* Charts */
+function drawCharts(dayAverages, slotAgg, dist){
+  // destroy old
+  if(chartAvg) chartAvg.destroy();
+  if(chartSlots) chartSlots.destroy();
+  if(chartDonut) chartDonut.destroy();
+
+  const aggSel=$('#agg').value;
+  const grouped = groupByAgg(dayAverages, aggSel);
+
+  chartAvg=new Chart($('#chartAvg'),{
+    type:'line',
+    data:{
+      labels: grouped.map(x=>x.label),
+      datasets:[{label:'متوسط (mmol/L)', data: grouped.map(x=>x.value),
+        borderColor:'#0ea5e9', backgroundColor:'rgba(14,165,233,.15)', tension:.3, spanGaps:true}]
+    },
+    options:{plugins:{legend:{display:true}}, scales:{x:{ticks:{autoSkip:true,maxTicksLimit:14}}}}
   });
+
+  const slotLabels = order.map(k=>labels[k]);
+  const slotMeans  = order.map(k=>{
+    const a=slotAgg[k]; return a.count? Number((a.sum/a.count).toFixed(2)) : 0;
+  });
+
+  chartSlots=new Chart($('#chartSlots'),{
+    type:'bar',
+    data:{labels:slotLabels, datasets:[{label:'متوسط الوقت (mmol/L)', data:slotMeans, backgroundColor:'#6ee7b7', borderColor:'#059669'}]},
+    options:{plugins:{legend:{display:true}}, scales:{x:{ticks:{autoSkip:false}}}}
+  });
+
+  chartDonut=new Chart($('#chartDonut'),{
+    type:'doughnut',
+    data:{labels:['منخفض','طبيعي','مرتفع'], datasets:[{data:[dist.low,dist.ok,dist.high], backgroundColor:['#fde68a','#a7f3d0','#fecaca']}]},
+    options:{plugins:{legend:{display:true}}}
+  });
+}
+
+/* Excel */
+function exportXLSX(){
+  const XLSX=window.XLSX; if(!XLSX){ alert('XLSX library not loaded'); return; }
+  const childSel=$('#childSel');
+  const childText=childSel && childSel.selectedOptions[0]? childSel.selectedOptions[0].textContent : 'child';
+  const from=$('#from').value, to=$('#to').value;
+
+  const head=['التاريخ', ...order.map(k=>labels[k])];
+  const rows=cachedDetailed.map(r=>[r.date, ...order.map(k=>r[k]||'')]);
 
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
     ['الفترة', from+' → '+to],
-    ['عدد القراءات', document.getElementById('s_total').textContent],
-    ['منخفض', document.getElementById('s_low').textContent],
-    ['طبيعي', document.getElementById('s_ok').textContent],
-    ['مرتفع', document.getElementById('s_high').textContent],
-    ['داخل النطاق %', document.getElementById('s_tir').textContent],
-    ['متوسط القراءة', document.getElementById('s_avg').textContent],
-    ['أعلى / أقل', document.getElementById('s_minmax').textContent]
-  ]), 'Summary');
+    ['عدد القراءات', $('#s_total').textContent],
+    ['منخفض', $('#s_low').textContent],
+    ['طبيعي', $('#s_ok').textContent],
+    ['مرتفع', $('#s_high').textContent],
+    ['داخل النطاق %', $('#s_tir').textContent],
+    ['متوسط القراءة', $('#s_avg').textContent],
+    ['أقل/أعلى', $('#s_minmax').textContent],
+    ['إجمالي جرعات الوجبة', $('#dose_meal_sum').textContent],
+    ['إجمالي جرعات التصحيحي', $('#dose_corr_sum').textContent],
+    ['متوسط/اليوم (وجبة)', $('#dose_meal_avgd').textContent],
+    ['متوسط/اليوم (تصحيحي)', $('#dose_corr_avgd').textContent]
+  ]),'Summary');
 
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([head].concat(rows)), 'Detailed');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([head, ...rows]), 'Detailed');
   XLSX.writeFile(wb, 'doctor_followup_'+childText+'_'+from+'_to_'+to+'.xlsx');
+}
+
+/* Utils */
+function escape(str){
+  return String(str??'').replace(/[&<>"]/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
 }
 </script>
 </body>
