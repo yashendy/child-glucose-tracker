@@ -2,144 +2,152 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>إدارة بيانات الطفل — متابعة سكر الأطفال</title>
+<title>إدارة الأطفال — متابعة سكر الأطفال</title>
 <style>
-:root{--brand:#0ea5e9;--brand2:#6ee7b7;--line:#e5e7eb;--ink:#0f172a;--muted:#6b7280;--bg:#f6fbff;--card:#fff}
-*{box-sizing:border-box}body{margin:0;font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif;background:var(--bg);color:var(--ink)}
-header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
-main{max-width:1000px;margin:auto;padding:18px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 1px 8px rgba(0,0,0,.05);margin-bottom:14px}
-h2{margin:0 0 10px}
-label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
-input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
-.grid{display:grid;gap:12px}
-.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+:root{--brand:#0ea5e9;--line:#e5e7eb;--ink:#0f172a;--muted:#6b7280;--bg:#f6fbff;--card:#fff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif}
+header{position:sticky;top:0;background:linear-gradient(90deg,#0ea5e9,#6ee7b7);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
+main{max-width:1100px;margin:auto;padding:18px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,.04);margin-bottom:12px}
+label{display:block;color:var(--muted);font-size:13px;margin-bottom:4px}
+input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.grid{display:grid;gap:10px}
 .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
-@media(max-width:900px){.g2,.g3{grid-template-columns:1fr}}
-.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.btn{border:none;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
-.btn.primary{background:var(--brand);color:#fff}
+@media(max-width:900px){.g3{grid-template-columns:1fr}}
+.btn{border:none;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
+.btn.primary{background:#0ea5e9;color:#fff}
 .btn.gray{background:#eef2f7}
-.note{color:var(--muted);font-size:13px}
-.toast{position:fixed;bottom:16px;left:16px;background:#111;color:#fff;padding:10px 14px;border-radius:12px;opacity:0;transform:translateY(8px);transition:.3s}
-.toast.show{opacity:1;transform:none}
+.small{color:var(--muted);font-size:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
 </style>
 </head>
 <body>
 <header>
-  <div>إدارة بيانات الطفل</div>
+  <div>إدارة الأطفال</div>
   <div class="row">
-    <a class="btn gray" href="dashboard.html">لوحة التحكم</a>
+    <a class="btn gray" href="dashboard.html">⬅ لوحة التحكم</a>
   </div>
 </header>
 
 <main>
-  <div class="card">
-    <h2>اختيار الطفل</h2>
-    <select id="childSel"><option value="">— اختاري الطفل —</option></select>
-    <div class="note" id="childIdNote"></div>
-  </div>
-
-  <div class="card">
-    <h2>البيانات الأساسية</h2>
+  <section class="card">
+    <h3 style="margin:0 0 10px">بيانات الطفل</h3>
     <div class="grid g3">
       <div><label>اسم الطفل</label><input id="name"></div>
-      <div><label>تاريخ الميلاد</label><input id="dob" type="date"></div>
-      <div><label>الرقم الطبي (اختياري)</label><input id="mrn"></div>
+      <div><label>الرقم المدني للطفل</label><input id="childCivilId" placeholder="اختياري"></div>
+      <div>
+        <label>الوحدة الافتراضية</label>
+        <select id="preferredUnit">
+          <option value="mmol">mmol/L</option>
+          <option value="mgdl">mg/dL</option>
+        </select>
+      </div>
       <div><label>الوزن (كجم)</label><input id="weight" type="number" step="0.1"></div>
       <div><label>الطول (سم)</label><input id="height" type="number" step="0.1"></div>
+      <div><label>تاريخ الميلاد</label><input id="dob" type="date"></div>
     </div>
-  </div>
+  </section>
 
-  <div class="card">
-    <h2>الحدود والجرعات</h2>
+  <section class="card">
+    <h3 style="margin:0 0 10px">الحدود والأهداف</h3>
     <div class="grid g3">
-      <div><label>الحد المنخفض (mmol/L)</label><input id="lowThreshold" type="number" step="0.1"></div>
-      <div><label>الحد المرتفع (mmol/L)</label><input id="highThreshold" type="number" step="0.1"></div>
-      <div><label>الهدف (Target) mmol/L</label><input id="targetMmol" type="number" step="0.1"></div>
-      <div><label>معامل التصحيح (ISF) — mmol/L لكل 1U</label><input id="cfMmol" type="number" step="0.01"></div>
-      <div><label>أو ISF (mg/dL) لكل 1U</label><input id="cfMgdl" type="number" step="1"></div>
-      <div><label>جرعة الترسيبا (وحدة)</label><input id="tresiba" type="number" step="0.5"></div>
-      <div><label>جرعة النوفو (وحدة) — اختياري</label><input id="novo" type="number" step="0.5"></div>
+      <div><label>حد منخفض (mmol/L)</label><input id="lowThreshold" type="number" step="0.1" placeholder="مثلاً 4"></div>
+      <div><label>حد مرتفع (mmol/L)</label><input id="highThreshold" type="number" step="0.1" placeholder="مثلاً 10"></div>
+      <div><label>الهدف (mmol/L)</label><input id="targetMmol" type="number" step="0.1" placeholder="مثلاً 6.5"></div>
+      <div><label>معامل التصحيح mmol/L لكل 1U</label><input id="correctionFactorMmol" type="number" step="0.1" placeholder="مثلاً 2.5"></div>
+      <div><label>معامل التصحيح mg/dL لكل 1U</label><input id="correctionFactorMgDl" type="number" step="1" placeholder="بديل إن رغبتِ"></div>
+      <div><label>ICR (جرام كارب لكل 1U)</label><input id="icr" type="number" step="1" placeholder="مثلاً 15"></div>
     </div>
-    <div class="note" style="margin-top:8px">لو أدخلتِ ISF بـ mg/dL سنحوّله تلقائيًا إلى mmol/L (بالقسمة على 18) عند الاستعمال.</div>
-  </div>
+    <div class="small">* سنستخدم mmol داخليًا؛ لو أدخلتِ mg/dL هنحوّل تلقائيًا.</div>
+  </section>
 
-  <div class="card">
-    <h2>زيارة الطبيب</h2>
+  <section class="card">
+    <h3 style="margin:0 0 10px">أوقات الوجبات والتنبيه</h3>
     <div class="grid g3">
-      <div><label>تاريخ الزيارة القادمة</label><input id="doctorVisitDate" type="date"></div>
-      <div><label>اسم الطبيب (اختياري)</label><input id="doctorName"></div>
-      <div><label>ملاحظات الزيارة (اختياري)</label><input id="doctorNotes"></div>
+      <div><label>فطور (HH:MM)</label><input id="mealBreakfast" type="time" value="07:30"></div>
+      <div><label>غداء (HH:MM)</label><input id="mealLunch" type="time" value="13:30"></div>
+      <div><label>عشاء (HH:MM)</label><input id="mealDinner" type="time" value="19:30"></div>
+      <div><label>دقائق قبل الوجبة للتنبيه</label><input id="notifyBeforeMins" type="number" step="1" value="15"></div>
     </div>
-    <div class="row" style="margin-top:10px">
-      <button id="save" class="btn primary">حفظ البيانات</button>
+    <div class="small">التنبيهات تعمل طالما صفحة القياس مفتوحة ومُفعّل الإشعارات بالمتصفح.</div>
+  </section>
+
+  <section class="card">
+    <div class="row">
+      <button id="save" class="btn primary">حفظ</button>
+      <button id="newChild" class="btn gray">طفل جديد</button>
     </div>
-  </div>
+  </section>
 </main>
-
-<div id="toast" class="toast"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig={apiKey:"AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",authDomain:"child-glucose-tracker.firebaseapp.com",projectId:"child-glucose-tracker",storageBucket:"child-glucose-tracker.firebasestorage.app",messagingSenderId:"294563325904",appId:"1:294563325904:web:39562550bf305fc01abbd5"};
 const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getFirestore(app);
 
 const $=s=>document.querySelector(s);
-const toast=(m)=>{const t=$('.toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1600);};
-
-let uid=null, initChildId=new URL(location.href).searchParams.get('child');
+let uid=null, childId=new URL(location.href).searchParams.get('child')||cryptoRandom();
 
 onAuthStateChanged(auth, async (u)=>{
   if(!u){ location.href='index.html'; return; }
-  uid=u.uid; await loadChildren();
-  if(initChildId){ $('#childSel').value=initChildId; $('#childSel').dispatchEvent(new Event('change')); }
+  uid=u.uid;
+  // تحميل لو موجود
+  const ref=doc(db,'users',uid,'children',childId);
+  const snap=await getDoc(ref);
+  if(snap.exists()){ fillForm(snap.data()); }
 });
 
-async function loadChildren(){
-  const sel=$('#childSel'); sel.innerHTML='<option value="">— تحميل —</option>';
-  const q=await getDocs(collection(db,'users',uid,'children'));
-  sel.innerHTML='<option value="">— اختاري الطفل —</option>';
-  q.forEach(s=>{ const o=document.createElement('option'); o.value=s.id; o.textContent=s.data().name||'بدون اسم'; sel.appendChild(o); });
+function fillForm(c){
+  $('#name').value=c.name||'';
+  $('#childCivilId').value=c.childCivilId||'';
+  $('#preferredUnit').value=c.preferredUnit||'mmol';
+  $('#weight').value=c.weight??'';
+  $('#height').value=c.height??'';
+  $('#dob').value=c.dob||'';
+
+  $('#lowThreshold').value=c.lowThreshold??'';
+  $('#highThreshold').value=c.highThreshold??'';
+  $('#targetMmol').value=c.targetMmol??'';
+  $('#correctionFactorMmol').value=c.correctionFactorMmol??'';
+  $('#correctionFactorMgDl').value=c.correctionFactorMgDl??'';
+  $('#icr').value=c.icr??'';
+
+  const mt=(c.mealTimes||{});
+  $('#mealBreakfast').value=mt.breakfast||'07:30';
+  $('#mealLunch').value=mt.lunch||'13:30';
+  $('#mealDinner').value=mt.dinner||'19:30';
+  $('#notifyBeforeMins').value=c.notifyBeforeMins??15;
 }
 
-$('#childSel').addEventListener('change', async ()=>{
-  const id=$('#childSel').value; $('#childIdNote').textContent=id?('ID: '+id):'';
-  if(!id) return;
-  const snap=await getDoc(doc(db,'users',uid,'children',id));
-  const c=snap.data()||{};
-  $('#name').value=c.name||''; $('#dob').value=c.dob||''; $('#mrn').value=c.mrn||'';
-  $('#weight').value=c.weight??''; $('#height').value=c.height??'';
-  $('#lowThreshold').value=c.lowThreshold??''; $('#highThreshold').value=c.highThreshold??'';
-  $('#targetMmol').value=c.targetMmol??'';
-  $('#cfMmol').value=c.correctionFactorMmol??''; $('#cfMgdl').value=c.correctionFactorMgDl??'';
-  $('#tresiba').value=c.tresiba??''; $('#novo').value=c.novo??'';
-  $('#doctorVisitDate').value=c.doctorVisitDate??''; $('#doctorName').value=c.doctorName??''; $('#doctorNotes').value=c.doctorNotes??'';
-});
-
-$('#save').addEventListener('click', async ()=>{
-  const id=$('#childSel').value;
-  if(!id) return toast('اختاري الطفل أولاً');
-  const payload={
-    name:valStr('#name'), dob:valStr('#dob'), mrn:valStr('#mrn'),
-    weight: valNum('#weight'), height: valNum('#height'),
-    lowThreshold: valNum('#lowThreshold'), highThreshold: valNum('#highThreshold'),
-    targetMmol: valNum('#targetMmol'),
-    correctionFactorMmol: valNum('#cfMmol'), correctionFactorMgDl: valNum('#cfMgdl'),
-    tresiba: valNum('#tresiba'), novo: valNum('#novo'),
-    doctorVisitDate: valStr('#doctorVisitDate'),
-    doctorName: valStr('#doctorName'),
-    doctorNotes: valStr('#doctorNotes')
+document.querySelector('#save').addEventListener('click', async ()=>{
+  const c={
+    name:$('#name').value.trim(),
+    childCivilId:$('#childCivilId').value.trim()||null,
+    preferredUnit:$('#preferredUnit').value, // 'mmol' | 'mgdl'
+    weight:numOrNull('#weight'), height:numOrNull('#height'), dob:$('#dob').value||null,
+    lowThreshold:numOrNull('#lowThreshold'), highThreshold:numOrNull('#highThreshold'), targetMmol:numOrNull('#targetMmol'),
+    correctionFactorMmol:numOrNull('#correctionFactorMmol'), correctionFactorMgDl:numOrNull('#correctionFactorMgDl'),
+    icr:numOrNull('#icr'),
+    mealTimes:{
+      breakfast:$('#mealBreakfast').value||null,
+      lunch:$('#mealLunch').value||null,
+      dinner:$('#mealDinner').value||null
+    },
+    notifyBeforeMins:numOrNull('#notifyBeforeMins')??15
   };
-  await updateDoc(doc(db,'users',uid,'children',id), payload);
-  toast('تم الحفظ ✅');
+  await setDoc(doc(db,'users',uid,'children',childId), c, {merge:true});
+  alert('تم الحفظ ✅');
 });
 
-function valNum(sel){ const v=$(sel).value; if(v==='') return null; const n=Number(v); return Number.isFinite(n)?n:null; }
-function valStr(sel){ const v=$(sel).value?.trim(); return v? v : null; }
+document.querySelector('#newChild').addEventListener('click', ()=>{
+  const id=cryptoRandom(); location.href='child.html?child='+id;
+});
+
+function numOrNull(sel){ const v=$(sel).value; if(v===''||v==null) return null; const n=Number(v); return Number.isFinite(n)?n:null; }
+function cryptoRandom(){ return (Math.random().toString(36).slice(2)+Date.now().toString(36)).slice(0,20); }
 </script>
 </body>
 </html>
