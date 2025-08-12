@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>سجل زيارات الطبيب</title>
+<style>
+:root{
+  --brand:#0ea5e9; --line:#e5e7eb; --ink:#0f172a; --muted:#6b7280; --bg:#f6fbff; --card:#fff;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif}
+header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),#6ee7b7);color:#fff;padding:12px 14px;display:flex;justify-content:space-between;align-items:center}
+header .btn{border:1px solid #ffffff66;background:#ffffff22;color:#fff;padding:8px 12px;border-radius:10px;text-decoration:none}
+main{max-width:1100px;margin:auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 6px 24px rgba(0,0,0,.04);margin-bottom:14px}
+h2{margin:0 0 10px}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.grid{display:grid;gap:10px;grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{border:none;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
+.btn.primary{background:var(--brand);color:#fff}
+.btn.gray{background:#eef2f7}
+.table{width:100%;border-collapse:separate;border-spacing:0}
+.table th,.table td{border:1px solid var(--line);padding:8px;text-align:right;vertical-align:top}
+.table thead th{background:#f8fafc}
+
+#printArea{display:none}
+@media print{
+  @page{size:A4;margin:10mm}
+  header, .no-print{display:none!important}
+  #printArea{display:block}
+  body{background:#fff}
+}
+</style>
+</head>
+<body>
+<header>
+  <div><b>سجل زيارات الطبيب</b></div>
+  <div class="no-print">
+    <a class="btn" href="doctor.html">رجوع</a>
+    <button id="btnPrint" class="btn">طباعة المختار</button>
+  </div>
+</header>
+
+<main>
+  <section class="card">
+    <div id="childMeta" style="font-size:13px;color:#0f172ab3">تحميل بيانات الطفل...</div>
+  </section>
+
+  <section class="card">
+    <h2>إضافة/تعديل زيارة</h2>
+    <div class="grid">
+      <div><label>تاريخ الزيارة</label><input id="visitDate" type="date"></div>
+      <div><label>موعد المتابعة القادمة</label><input id="followUpDate" type="date"></div>
+      <div><label>اسم الطبيب/العيادة</label><input id="doctorName" placeholder="اختياري"></div>
+
+      <div><label>تريسيبا (U)</label><input id="tresiba" type="number" step="0.5" min="0"></div>
+      <div><label>نوع السريع</label><input id="rapidBrand" placeholder="Novo / Humalog .."></div>
+      <div><label>Correction Factor (mmol/L لكل 1U)</label><input id="cfMmol" type="number" step="0.1" min="0"></div>
+
+      <div><label>هدف السكر (mmol/L)</label><input id="target" type="number" step="0.1" min="0"></div>
+      <div><label>حد منخفض</label><input id="low" type="number" step="0.1" min="0"></div>
+      <div><label>حد مرتفع</label><input id="high" type="number" step="0.1" min="0"></div>
+
+      <div><label>وزن (كجم)</label><input id="weight" type="number" step="0.1" min="0"></div>
+      <div><label>طول (سم)</label><input id="height" type="number" step="0.1" min="0"></div>
+      <div><label>HbA1c %</label><input id="hba1c" type="number" step="0.1" min="0"></div>
+
+      <div style="grid-column:1/-1">
+        <label>ملخص دوائي / توصيات</label>
+        <textarea id="plan" rows="3" placeholder="مثال: تعديل التصحيحي إلى 1U لكل 3 mmol/L ..."></textarea>
+      </div>
+      <div style="grid-column:1/-1">
+        <label>ملاحظات الطبيب</label>
+        <textarea id="notes" rows="4" placeholder="ملاحظات عامة/ظروف مرضية/تعليمات المدرسة..."></textarea>
+      </div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button id="saveLog" class="btn primary">حفظ الزيارة</button>
+      <button id="clearForm" class="btn gray">مسح</button>
+      <span id="saveMsg" style="color:#0ea5e9;font-weight:800"></span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>السجلات السابقة</h2>
+    <table class="table">
+      <thead><tr><th>التاريخ</th><th>الطبيب/العيادة</th><th>خلاصة</th><th class="no-print">أوامر</th></tr></thead>
+      <tbody id="logsRows"><tr><td colspan="4">لا توجد سجلات بعد.</td></tr></tbody>
+    </table>
+  </section>
+
+  <!-- مساحة الطباعة -->
+  <section id="printArea">
+    <h2 id="p_title">سجل زيارة</h2>
+    <div id="p_meta" style="margin-bottom:8px;font-size:13px"></div>
+    <div id="p_body"></div>
+  </section>
+</main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, query, orderBy, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const firebaseConfig={apiKey:"AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",authDomain:"child-glucose-tracker.firebaseapp.com",projectId:"child-glucose-tracker",storageBucket:"child-glucose-tracker.firebasestorage.app",messagingSenderId:"294563325904",appId:"1:294563325904:web:39562550bf305fc01abbd5"};
+const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getFirestore(app);
+
+const params=new URL(location.href).searchParams;
+const childId=params.get('child');
+let uid=null, childData=null;
+
+function $(s){return document.querySelector(s);}
+function val(id){ return document.getElementById(id).value; }
+function set(id,v){ document.getElementById(id).value=v||''; }
+
+onAuthStateChanged(auth, async (u)=>{
+  if(!u){ location.href='index.html'; return; }
+  if(!childId){ alert('child parameter مطلوب'); location.href='doctor.html'; return; }
+  uid=u.uid;
+  await loadChild();
+  await loadLogs();
+});
+
+async function loadChild(){
+  const cs=await getDoc(doc(db,'users',uid,'children',childId));
+  childData=cs.data()||{};
+  $('#childMeta').innerHTML =
+    'الاسم: '+(childData.name||'—')+
+    ' • الرقم المدني: '+(childData.childCivilId||'—')+
+    ' • الطول: '+(childData.height??'—')+' سم'+
+    ' • الوزن: '+(childData.weight??'—')+' كجم'+
+    ' • وحدة العرض: mmol/L'+
+    (childData.doctorName?(' • الطبيب: '+childData.doctorName):'');
+}
+
+document.getElementById('clearForm').addEventListener('click', ()=>[
+  'visitDate','followUpDate','doctorName','tresiba','rapidBrand','cfMmol','target','low','high','weight','height','hba1c','plan','notes'
+].forEach(id=>set(id,'')));
+
+document.getElementById('saveLog').addEventListener('click', saveLog);
+document.getElementById('btnPrint').addEventListener('click', ()=>window.print());
+
+async function saveLog(){
+  const data={
+    visitDate: val('visitDate') || null,
+    followUpDate: val('followUpDate') || null,
+    doctorName: val('doctorName') || null,
+    tresiba: num('tresiba'),
+    rapidBrand: val('rapidBrand') || null,
+    correctionFactorMmol: num('cfMmol'),
+    targetMmol: num('target'),
+    lowThreshold: num('low'),
+    highThreshold: num('high'),
+    weight: num('weight'),
+    height: num('height'),
+    hba1c: num('hba1c'),
+    plan: val('plan') || null,
+    notes: val('notes') || null,
+    createdAt: serverTimestamp()
+  };
+  const ref=collection(db,'users',uid,'children',childId,'doctorLogs');
+  await addDoc(ref,data);
+  $('#saveMsg').textContent='تم الحفظ ✔️';
+  setTimeout(()=>$('#saveMsg').textContent='',1500);
+  await loadLogs();
+}
+
+function num(id){
+  const v=val(id); if(v===''||v==null) return null;
+  const n=Number(v); return Number.isFinite(n)?n:null;
+}
+
+async function loadLogs(){
+  const ref=collection(db,'users',uid,'children',childId,'doctorLogs');
+  const qy=query(ref, orderBy('visitDate','desc'));
+  const qs=await getDocs(qy);
+  const tb=$('#logsRows'); tb.innerHTML='';
+  if(qs.empty){ tb.innerHTML='<tr><td colspan="4">لا توجد سجلات بعد.</td></tr>'; return; }
+
+  qs.forEach(s=>{
+    const d=s.data();
+    const tr=document.createElement('tr');
+    tr.innerHTML=
+      '<td>'+(d.visitDate||'—')+'</td>'+
+      '<td>'+(d.doctorName||'—')+'</td>'+
+      '<td>'+
+        (d.plan?('<div>'+escapeHtml(d.plan)+'</div>'):'')+
+        (d.notes?('<div style="color:#6b7280">ملاحظات: '+escapeHtml(d.notes)+'</div>'):'')+
+      '</td>'+
+      '<td class="no-print">'+
+        '<button class="btn gray" data-id="'+s.id+'" data-act="print">طباعة</button> '+
+        '<button class="btn gray" data-id="'+s.id+'" data-act="del">حذف</button>'+
+      '</td>';
+    tb.appendChild(tr);
+  });
+
+  tb.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click', async e=>{
+      const id=e.currentTarget.getAttribute('data-id');
+      const act=e.currentTarget.getAttribute('data-act');
+      if(act==='del'){
+        if(confirm('حذف هذا السجل؟')){ await deleteDoc(doc(db,'users',uid,'children',childId,'doctorLogs',id)); await loadLogs(); }
+      }else if(act==='print'){
+        const snap=await getDoc(doc(db,'users',uid,'children',childId,'doctorLogs',id));
+        showPrint(snap.data()||{});
+        setTimeout(()=>window.print(),50);
+      }
+    });
+  });
+}
+
+function showPrint(d){
+  document.getElementById('p_title').textContent='سجل زيارة — '+(childData.name||'—');
+  document.getElementById('p_meta').textContent=
+    'التاريخ: '+(d.visitDate||'—')+
+    ' • الطبيب: '+(d.doctorName||'—')+
+    ' • متابعة قادمة: '+(d.followUpDate||'—');
+
+  const rows=[
+    ['تريسيبا (U)', fmt(d.tresiba)],
+    ['نوع السريع', d.rapidBrand||'—'],
+    ['تصحيحي (mmol/L لكل 1U)', fmt(d.correctionFactorMmol)],
+    ['الهدف (mmol/L)', fmt(d.targetMmol)],
+    ['حد منخفض', fmt(d.lowThreshold)],
+    ['حد مرتفع', fmt(d.highThreshold)],
+    ['وزن (كجم)', fmt(d.weight)],
+    ['طول (سم)', fmt(d.height)],
+    ['HbA1c %', fmt(d.hba1c)]
+  ];
+
+  let html='<table class="table" style="width:100%"><tbody>';
+  rows.forEach(r=>{ html+='<tr><th style="width:220px;background:#f8fafc">'+r[0]+'</th><td>'+r[1]+'</td></tr>'; });
+  html+='</tbody></table>';
+
+  if(d.plan){ html+='<h3>خطة/ملخص دوائي</h3><div>'+nl2br(escapeHtml(d.plan))+'</div>'; }
+  if(d.notes){ html+='<h3>ملاحظات الطبيب</h3><div>'+nl2br(escapeHtml(d.notes))+'</div>'; }
+
+  document.getElementById('p_body').innerHTML=html;
+}
+
+function fmt(v){ return (v==null||v==='')?'—':String(v); }
+function escapeHtml(str){ return String(str).replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function nl2br(s){ return String(s).replace(/\n/g,'<br>'); }
+</script>
+</body>
+</html>
