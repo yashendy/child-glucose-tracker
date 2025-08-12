@@ -31,8 +31,9 @@ main{max-width:1100px;margin:auto;padding:16px}
 </header>
 
 <main>
+  <!-- فلاتر -->
   <section class="card">
-    <div class="grid" style="display:grid;gap:10px;grid-template-columns:repeat(4,minmax(0,1fr))">
+    <div style="display:grid;gap:10px;grid-template-columns:repeat(4,minmax(0,1fr))">
       <div>
         <label class="small">الطفل</label>
         <select id="childSel"><option value="">— اختاري الطفل —</option></select>
@@ -44,18 +45,20 @@ main{max-width:1100px;margin:auto;padding:16px}
     <div id="meta" class="small" style="margin-top:6px"></div>
   </section>
 
+  <!-- ملخص -->
   <section class="card">
-    <div class="grid" style="display:grid;gap:10px;grid-template-columns:repeat(7,minmax(0,1fr))">
-      <div class="sum"><div class="small">عدد القراءات</div><div id="s_total" style="font-weight:800">—</div></div>
-      <div class="sum"><div class="small">منخفض</div><div id="s_low" style="font-weight:800">—</div></div>
-      <div class="sum"><div class="small">طبيعي</div><div id="s_ok" style="font-weight:800">—</div></div>
-      <div class="sum"><div class="small">مرتفع</div><div id="s_high" style="font-weight:800">—</div></div>
-      <div class="sum"><div class="small">% داخل النطاق</div><div id="s_tir" style="font-weight:800">—%</div></div>
-      <div class="sum"><div class="small">متوسط القراءة</div><div id="s_avg" style="font-weight:800">—</div></div>
-      <div class="sum"><div class="small">أعلى / أقل</div><div id="s_minmax" style="font-weight:800">—</div></div>
+    <div style="display:grid;gap:10px;grid-template-columns:repeat(7,minmax(0,1fr))">
+      <div><div class="small">عدد القراءات</div><div id="s_total" style="font-weight:800">—</div></div>
+      <div><div class="small">منخفض</div><div id="s_low" style="font-weight:800">—</div></div>
+      <div><div class="small">طبيعي</div><div id="s_ok" style="font-weight:800">—</div></div>
+      <div><div class="small">مرتفع</div><div id="s_high" style="font-weight:800">—</div></div>
+      <div><div class="small">% داخل النطاق</div><div id="s_tir" style="font-weight:800">—%</div></div>
+      <div><div class="small">متوسط القراءة</div><div id="s_avg" style="font-weight:800">—</div></div>
+      <div><div class="small">أعلى / أقل</div><div id="s_minmax" style="font-weight:800">—</div></div>
     </div>
   </section>
 
+  <!-- جدول -->
   <section class="card">
     <table class="table">
       <thead>
@@ -74,6 +77,9 @@ main{max-width:1100px;margin:auto;padding:16px}
   </section>
 </main>
 
+<!-- نحمل XLSX كمكتبة عالمية لتفادي import() -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
@@ -88,6 +94,7 @@ const order=['preBreakfast','postBreakfast','preLunch','postLunch','preDinner','
 
 let uid=null, initChildId=new URL(location.href).searchParams.get('child');
 let preferredUnit='mmol', civil='—';
+let cachedDetailed=[];
 
 onAuthStateChanged(auth, async (u)=>{
   if(!u){ location.href='index.html'; return; }
@@ -106,8 +113,6 @@ async function loadChildren(){
 document.querySelector('#btnPrint').addEventListener('click', ()=>window.print());
 document.querySelector('#btnXLSX').addEventListener('click', exportXLSX);
 document.querySelector('#run').addEventListener('click', buildReport);
-
-let cachedDetailed=[];
 
 async function buildReport(){
   const id=$('#childSel').value, from=$('#from').value, to=$('#to').value;
@@ -164,37 +169,38 @@ async function buildReport(){
     });
   }
 
-  document.querySelector('#s_total').textContent=total;
-  document.querySelector('#s_low').textContent=cLow;
-  document.querySelector('#s_ok').textContent=cOk;
-  document.querySelector('#s_high').textContent=cHigh;
-  const tir= total? Math.round((cOk/total)*100) : 0; document.querySelector('#s_tir').textContent=tir+'%';
-  document.querySelector('#s_avg').textContent= total? (sum/total).toFixed(1)+' mmol/L' : '—';
-  document.querySelector('#s_minmax').textContent = (Number.isFinite(minR)&&Number.isFinite(maxR)) ? (minR.toFixed(1)+' / '+maxR.toFixed(1)+' mmol/L ('+minD+' — '+maxD+')' : '—';
+  $('#s_total').textContent=total;
+  $('#s_low').textContent=cLow;
+  $('#s_ok').textContent=cOk;
+  $('#s_high').textContent=cHigh;
+  const tir= total? Math.round((cOk/total)*100) : 0; $('#s_tir').textContent=tir+'%';
+  $('#s_avg').textContent= total? (sum/total).toFixed(1)+' mmol/L' : '—';
+  $('#s_minmax').textContent = (Number.isFinite(minR)&&Number.isFinite(maxR)) ? (minR.toFixed(1)+' / '+maxR.toFixed(1)+' mmol/L ('+minD+' — '+maxD+')' : '—';
 }
 
 function exportXLSX(){
-  const childText=document.querySelector('#childSel').selectedOptions[0]?.textContent||'child';
-  const from=document.querySelector('#from').value, to=document.querySelector('#to').value;
-  const head=['التاريخ', ...order.map(k=>labels[k])];
-  const rows=cachedDetailed.map(r=>[r.date, ...order.map(k=>r[k]??'')]);
+  const XLSX = window.XLSX; // من المكتبة العالمية فوق
+  if(!XLSX){ alert('XLSX library not loaded'); return; }
 
-  import('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js').then(X=>{
-    const XLSX=X.default||window.XLSX;
-    const wb=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
-      ['الفترة', from+' → '+to],
-      ['عدد القراءات', document.querySelector('#s_total').textContent],
-      ['منخفض', document.querySelector('#s_low').textContent],
-      ['طبيعي', document.querySelector('#s_ok').textContent],
-      ['مرتفع', document.querySelector('#s_high').textContent],
-      ['داخل النطاق %', document.querySelector('#s_tir').textContent],
-      ['متوسط القراءة', document.querySelector('#s_avg').textContent],
-      ['أعلى / أقل', document.querySelector('#s_minmax').textContent]
-    ]), 'Summary');
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([head,...rows]), 'Detailed');
-    XLSX.writeFile(wb, 'doctor_followup_'+childText+'_'+from+'_to_'+to+'.xlsx');
-  });
+  const childText=document.querySelector('#childSel').selectedOptions[0] ? document.querySelector('#childSel').selectedOptions[0].textContent : 'child';
+  const from=document.querySelector('#from').value, to=document.querySelector('#to').value;
+  const head=['التاريخ', ...order.map(function(k){return labels[k];})];
+  const rows=cachedDetailed.map(function(r){ return [r.date].concat(order.map(function(k){ return r[k]||''; })); });
+
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+    ['الفترة', from+' → '+to],
+    ['عدد القراءات', document.querySelector('#s_total').textContent],
+    ['منخفض', document.querySelector('#s_low').textContent],
+    ['طبيعي', document.querySelector('#s_ok').textContent],
+    ['مرتفع', document.querySelector('#s_high').textContent],
+    ['داخل النطاق %', document.querySelector('#s_tir').textContent],
+    ['متوسط القراءة', document.querySelector('#s_avg').textContent],
+    ['أعلى / أقل', document.querySelector('#s_minmax').textContent]
+  ]), 'Summary');
+
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([head].concat(rows)), 'Detailed');
+  XLSX.writeFile(wb, 'doctor_followup_'+childText+'_'+from+'_to_'+to+'.xlsx');
 }
 </script>
 </body>
