@@ -16,6 +16,24 @@ header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(-
 header .btn{color:#fff;text-decoration:none;border:1px solid #ffffff66;padding:8px 12px;border-radius:10px;margin-inline-start:6px;background:#ffffff22}
 main{max-width:1100px;margin:auto;padding:16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 6px 24px rgba(0,0,0,.04);margin-bottom:12px}
+
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+input,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.grid{display:grid;gap:10px}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:900px){.g4{grid-template-columns:1fr 1fr}}
+.controls .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:end}
+.btn-main{padding:10px;border:none;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer}
+
+.summary{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px}
+@media(max-width:1000px){.summary{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.sum{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px;text-align:center}
+.sum .k{font-size:12px;color:var(--muted)}
+.sum .v{font-size:20px;font-weight:900;margin-top:4px}
+.sum.low{background:var(--lowbg);color:var(--low)}
+.sum.ok{background:var(--okbg);color:var(--ok)}
+.sum.high{background:var(--highbg);color:var(--high)}
+
 .small{font-size:12px;color:var(--muted)}
 .table{width:100%;border-collapse:separate;border-spacing:0}
 .table th,.table td{border:1px solid var(--line);padding:8px;vertical-align:top;text-align:right}
@@ -25,8 +43,14 @@ main{max-width:1100px;margin:auto;padding:16px}
 .badge.ok{background:var(--okbg);color:var(--ok)}
 .badge.low{background:var(--lowbg);color:var(--low)}
 .badge.high{background:var(--highbg);color:var(--high)}
-input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
-.btn-main{padding:10px;border:none;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer}
+
+@media print{
+  @page{ size: A4 landscape; margin: 8mm }
+  header,.controls{display:none!important}
+  body{background:#fff;font-size:11px}
+  .card{border:0;box-shadow:none;padding:0;margin:0}
+  .table th,.table td{padding:4px}
+}
 </style>
 </head>
 <body>
@@ -40,36 +64,38 @@ input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:
 </header>
 
 <main>
-  <!-- فلاتر -->
-  <section class="card">
-    <div style="display:grid;gap:10px;grid-template-columns:repeat(5,minmax(0,1fr))">
-      <div style="grid-column:span 2">
-        <label class="small">بحث عن طفل (اسم / رقم مدني)</label>
-        <input id="kidSearch" placeholder="مثال: آسر / 2810..." />
-      </div>
+  <!-- اختيارات -->
+  <section class="card controls">
+    <div class="grid g4">
       <div>
-        <label class="small">اختر الطفل</label>
-        <select id="childSel"><option value="">— تحميل القائمة —</option></select>
+        <label>الطفل</label>
+        <select id="childSel"><option value="">— اختاري الطفل —</option></select>
       </div>
-      <div><label class="small">من تاريخ</label><input id="from" type="date"></div>
-      <div><label class="small">إلى تاريخ</label><input id="to" type="date"></div>
+      <div><label>من تاريخ</label><input id="from" type="date"></div>
+      <div><label>إلى تاريخ</label><input id="to" type="date"></div>
+      <div class="actions"><button id="run" class="btn-main" style="width:100%">عرض المتابعة</button></div>
     </div>
-    <div style="margin-top:10px">
-      <button id="run" class="btn-main">عرض المتابعة</button>
-    </div>
-    <div id="meta" class="small" style="margin-top:8px"></div>
+    <div id="meta" class="small" style="margin-top:6px"></div>
   </section>
 
-  <!-- ملخص بسيط -->
+  <!-- ملخص -->
   <section class="card">
-    <div style="display:grid;gap:10px;grid-template-columns:repeat(7,minmax(0,1fr))">
-      <div><div class="small">عدد القراءات</div><div id="s_total" style="font-weight:800">—</div></div>
-      <div><div class="small">منخفض</div><div id="s_low" style="font-weight:800">—</div></div>
-      <div><div class="small">طبيعي</div><div id="s_ok" style="font-weight:800">—</div></div>
-      <div><div class="small">مرتفع</div><div id="s_high" style="font-weight:800">—</div></div>
-      <div><div class="small">% داخل النطاق</div><div id="s_tir" style="font-weight:800">—%</div></div>
-      <div><div class="small">متوسط القراءة</div><div id="s_avg" style="font-weight:800">—</div></div>
-      <div><div class="small">أعلى / أقل</div><div id="s_minmax" style="font-weight:800">—</div></div>
+    <div class="summary">
+      <div class="sum"><div class="k">عدد القراءات</div><div class="v" id="s_total">—</div></div>
+      <div class="sum low"><div class="k">منخفض</div><div class="v" id="s_low">—</div></div>
+      <div class="sum ok"><div class="k">طبيعي</div><div class="v" id="s_ok">—</div></div>
+      <div class="sum high"><div class="k">مرتفع</div><div class="v" id="s_high">—</div></div>
+      <div class="sum"><div class="k">% داخل النطاق</div><div class="v" id="s_tir">—%</div></div>
+      <div class="sum"><div class="k">متوسط القراءة</div><div class="v" id="s_avg">—</div></div>
+      <div class="sum"><div class="k">أعلى / أقل</div><div class="v" id="s_minmax">—</div></div>
+    </div>
+  </section>
+
+  <!-- مخططات -->
+  <section class="card">
+    <div class="grid" style="grid-template-columns:1fr 1fr">
+      <canvas id="chartDaily"></canvas>
+      <canvas id="chartSlots"></canvas>
     </div>
   </section>
 
@@ -92,158 +118,224 @@ input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:
   </section>
 </main>
 
-<!-- XLSX كمكتبة عالمية -->
+<!-- مكتبات خارجية -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <script type="module">
+/* ===== Firebase ===== */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import { getFirestore, collection, collectionGroup, getDocs, doc, getDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, getDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-const firebaseConfig={apiKey:"AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",authDomain:"child-glucose-tracker.firebaseapp.com",projectId:"child-glucose-tracker",storageBucket:"child-glucose-tracker.firebasestorage.app",messagingSenderId:"294563325904",appId:"1:294563325904:web:39562550bf305fc01abbd5"};
-const app=initializeApp(firebaseConfig); const db=getFirestore(app);
+var firebaseConfig={
+  apiKey:"AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
+  authDomain:"child-glucose-tracker.firebaseapp.com",
+  projectId:"child-glucose-tracker",
+  storageBucket:"child-glucose-tracker.firebasestorage.app",
+  messagingSenderId:"294563325904",
+  appId:"1:294563325904:web:39562550bf305fc01abbd5"
+};
+var app=initializeApp(firebaseConfig);
+var auth=getAuth(app);
+var db=getFirestore(app);
 
-function $(s){return document.querySelector(s);}
-const labels={preBreakfast:'قبل الإفطار',postBreakfast:'بعد الإفطار',preLunch:'قبل الغداء',postLunch:'بعد الغداء',preDinner:'قبل العشاء',postDinner:'بعد العشاء',beforeSleep:'قبل النوم',duringSleep:'أثناء النوم',uponWake:'عند الاستيقاظ'};
-const order=['preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','uponWake'];
+/* ===== Helpers ===== */
+function $(s){ return document.querySelector(s); }
+var labels={
+  preBreakfast:'قبل الإفطار', postBreakfast:'بعد الإفطار',
+  preLunch:'قبل الغداء',     postLunch:'بعد الغداء',
+  preDinner:'قبل العشاء',    postDinner:'بعد العشاء',
+  beforeSleep:'قبل النوم',   duringSleep:'أثناء النوم', uponWake:'عند الاستيقاظ'
+};
+var order=['preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','uponWake'];
 
-let preferredUnit='mmol';
-let kids=[];            // [{name,civil,path}] path = users/{uid}/children/{childId}
-let cachedDetailed=[];
+var uid=null;
+var initChildId=(new URL(location.href)).searchParams.get('child');
+var cachedDetailed=[];
 
-// تحميل جميع الأطفال من كل الأولياء (collection group)
-async function loadAllKids(){
-  const cg=query(collectionGroup(db,'children'), orderBy('name'));
-  const qs=await getDocs(cg);
-  kids=[];
-  qs.forEach(s=>{
-    const d=s.data()||{};
-    kids.push({ name:d.name||'بدون اسم', civil:d.childCivilId||'', path:s.ref.path });
-  });
-  renderKidOptions('');
-}
+/* refs للمخططات */
+window.chartDaily=null;
+window.chartSlots=null;
 
-function renderKidOptions(filter){
-  const sel=$('#childSel');
-  sel.innerHTML='';
-  const f=(filter||'').toLowerCase().trim();
-  let count=0;
-  kids.forEach(k=>{
-    const hay=(k.name+' '+k.civil).toLowerCase();
-    if(!f || hay.indexOf(f)>=0){
-      const o=document.createElement('option');
-      o.value=k.path;
-      o.textContent=k.name+(k.civil?(' — '+k.civil):'');
-      sel.appendChild(o);
-      count++;
+/* ===== Auth ===== */
+onAuthStateChanged(auth, function(u){
+  if(!u){ location.href='index.html'; return; }
+  uid=u.uid;
+  loadChildren().then(function(){
+    setDefaults();
+    if(initChildId){
+      var opts=$('#childSel').options;
+      for(var i=0;i<opts.length;i++){ if(opts[i].value===initChildId){ $('#childSel').value=initChildId; $('#childSel').disabled=true; break; } }
     }
   });
-  if(count===0){
-    const o=document.createElement('option');
-    o.value='';
-    o.textContent='لا نتائج مطابقة';
-    sel.appendChild(o);
-  }
+});
+
+/* ===== UI ===== */
+function setDefaults(){
+  var d=new Date();
+  var iso=d.toISOString().slice(0,10);
+  $('#from').value=iso; $('#to').value=iso;
+}
+async function loadChildren(){
+  var sel=$('#childSel');
+  sel.innerHTML='<option value="">— تحميل —</option>';
+  var q=await getDocs(collection(db,'users',uid,'children'));
+  sel.innerHTML='<option value="">— اختاري الطفل —</option>';
+  q.forEach(function(s){
+    var o=document.createElement('option');
+    o.value=s.id; o.textContent=(s.data().name||'بدون اسم'); sel.appendChild(o);
+  });
 }
 
-// افتراضي تاريخ اليوم
-(function setDefaults(){
-  const iso=new Date().toISOString().slice(0,10);
-  $('#from').value=iso; $('#to').value=iso;
-})();
+/* ===== Events ===== */
+$('#btnPrint').addEventListener('click', function(){ window.print(); });
+$('#btnXLSX').addEventListener('click', exportXLSX);
+$('#run').addEventListener('click', buildReport);
 
-// بحث مباشر
-$('#kidSearch').addEventListener('input', function(){ renderKidOptions(this.value); });
-
-document.getElementById('btnPrint').addEventListener('click', ()=>window.print());
-document.getElementById('btnXLSX').addEventListener('click', exportXLSX);
-document.getElementById('run').addEventListener('click', buildReport);
-
-// تحميل القائمة عند الفتح
-loadAllKids();
-
+/* ===== Build Report ===== */
 async function buildReport(){
-  const path=$('#childSel').value, from=$('#from').value, to=$('#to').value;
-  if(!path || !from || !to){ alert('اختاري الطفل وحددي الفترة'); return; }
+  var id=$('#childSel').value, from=$('#from').value, to=$('#to').value;
+  if(!id||!from||!to){ alert('اختاري الطفل وحددي الفترة'); return; }
 
-  // مرجع الطفل المختار (من أي مستخدم)
-  const childRef=doc(db, path);
-  const cs=await getDoc(childRef); const c=cs.data()||{};
-  preferredUnit=c.preferredUnit||'mmol';
-  const name=(c.name||'—'), civil=(c.childCivilId||'—'),
-        wt=(c.weight!=null?c.weight:'—'), ht=(c.height!=null?c.height:'—'),
-        lo=(c.lowThreshold!=null?c.lowThreshold:'—'), hi=(c.highThreshold!=null?c.highThreshold:'—');
+  // meta
+  var cs=await getDoc(doc(db,'users',uid,'children',id)); var c=cs.data()||{};
+  var name=(c.name||'—'), wt=(c.weight!=null?c.weight:'—'), ht=(c.height!=null?c.height:'—');
+  var lo=(c.lowThreshold!=null?c.lowThreshold:'—'), hi=(c.highThreshold!=null?c.highThreshold:'—');
+  $('#meta').innerHTML='الاسم: '+name+' • الوزن: '+wt+' كجم • الطول: '+ht+' سم • حدود: منخفض &lt; '+lo+' — مرتفع &gt; '+hi+' • الفترة: '+from+' → '+to;
 
-  $('#meta').innerHTML='الاسم: '+name+' • الرقم المدني: '+civil+' • الوزن: '+wt+' كجم • الطول: '+ht+
-                       ' سم • حدود: منخفض &lt; '+lo+' — مرتفع &gt; '+hi+' • الفترة: '+from+' → '+to+
-                       ' • الوحدة: '+(preferredUnit==='mgdl'?'mg/dL':'mmol/L');
+  // query
+  var col=collection(db,'users',uid,'children',id,'measurements');
+  var qy=query(col, where('date','>=',from), where('date','<=',to), orderBy('date','asc'));
+  var qs=await getDocs(qy);
 
-  // measurements تحت نفس مستند الطفل
-  const col=collection(childRef,'measurements');
-  const qy=query(col, where('date','>=',from), where('date','<=',to), orderBy('date','asc'));
-  const qs=await getDocs(qy);
-
-  let total=0,cLow=0,cOk=0,cHigh=0,sum=0,minR=Infinity,maxR=-Infinity,minD='—',maxD='—';
+  // aggregates
+  var total=0,cLow=0,cOk=0,cHigh=0,sum=0,minR=Infinity,maxR=-Infinity,minD='—',maxD='—';
+  var slotAgg={}; for(var si=0;si<order.length;si++){ slotAgg[order[si]]={sum:0,count:0}; }
   cachedDetailed=[];
-  const tbody=$('#rows'); tbody.innerHTML='';
+  var dailyAvgLabels=[], dailyAvgValues=[];
+  var tbody=$('#rows'); tbody.innerHTML='';
 
-  if(qs.empty){ tbody.innerHTML='<tr><td colspan="10" class="small">لا توجد قراءات.</td></tr>'; }
-  else{
-    qs.forEach(s=>{
-      const d=s.data(); const readings=d.readings||{};
-      const tr=document.createElement('tr');
-      const tdDate=document.createElement('td'); tdDate.className='date'; tdDate.textContent=d.date; tr.appendChild(tdDate);
-      const rowExport={date:d.date};
+  if(qs.empty){
+    tbody.innerHTML='<tr><td colspan="10" class="small">لا توجد قراءات في هذه الفترة.</td></tr>';
+  }else{
+    qs.forEach(function(s){
+      var d=s.data(); var readings=d.readings||{};
+      var daySum=0, dayCnt=0;
 
-      order.forEach(slot=>{
-        const r=readings[slot]; const td=document.createElement('td');
-        if(!r||r.value==null){ td.textContent='—'; rowExport[slot]=''; }
-        else{
-          const mmol=Number(r.value)||0;
-          const disp=(preferredUnit==='mgdl')?(Math.round(mmol*18)+' mg/dL'):(mmol.toFixed(1)+' mmol/L');
-          const st=r.status || (mmol<Number(c.lowThreshold)?'low':(mmol>Number(c.highThreshold)?'high':'ok'));
-          const cls=(st==='low')?'low':((st==='high')?'high':'ok');
-          const badge='<span class="badge '+cls+'">'+(st==='ok'?'طبيعي':(st==='low'?'منخفض':'مرتفع'))+'</span>';
-          td.innerHTML='<div><b>'+disp+'</b> '+badge+'</div>'+
-                       (r.mealDose!=null?('<div class="small">جرعة: '+r.mealDose+'U</div>'):'')+
-                       (r.correctionGiven!=null?('<div class="small">تصحيحي: '+r.correctionGiven+'U</div>'):'')+
-                       ((r.note||r.raisedWith)?('<div class="small">ملاحظة: '+(r.note||r.raisedWith)+'</div>'):'');
-          rowExport[slot]=disp+
-            (r.mealDose!=null?(' | جرعة: '+r.mealDose+'U'):'')+
-            (r.correctionGiven!=null?(' | تصحيحي: '+r.correctionGiven+'U'):'')+
-            ((r.note||r.raisedWith)?(' | ملاحظة: '+(r.note||r.raisedWith)):'');
-          total++; sum+=mmol;
-          if(st==='low')cLow++; else if(st==='high')cHigh++; else cOk++;
-          if(mmol<minR){minR=mmol; minD=d.date;} if(mmol>maxR){maxR=mmol; maxD=d.date;}
+      var tr=document.createElement('tr');
+      var tdDate=document.createElement('td'); tdDate.className='date'; tdDate.textContent=d.date; tr.appendChild(tdDate);
+
+      var rowExport={date:d.date};
+
+      for(var j=0;j<order.length;j++){
+        var slot=order[j]; var r=readings[slot];
+        var td=document.createElement('td');
+
+        if(!r || r.value==null){
+          td.textContent='—'; rowExport[slot]='';
+        }else{
+          var val=Number(r.value)||0;
+          total++; sum+=val;
+          if(r.status==='low') cLow++; else if(r.status==='high') cHigh++; else cOk++;
+          if(val<minR){minR=val; minD=d.date;} if(val>maxR){maxR=val; maxD=d.date;}
+          daySum+=val; dayCnt++;
+          slotAgg[slot].sum+=val; slotAgg[slot].count++;
+
+          var cls=(r.status==='low')?'low':((r.status==='high')?'high':'ok');
+          var statusName=(cls==='ok')?'طبيعي':((cls==='low')?'منخفض':'مرتفع');
+          var badge='<span class="badge '+cls+'">'+statusName+'</span>';
+          var meal=(r.mealDose!=null)?('جرعة: '+r.mealDose+'U'):'';
+          var corr=(r.correctionGiven!=null)?('تصحيحي: '+r.correctionGiven+'U'):'';
+          var note=(r.note?r.note:(r.raisedWith?r.raisedWith:''))||'';
+
+          td.innerHTML='<div><b>'+r.value+'</b> '+badge+'</div>'
+                       +(meal?('<div class="small">'+meal+'</div>'):'')
+                       +(corr?('<div class="small">'+corr+'</div>'):'')
+                       +(note?('<div class="small">ملاحظة: '+escapeHTML(note)+'</div>'):'');
+          rowExport[slot]= r.value + (meal?(' | '+meal):'') + (corr?(' | '+corr):'') + (note?(' | ملاحظة: '+note):'');
         }
         tr.appendChild(td);
-      });
-
+      }
       tbody.appendChild(tr);
       cachedDetailed.push(rowExport);
+
+      dailyAvgLabels.push(d.date);
+      dailyAvgValues.push(dayCnt? Number((daySum/dayCnt).toFixed(2)) : null);
     });
   }
 
+  // summary
   $('#s_total').textContent=total;
   $('#s_low').textContent=cLow;
   $('#s_ok').textContent=cOk;
   $('#s_high').textContent=cHigh;
-  const tir= total? Math.round((cOk/total)*100) : 0; $('#s_tir').textContent=tir+'%';
-  $('#s_avg').textContent= total? (sum/total).toFixed(1)+' mmol/L' : '—';
-  $('#s_minmax').textContent=(isFinite(minR)&&isFinite(maxR))?(minR.toFixed(1)+' / '+maxR.toFixed(1)+' mmol/L ('+minD+' — '+maxD+')':'—';
+  var tir= total? Math.round((cOk/total)*100) : 0;
+  $('#s_tir').textContent=(tir+'%');
+  $('#s_avg').textContent= total? (sum/total).toFixed(1) : '—';
+  $('#s_minmax').textContent = (isFinite(minR)&&isFinite(maxR)) ? (minR+' ('+minD+') / '+maxR+' ('+maxD+')') : '—';
+
+  renderCharts(dailyAvgLabels, dailyAvgValues, slotAgg);
 }
 
-/* تصدير Excel */
+/* ===== Charts (نسخة مبسطة) ===== */
+function renderCharts(dailyLabels, dailyValues, slotAgg){
+  var ctx1=document.getElementById('chartDaily');
+  var ctx2=document.getElementById('chartSlots');
+
+  if(window.chartDaily){ window.chartDaily.destroy(); }
+  if(window.chartSlots){ window.chartSlots.destroy(); }
+
+  window.chartDaily=new Chart(ctx1,{
+    type:'line',
+    data:{
+      labels: dailyLabels,
+      datasets:[{
+        label:'متوسط اليوم (mmol/L)',
+        data: dailyValues,
+        borderColor:'#0ea5e9',
+        backgroundColor:'rgba(14,165,233,.15)',
+        tension:0.3,
+        spanGaps:true
+      }]
+    },
+    options:{ plugins:{legend:{display:true}}, scales:{x:{ticks:{autoSkip:true,maxTicksLimit:14}} } }
+  });
+
+  var slotLabels=[]; var slotMeans=[];
+  for(var i=0;i<order.length;i++){
+    var k=order[i]; slotLabels.push(labels[k]);
+    var a=slotAgg[k]||{sum:0,count:0}; slotMeans.push( a.count? Number((a.sum/a.count).toFixed(2)) : 0 );
+  }
+
+  window.chartSlots=new Chart(ctx2,{
+    type:'bar',
+    data:{
+      labels: slotLabels,
+      datasets:[{ label:'متوسط الوقت', data: slotMeans, backgroundColor:'#6ee7b7', borderColor:'#059669' }]
+    },
+    options:{ plugins:{legend:{display:true}}, scales:{x:{ticks:{autoSkip:false}} } }
+  });
+}
+
+/* ===== Excel ===== */
 function exportXLSX(){
-  const XLSX=window.XLSX; if(!XLSX){ alert('XLSX library not loaded'); return; }
-  const childSel=document.getElementById('childSel');
-  const childText=childSel && childSel.selectedOptions[0] ? childSel.selectedOptions[0].textContent : 'child';
-  const from=document.getElementById('from').value, to=document.getElementById('to').value;
+  var sel=$('#childSel'); var childText=(sel && sel.selectedOptions && sel.selectedOptions[0])? sel.selectedOptions[0].textContent : 'child';
+  var from=$('#from').value, to=$('#to').value;
 
-  const head=['التاريخ']; order.forEach(k=>head.push(labels[k]));
-  const rows=cachedDetailed.map(r=>{ const a=[r.date]; order.forEach(k=>a.push(r[k]||'')); return a; });
+  var head=['التاريخ'];
+  for(var i=0;i<order.length;i++){ head.push(labels[order[i]]); }
 
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+  var rows=[];
+  for(var r=0;r<cachedDetailed.length;r++){
+    var row=cachedDetailed[r];
+    var arr=[row.date];
+    for(var j=0;j<order.length;j++){ var k=order[j]; arr.push(row[k]?row[k]:''); }
+    rows.push(arr);
+  }
+
+  var wb=XLSX.utils.book_new();
+  var summaryAoA=[
     ['الفترة', from+' → '+to],
     ['عدد القراءات', document.getElementById('s_total').textContent],
     ['منخفض', document.getElementById('s_low').textContent],
@@ -252,10 +344,22 @@ function exportXLSX(){
     ['داخل النطاق %', document.getElementById('s_tir').textContent],
     ['متوسط القراءة', document.getElementById('s_avg').textContent],
     ['أعلى / أقل', document.getElementById('s_minmax').textContent]
-  ]), 'Summary');
+  ];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryAoA), 'Summary');
 
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([head].concat(rows)), 'Detailed');
+  var detailedAoA=[head];
+  for(var rr=0; rr<rows.length; rr++){ detailedAoA.push(rows[rr]); }
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(detailedAoA), 'Detailed');
+
   XLSX.writeFile(wb, 'doctor_followup_'+childText+'_'+from+'_to_'+to+'.xlsx');
+}
+
+/* ===== Utils ===== */
+function escapeHTML(str){
+  str = str || '';
+  return str.replace(/[&<>"']/g,function(c){
+    var m={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}; return m[c];
+  });
 }
 </script>
 </body>
