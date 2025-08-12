@@ -50,6 +50,7 @@ th{background:#f8fafc; color:#0f172a}
 <header>
   <div>تسجيل القياسات</div>
   <div class="row">
+    <button id="btnEnableNoti" class="btn">🔔 تفعيل تذكير قبل الوجبات</button>
     <a class="btn" href="dashboard.html">⬅ لوحة التحكم</a>
   </div>
 </header>
@@ -63,6 +64,7 @@ th{background:#f8fafc; color:#0f172a}
         <select id="childSel"><option value="">— اختاري الطفل —</option></select>
         <div id="thrInfo" class="note" style="margin-top:6px"></div>
         <div id="cfInfo" class="note" style="margin-top:4px"></div>
+        <div id="icrInfo" class="note" style="margin-top:4px"></div>
       </div>
       <div>
         <label>التاريخ</label>
@@ -106,13 +108,25 @@ th{background:#f8fafc; color:#0f172a}
         <div id="bLow" class="badge b-low hide">⬇︎ منخفض — يجب الرفع</div>
         <div id="bHigh" class="badge b-high hide">⬆︎ مرتفع — يرجى التصحيح</div>
       </div>
+
       <div>
-        <label>جرعة الوجبة (وحدة) — اختياري</label>
-        <input id="mealDose" type="number" step="0.5" min="0" placeholder="مثلاً 3">
+        <label>الوجبة — كربوهيدرات (جرام) — اختياري</label>
+        <div class="unit-inline">
+          <input id="carbs" type="number" step="1" min="0" placeholder="مثلاً 45">
+          <div>
+            <label>جرعة الوجبة (وحدة)</label>
+            <input id="mealDose" type="number" step="0.5" min="0" placeholder="مثلاً 3">
+          </div>
+        </div>
+        <div id="mealSuggestWrap" class="hide" style="margin-top:8px">
+          <span class="suggest">جرعة الوجبة المقترحة (ICR): <span id="mealSuggestion">—</span> وحدة</span>
+        </div>
+
         <div id="suggestWrap" class="hide" style="margin-top:8px">
           <span class="suggest">الجرعة التصحيحية المقترحة: <span id="corrSuggestion">—</span> وحدة</span>
         </div>
       </div>
+
       <div>
         <label>ملاحظة</label>
         <input id="note" placeholder="اختياري — وصف مختصر" />
@@ -164,23 +178,27 @@ const firebaseConfig={apiKey:"AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",authDomai
 const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getFirestore(app);
 
 const $=s=>document.querySelector(s);
-const toast=(m)=>{const t=$('.toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1700);};
+const toast=(m)=>{const t=document.querySelector('.toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1700);};
 
 const labels={preBreakfast:'قبل الإفطار',postBreakfast:'بعد الإفطار',preLunch:'قبل الغداء',postLunch:'بعد الغداء',preDinner:'قبل العشاء',postDinner:'بعد العشاء',beforeSleep:'قبل النوم',duringSleep:'أثناء النوم',uponWake:'عند الاستيقاظ'};
 const order=['preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','uponWake'];
 
 let uid=null, childId=null;
-let low=4, high=10, target=6.5, cfMmol=null; // كلها بالـ mmol/L داخليًا
+let low=4, high=10, target=6.5, cfMmol=null, icr=null; // داخليًا mmol
+let preferredUnit='mmol';
+let mealTimes={breakfast:'07:30', lunch:'13:30', dinner:'19:30'};
+let notifyBeforeMins=15;
+
 const initChildId=new URL(location.href).searchParams.get('child');
 
 onAuthStateChanged(auth, async (u)=>{
   if(!u){ location.href='index.html'; return; }
   uid=u.uid; await loadChildren(); setToday();
-  if(initChildId){ $('#childSel').value=initChildId; $('#childSel').disabled=true; await onChildChanged(); }
-  refreshThresholdInfo(); // بعد ما تتظبط القيم الأولية
+  if(initChildId){ $('#childSel').value=initChildId; $('#childSel').disabled=true; await onChildChanged(true); }
+  else { adjustInputForUnit(); }
 });
 
-/* ====== وحدات القياس ====== */
+/* وحدات */
 const unitSel = $('#unitSel');
 unitSel.addEventListener('change', ()=>{
   adjustInputForUnit();
@@ -188,37 +206,23 @@ unitSel.addEventListener('change', ()=>{
   refreshDay();
   refreshThresholdInfo();
 });
-function toMmol(value, unit){ // mg/dL -> mmol/L
-  if(!Number.isFinite(value)) return NaN;
-  return unit==='mgdl' ? value/18 : value;
-}
-function fromMmol(mmol, unit){ // mmol/L -> mg/dL
-  if(!Number.isFinite(mmol)) return NaN;
-  return unit==='mgdl' ? Math.round(mmol*18) : Number(mmol.toFixed(1));
-}
+function toMmol(value, unit){ if(!Number.isFinite(value)) return NaN; return unit==='mgdl' ? value/18 : value; }
+function fromMmol(mmol, unit){ if(!Number.isFinite(mmol)) return NaN; return unit==='mgdl' ? Math.round(mmol*18) : Number(mmol.toFixed(1)); }
 function adjustInputForUnit(){
   const u=unitSel.value;
-  $('#unitSuffix').textContent = 'الوحدة الحالية: ' + (u==='mgdl'?'mg/dL':'mmol/L');
-  const reading = $('#reading');
-  if(u==='mgdl'){ reading.step='1'; reading.placeholder='مثلاً 120'; }
-  else { reading.step='0.1'; reading.placeholder='مثلاً 6.5'; }
+  $('#unitSuffix').textContent='الوحدة الحالية: '+(u==='mgdl'?'mg/dL':'mmol/L');
+  const reading=$('#reading'); reading.step=(u==='mgdl'?'1':'0.1'); reading.placeholder=(u==='mgdl'?'مثلاً 120':'مثلاً 6.5');
 }
 function refreshThresholdInfo(){
   const u=unitSel.value;
-  const loDisp = fromMmol(low,u);
-  const hiDisp = fromMmol(high,u);
-  const tgtDisp = fromMmol(target,u);
-  $('#thrInfo').textContent = 'الحدود (حسب الوحدة): منخفض < '+loDisp+' • مرتفع > '+hiDisp+' • الهدف: '+tgtDisp+' ' + (u==='mgdl'?'mg/dL':'mmol/L');
-  // معامل التصحيح (ثابت بالـ mmol/L لكل وحدة)
-  $('#cfInfo').textContent = cfMmol ? ('معامل التصحيح: '+(Math.round(cfMmol*100)/100)+' mmol/L لكل 1U') : '⚠️ لم يتم ضبط معامل التصحيح';
+  const loDisp=fromMmol(low,u), hiDisp=fromMmol(high,u), tgtDisp=fromMmol(target,u);
+  $('#thrInfo').textContent='الحدود (حسب الوحدة): منخفض < '+loDisp+' • مرتفع > '+hiDisp+' • الهدف: '+tgtDisp+' '+(u==='mgdl'?'mg/dL':'mmol/L');
+  $('#cfInfo').textContent= cfMmol?('معامل التصحيح: '+(Math.round(cfMmol*100)/100)+' mmol/L لكل 1U'):'⚠️ لم يتم ضبط معامل التصحيح';
+  $('#icrInfo').textContent= icr?('ICR: '+icr+' جم كارب لكل 1U'):'';
 }
 
-/* ====== تحميل الأطفال والتاريخ ====== */
-function setToday(){
-  const url=new URL(location.href); const dateFromUrl=url.searchParams.get('date');
-  if(dateFromUrl){ $('#dateSel').value=dateFromUrl; }
-  else { const d=new Date(); $('#dateSel').value=d.toISOString().slice(0,10); }
-}
+/* تحميل */
+function setToday(){ const u=new URL(location.href); const d=u.searchParams.get('date'); $('#dateSel').value=d||new Date().toISOString().slice(0,10); }
 async function loadChildren(){
   const sel=$('#childSel'); sel.innerHTML='<option value="">— تحميل —</option>';
   const q=await getDocs(collection(db,'users',uid,'children'));
@@ -226,45 +230,47 @@ async function loadChildren(){
   q.forEach(s=>{ const o=document.createElement('option'); o.value=s.id; o.textContent=s.data().name||'بدون اسم'; sel.appendChild(o); });
 }
 
-/* ====== أحداث ====== */
-$('#childSel').addEventListener('change', onChildChanged);
+/* أحداث */
+$('#childSel').addEventListener('change', ()=>onChildChanged(true));
 $('#dateSel').addEventListener('change', refreshDay);
 $('#slotSel').addEventListener('change', ()=>onReadingChange());
 $('#reading').addEventListener('input', onReadingChange);
+$('#carbs').addEventListener('input', onCarbsChange);
 $('#clearBtn').addEventListener('click', clearInputs);
 $('#saveBtn').addEventListener('click', onSave);
 
-/* ====== تغيير الطفل ====== */
-async function onChildChanged(){
+/* تفعيل تنبيهات قبل الوجبات */
+document.getElementById('btnEnableNoti').addEventListener('click', async ()=>{
+  if(!('Notification' in window)) { alert('متصفحك لا يدعم الإشعارات'); return; }
+  const perm=await Notification.requestPermission();
+  if(perm!=='granted'){ alert('لم يتم السماح بالإشعارات'); return; }
+  scheduleMealReminders();
+  toast('تم تفعيل التذكير لهذا اليوم 🔔');
+});
+
+async function onChildChanged(applyUnit){
   childId=$('#childSel').value||null; 
-  if(!childId){ $('#thrInfo').textContent=''; $('#cfInfo').textContent=''; $('#rows').innerHTML=emptyRow(); return; }
+  if(!childId){ $('#thrInfo').textContent=''; $('#cfInfo').textContent=''; $('#icrInfo').textContent=''; $('#rows').innerHTML=emptyRow(); return; }
   const cs=await getDoc(doc(db,'users',uid,'children',childId));
   const c=cs.data()||{};
-  // القيم الأساسية بالـ mmol داخلياً
-  low   = (c.lowThreshold   ?? 4);
-  high  = (c.highThreshold  ?? 10);
-  target= (c.targetMmol     ?? 6.5);
-  // cfMmol = معامل التصحيح بالـ mmol/1U (لو موجود mg/dL نحوله)
-  cfMmol= (c.correctionFactorMmol!=null) ? Number(c.correctionFactorMmol)
-        : (c.correctionFactorMgDl!=null) ? Number(c.correctionFactorMgDl)/18
-        : null;
+  low   =(c.lowThreshold??4);
+  high  =(c.highThreshold??10);
+  target=(c.targetMmol??6.5);
+  cfMmol=(c.correctionFactorMmol!=null)?Number(c.correctionFactorMmol):(c.correctionFactorMgDl!=null?Number(c.correctionFactorMgDl)/18:null);
+  icr = (c.icr!=null)? Number(c.icr) : null;
+  preferredUnit = c.preferredUnit || 'mmol';
+  mealTimes = c.mealTimes || {breakfast:'07:30', lunch:'13:30', dinner:'19:30'};
+  notifyBeforeMins = (c.notifyBeforeMins!=null)? Number(c.notifyBeforeMins) : 15;
 
+  if(applyUnit){ unitSel.value=preferredUnit; adjustInputForUnit(); }
   refreshThresholdInfo();
   refreshDay();
 }
 
+/* تقييم */
 function emptyRow(){ return `<tr><td colspan="6" class="small">لا توجد قراءات لليوم المختار بعد.</td></tr>`; }
+function evaluate(mmol){ if(mmol===''||!Number.isFinite(Number(mmol)))return null; const n=Number(mmol); if(n<low)return'low'; if(n>high)return'high'; return'ok'; }
 
-/* ====== تقييم الحالة ====== */
-function evaluate(mmol){ // يدخل mmol ويخرج الحالة
-  if(mmol===''||!Number.isFinite(Number(mmol)))return null; 
-  const n=Number(mmol);
-  if(n<low) return 'low'; 
-  if(n>high) return 'high'; 
-  return 'ok';
-}
-
-/* ====== تغيّر القراءة ====== */
 function onReadingChange(){
   const raw=Number($('#reading').value);
   const unit=unitSel.value;
@@ -290,7 +296,17 @@ function onReadingChange(){
   }
 }
 
-/* ====== اقتراح التصحيح ====== */
+function onCarbsChange(){
+  const grams=Number($('#carbs').value);
+  if(!icr || !Number.isFinite(grams) || grams<=0){ $('#mealSuggestWrap').classList.add('hide'); return; }
+  // جرعة = الكارب / ICR
+  const dose=grams/icr;
+  const rounded = Math.round(dose*2)/2; // لأقرب 0.5U
+  $('#mealSuggestion').textContent=rounded;
+  $('#mealSuggestWrap').classList.remove('hide');
+}
+
+/* اقتراح التصحيح */
 function suggestedCorrection(readingMmol){
   if(cfMmol==null||!Number.isFinite(readingMmol)) return null;
   const excess=readingMmol - target; 
@@ -301,12 +317,12 @@ function suggestedCorrection(readingMmol){
 }
 
 function clearInputs(){
-  $('#reading').value=''; $('#note').value=''; $('#raisedWith').value=''; $('#mealDose').value=''; $('#corrGiven').value='';
+  $('#reading').value=''; $('#note').value=''; $('#raisedWith').value=''; $('#mealDose').value=''; $('#corrGiven').value=''; $('#carbs').value='';
   [$('#bOk'),$('#bLow'),$('#bHigh')].forEach(e=>e.classList.add('hide'));
-  $('#extraLow').classList.add('hide'); $('#extraHigh').classList.add('hide'); $('#suggestWrap').classList.add('hide');
+  $('#extraLow').classList.add('hide'); $('#extraHigh').classList.add('hide'); $('#suggestWrap').classList.add('hide'); $('#mealSuggestWrap').classList.add('hide');
 }
 
-/* ====== عرض قراءات اليوم ====== */
+/* عرض اليوم */
 let todayDocSnap=null;
 async function refreshDay(){
   const dateId=$('#dateSel').value; if(!childId||!dateId) return;
@@ -338,7 +354,8 @@ async function refreshDay(){
 }
 function badge(st){ if(st==='low')return`<span class="badge b-low">منخفض</span>`; if(st==='high')return`<span class="badge b-high">مرتفع</span>`; if(st==='ok')return`<span class="badge b-ok">طبيعي</span>`; return''; }
 
-/* ====== حفظ القراءة ====== */
+/* حفظ */
+document.querySelector('#saveBtn').addEventListener('click', onSave);
 async function onSave(){
   if(!childId) return toast('اختاري الطفل أولًا');
   const dateId=$('#dateSel').value; if(!dateId) return toast('اختاري التاريخ');
@@ -348,7 +365,7 @@ async function onSave(){
   const unit=unitSel.value;
   if(!Number.isFinite(raw)) return toast('أدخلي قراءة صحيحة');
 
-  const mmolVal = toMmol(raw, unit); // نخزن دائمًا بالـ mmol
+  const mmolVal = toMmol(raw, unit);
   const ref=doc(db,'users',uid,'children',childId,'measurements',dateId);
   const snap=todayDocSnap && todayDocSnap.id===dateId? todayDocSnap : await getDoc(ref);
   const base=snap.exists()? snap.data() : { date:dateId, readings:{} };
@@ -356,23 +373,42 @@ async function onSave(){
   if(base.readings[slot] && base.readings[slot].value!=null) return toast('تم تسجيل هذا الوقت مسبقًا لهذا اليوم ❗');
 
   const st=evaluate(mmolVal);
+  const mealDose = valNum('#mealDose');
+  const carbs = valNum('#carbs');
+
   base.readings[slot]={
-    value:mmolVal, // المخزن بالـ mmol/L
-    status:st,
+    value:mmolVal, status:st,
     note:$('#note').value.trim()||null,
-    mealDose:valNum('#mealDose'),
+    mealDose:mealDose,
+    carbs: carbs,
+    mealDoseSuggested: (carbs&&icr)? Math.round((carbs/icr)*2)/2 : null,
     correctionGiven:(st==='high'?valNum('#corrGiven'):null),
     correctionSuggested:(st==='high'?suggestedCorrection(mmolVal):null),
     raisedWith:(st==='low'?($('#raisedWith').value.trim()||null):null),
     label:labels[slot],
-    originalUnit: unit,            // أثَر إدخال
-    originalValue: Number(raw)     // أثَر إدخال
+    originalUnit: unit, originalValue: Number(raw)
   };
   await setDoc(ref,base);
   toast('تم حفظ القياس ✅'); clearInputs(); todayDocSnap=null; refreshDay();
 }
-
 function valNum(sel){ const v=$(sel).value; if(v===''||v==null) return null; const n=Number(v); return Number.isFinite(n)?n:null; }
+
+/* تنبيه قبل الوجبات (داخل المتصفح) */
+function scheduleMealReminders(){
+  const now=new Date();
+  const todayISO=now.toISOString().slice(0,10);
+  const times=[['الفطور', mealTimes.breakfast], ['الغداء', mealTimes.lunch], ['العشاء', mealTimes.dinner]];
+  times.forEach(([name, t])=>{
+    if(!t) return;
+    const [hh,mm]=t.split(':').map(Number);
+    const dt=new Date(todayISO+'T00:00:00');
+    dt.setHours(hh); dt.setMinutes(mm - (notifyBeforeMins||15)); dt.setSeconds(0);
+    const ms=dt.getTime()-Date.now();
+    if(ms>1000){ // مستقبل
+      setTimeout(()=>{ try{ new Notification('تذكير القياس', { body:`قياس قبل ${name} الآن` }); }catch(e){/*ignore*/} }, ms);
+    }
+  });
+}
 </script>
 </body>
 </html>
