@@ -15,11 +15,16 @@
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 system-ui,"Tajawal","Noto Sans Arabic",sans-serif}
 header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;z-index:5}
 header .btn{color:#fff;text-decoration:none;border:1px solid #ffffff66;padding:8px 12px;border-radius:10px;margin-inline-start:6px;background:#ffffff22;cursor:pointer}
-main{max-width:1100px;margin:auto;padding:16px}
+main{max-width:1200px;margin:auto;padding:16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 6px 24px rgba(0,0,0,.04);margin-bottom:12px}
 .small{font-size:12px;color:var(--muted)}
-.kv{display:flex;gap:8px;flex-wrap:wrap}
-.kv .chip{background:#eef6ff;color:#0369a1;padding:6px 10px;border-radius:999px}
+.k{font-size:12px;color:var(--muted)}
+.v{font-weight:800}
+.grid{display:grid;gap:10px}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:1000px){.g4,.g3{grid-template-columns:1fr 1fr}}
+@media(max-width:680px){.g4,.g3{grid-template-columns:1fr}}
 .table{width:100%;border-collapse:separate;border-spacing:0}
 .table th,.table td{border:1px solid var(--line);padding:8px;vertical-align:top;text-align:right}
 .table thead th{background:#f8fafc;font-weight:800;text-align:right}
@@ -28,15 +33,26 @@ main{max-width:1100px;margin:auto;padding:16px}
 .badge.ok{background:var(--okbg);color:var(--ok)}
 .badge.low{background:var(--lowbg);color:var(--low)}
 .badge.high{background:var(--highbg);color:var(--high)}
-.controls{display:grid;gap:10px;grid-template-columns:repeat(4,minmax(0,1fr))}
-@media(max-width:900px){.controls{grid-template-columns:1fr 1fr}}
-@media(max-width:600px){.controls{grid-template-columns:1fr}}
+.sum{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px;text-align:center}
+.sum.low{background:var(--lowbg)} .sum.ok{background:var(--okbg)} .sum.high{background:var(--highbg)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:end}
+.btn-main{width:100%;padding:10px;border:none;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer}
+canvas{background:#fff;border:1px solid var(--line);border-radius:12px}
+
+/* طباعة PDF */
+@media print{
+  @page{ size: A4 landscape; margin: 8mm }
+  header,.noprint{display:none!important}
+  body{background:#fff}
+  .card{border:0;box-shadow:none;padding:0;margin:0}
+  .table th,.table td{padding:5px}
+}
 </style>
 </head>
 <body>
 <header>
   <div>متابعة الطبيب — ملخص القياسات</div>
-  <div>
+  <div class="noprint">
     <a class="btn" href="dashboard.html">رجوع</a>
     <button id="btnPrint" class="btn" type="button">طباعة PDF</button>
     <button id="btnXLSX"  class="btn" type="button">تصدير Excel</button>
@@ -44,42 +60,49 @@ main{max-width:1100px;margin:auto;padding:16px}
 </header>
 
 <main>
-  <!-- معلومات الطفل المختصره -->
-  <section class="card" id="childCard">
-    <div id="childTitle" style="font-weight:800;margin-bottom:6px">الطفل: —</div>
-    <div id="meta" class="small">تحميل...</div>
-    <div id="chips" class="kv" style="margin-top:8px"></div>
+  <!-- فلاتر -->
+  <section class="card noprint">
+    <div class="grid g4">
+      <div>
+        <div class="k">الطفل</div>
+        <select id="childSel"><option value="">— اختاري الطفل —</option></select>
+      </div>
+      <div><div class="k">من تاريخ</div><input id="from" type="date"></div>
+      <div><div class="k">إلى تاريخ</div><input id="to" type="date"></div>
+      <div class="actions"><button id="run" class="btn-main">عرض المتابعة</button></div>
+    </div>
+    <div id="meta" class="small" style="margin-top:6px"></div>
   </section>
 
-  <!-- فلاتر الفترة -->
+  <!-- ملخص رقمي -->
   <section class="card">
-    <div class="controls">
-      <div>
-        <label class="small">من تاريخ</label>
-        <input id="from" type="date">
-      </div>
-      <div>
-        <label class="small">إلى تاريخ</label>
-        <input id="to" type="date">
-      </div>
-      <div style="display:flex;align-items:end">
-        <button id="run" style="width:100%;padding:10px;border:none;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer">
-          عرض المتابعة
-        </button>
-      </div>
+    <div class="grid g4">
+      <div class="sum"><div class="k">عدد القراءات</div><div id="s_total" class="v">—</div></div>
+      <div class="sum low"><div class="k">منخفض</div><div id="s_low" class="v">—</div></div>
+      <div class="sum ok"><div class="k">طبيعي</div><div id="s_ok" class="v">—</div></div>
+      <div class="sum high"><div class="k">مرتفع</div><div id="s_high" class="v">—</div></div>
+      <div class="sum"><div class="k">% داخل النطاق</div><div id="s_tir" class="v">—%</div></div>
+      <div class="sum"><div class="k">متوسط القراءة</div><div id="s_avg" class="v">— mmol/L</div></div>
+      <div class="sum"><div class="k">أعلى / أقل</div><div id="s_minmax" class="v">—</div></div>
+      <div class="sum"><div class="k">جرعات الوجبة / التصحيحي</div><div class="v"><span id="s_meal">—</span> U / <span id="s_corr">—</span> U</div></div>
     </div>
   </section>
 
-  <!-- ملخص -->
+  <!-- رسومات -->
   <section class="card">
-    <div style="display:grid;gap:10px;grid-template-columns:repeat(7,minmax(0,1fr))">
-      <div><div class="small">عدد القراءات</div><div id="s_total" style="font-weight:800">—</div></div>
-      <div><div class="small">منخفض</div><div id="s_low" style="font-weight:800">—</div></div>
-      <div><div class="small">طبيعي</div><div id="s_ok" style="font-weight:800">—</div></div>
-      <div><div class="small">مرتفع</div><div id="s_high" style="font-weight:800">—</div></div>
-      <div><div class="small">% داخل النطاق</div><div id="s_tir" style="font-weight:800">—%</div></div>
-      <div><div class="small">متوسط القراءة</div><div id="s_avg" style="font-weight:800">—</div></div>
-      <div><div class="small">أعلى / أقل</div><div id="s_minmax" style="font-weight:800">—</div></div>
+    <div class="grid g3">
+      <div>
+        <div class="k" style="margin:0 0 6px">نِسَب Low / OK / High للفترة</div>
+        <canvas id="chartPie" height="220"></canvas>
+      </div>
+      <div>
+        <div class="k" style="margin:0 0 6px">متوسط اليوم (mmol/L)</div>
+        <canvas id="chartDaily" height="220"></canvas>
+      </div>
+      <div>
+        <div class="k" style="margin:0 0 6px">متوسط كل وقت (mmol/L)</div>
+        <canvas id="chartSlots" height="220"></canvas>
+      </div>
     </div>
   </section>
 
@@ -96,13 +119,14 @@ main{max-width:1100px;margin:auto;padding:16px}
         </tr>
       </thead>
       <tbody id="rows">
-        <tr><td colspan="10" class="small">حددي الفترة ثم اضغطي عرض المتابعة.</td></tr>
+        <tr><td colspan="10" class="small">اختاري طفلًا وحددي فترة لعرض البيانات.</td></tr>
       </tbody>
     </table>
   </section>
 </main>
 
-<!-- XLSX مكتبة عالمية -->
+<!-- مكتبات خارجية -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <script type="module">
@@ -111,162 +135,202 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebas
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { getFirestore, collection, getDocs, doc, getDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-/* إعدادات المشروع */
-const firebaseConfig = {
-  apiKey:"AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
-  authDomain:"child-glucose-tracker.firebaseapp.com",
-  projectId:"child-glucose-tracker",
-  storageBucket:"child-glucose-tracker.firebasestorage.app",
-  messagingSenderId:"294563325904",
-  appId:"1:294563325904:web:39562550bf305fc01abbd5"
-};
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app);
+const firebaseConfig={apiKey:"AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",authDomain:"child-glucose-tracker.firebaseapp.com",projectId:"child-glucose-tracker",storageBucket:"child-glucose-tracker.firebasestorage.app",messagingSenderId:"294563325904",appId:"1:294563325904:web:39562550bf305fc01abbd5"};
+const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getFirestore(app);
 
-/* أدوات مساعدة */
-function $(s){return document.querySelector(s);}
-function escapeHTML(str){return (str||'').replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+/* Helpers */
+const $=s=>document.querySelector(s);
 const labels={preBreakfast:'قبل الإفطار',postBreakfast:'بعد الإفطار',preLunch:'قبل الغداء',postLunch:'بعد الغداء',preDinner:'قبل العشاء',postDinner:'بعد العشاء',beforeSleep:'قبل النوم',duringSleep:'أثناء النوم',uponWake:'عند الاستيقاظ'};
 const order=['preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','uponWake'];
 
-/* حالة عامة */
-let uid=null;
-let childId=new URL(location.href).searchParams.get('child'); // لازم يكون موجود
-let childDoc=null;        // بيانات الطفل
-let preferredUnit='mmol'; // mmol أو mgdl
-let cachedDetailed=[];    // للتصدير
+function badge(st){ if(st==='low')return'<span class="badge low">منخفض</span>'; if(st==='high')return'<span class="badge high">مرتفع</span>'; return'<span class="badge ok">طبيعي</span>'; }
+function esc(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
-/* تأكيد تسجيل الدخول */
-onAuthStateChanged(auth, async function(u){
+/* State */
+let uid=null, initChildId=new URL(location.href).searchParams.get('child');
+let childThresholds={low:4, high:10, target:6.5};
+let cachedDetailed=[]; // للـ Excel
+
+/* Charts refs */
+let chartPie=null, chartDaily=null, chartSlots=null;
+
+/* Auth */
+onAuthStateChanged(auth, async u=>{
   if(!u){ location.href='index.html'; return; }
   uid=u.uid;
-  // ضبط تاريخ افتراضي اليوم
-  const iso=(new Date()).toISOString().slice(0,10);
-  $('#from').value=iso; $('#to').value=iso;
-
-  if(!childId){ // لو مفيش child في الرابط
-    $('#childTitle').textContent='الطفل: غير محدد';
-    $('#meta').textContent='افتح الصفحة من زر "متابعة الطبيب" أسفل بطاقة الطفل.';
-    return;
+  await loadChildren();
+  setDefaults();
+  if(initChildId){
+    const opt=[...$('#childSel').options].find(o=>o.value===initChildId);
+    if(opt){ $('#childSel').value=initChildId; $('#childSel').disabled=true; }
   }
-  await loadChild();
 });
 
-/* تحميل بيانات الطفل */
-async function loadChild(){
-  const snap=await getDoc(doc(db,'users',uid,'children',childId));
-  childDoc=snap.data()||{};
-  preferredUnit = childDoc.preferredUnit || 'mmol';
-
-  // عنوان الطفل وملخص ثابت
-  $('#childTitle').textContent = 'الطفل: ' + (childDoc.name || '—');
-  const civil   = childDoc.childCivilId || '—';
-  const wt      = (childDoc.weight!=null)? childDoc.weight : '—';
-  const ht      = (childDoc.height!=null)? childDoc.height : '—';
-  const lo      = (childDoc.lowThreshold!=null)? childDoc.lowThreshold : '—';
-  const hi      = (childDoc.highThreshold!=null)? childDoc.highThreshold : '—';
-  const unitTxt = (preferredUnit==='mgdl')? 'mg/dL' : 'mmol/L';
-
-  $('#meta').innerHTML = 'الرقم المدني: '+escapeHTML(civil)+
-                         ' • الوحدة: '+unitTxt+
-                         ' • الطول: '+ht+' سم • الوزن: '+wt+' كجم'+
-                         ' • الحدود: منخفض < '+lo+' — مرتفع > '+hi;
-
-  // شباتس معلومات سريعة (ICR/CF/أوقات الوجبات/جرعات)
-  const chips=$('#chips'); chips.innerHTML='';
-  function addChip(txt){ const s=document.createElement('span'); s.className='chip'; s.textContent=txt; chips.appendChild(s); }
-  if(childDoc.icr!=null) addChip('ICR: 1u-'+childDoc.icr);
-  if(childDoc.correctionFactorMmol!=null) addChip('CF: '+childDoc.correctionFactorMmol+' mmol/L لكل 1U');
-  if(childDoc.correctionFactorMgDl!=null) addChip('CF: '+childDoc.correctionFactorMgDl+' mg/dL لكل 1U');
-  if(childDoc.tresiba!=null) addChip('تريسيبا: '+childDoc.tresiba);
-  if(childDoc.novo!=null) addChip('نوفو: '+childDoc.novo);
-  if(childDoc.breakfast) addChip('فطور: '+childDoc.breakfast);
-  if(childDoc.lunch)     addChip('غداء: '+childDoc.lunch);
-  if(childDoc.dinner)    addChip('عشاء: '+childDoc.dinner);
+/* UI */
+function setDefaults(){ const iso=new Date().toISOString().slice(0,10); $('#from').value=iso; $('#to').value=iso; }
+async function loadChildren(){
+  const sel=$('#childSel'); sel.innerHTML='<option value="">— تحميل —</option>';
+  const q=await getDocs(collection(db,'users',uid,'children'));
+  sel.innerHTML='<option value="">— اختاري الطفل —</option>';
+  q.forEach(s=>{ const o=document.createElement('option'); o.value=s.id; o.textContent=s.data().name||'بدون اسم'; sel.appendChild(o); });
 }
 
-/* أزرار */
-document.getElementById('btnPrint').addEventListener('click', function(){ window.print(); });
-document.getElementById('btnXLSX').addEventListener('click', exportXLSX);
-document.getElementById('run').addEventListener('click', buildReport);
+$('#btnPrint').addEventListener('click', ()=>window.print());
+$('#btnXLSX').addEventListener('click', exportXLSX);
+$('#run').addEventListener('click', buildReport);
 
-/* بناء التقرير */
+/* Core */
 async function buildReport(){
-  if(!childDoc){ alert('لا يوجد طفل محدد.'); return; }
-  const from=$('#from').value, to=$('#to').value;
-  if(!from||!to){ alert('حددي الفترة أولاً.'); return; }
+  const childId=$('#childSel').value, from=$('#from').value, to=$('#to').value;
+  if(!childId||!from||!to){ alert('اختاري الطفل وحددي الفترة'); return; }
 
+  // بيانات الطفل لعرضها في الهيدر
+  const cs=await getDoc(doc(db,'users',uid,'children',childId));
+  const c=cs.data()||{};
+  childThresholds.low=Number(c.lowThreshold??4);
+  childThresholds.high=Number(c.highThreshold??10);
+  childThresholds.target=Number(c.targetMmol??6.5);
+
+  $('#meta').innerHTML = 
+    'الاسم: '+esc(c.name||'—')+
+    ' • الرقم المدني: '+esc(c.childCivilId||'—')+
+    ' • الوزن: '+(c.weight??'—')+' كجم'+
+    ' • الطول: '+(c.height??'—')+' سم'+
+    ' • حدود: منخفض < '+(c.lowThreshold??'—')+' — مرتفع > '+(c.highThreshold??'—')+
+    ' • الفترة: '+from+' → '+to+
+    ' • العرض: mmol/L';
+
+  // تحميل القياسات
   const col=collection(db,'users',uid,'children',childId,'measurements');
   const qy=query(col, where('date','>=',from), where('date','<=',to), orderBy('date','asc'));
   const qs=await getDocs(qy);
 
-  let total=0,cLow=0,cOk=0,cHigh=0,sum=0,minR=Infinity,maxR=-Infinity,minD='—',maxD='—';
+  // مجاميع
+  let total=0,cLow=0,cOk=0,cHigh=0,sum=0, minR=Infinity, maxR=-Infinity, minD='—', maxD='—';
+  let mealTotal=0, corrTotal=0;
+  const dailyAvgLabels=[], dailyAvgValues=[];
+  const slotAgg={}; order.forEach(k=>slotAgg[k]={sum:0,count:0});
   cachedDetailed=[];
   const tbody=$('#rows'); tbody.innerHTML='';
 
   if(qs.empty){
     tbody.innerHTML='<tr><td colspan="10" class="small">لا توجد قراءات في هذه الفترة.</td></tr>';
   }else{
-    qs.forEach(function(s){
+    qs.forEach(s=>{
       const d=s.data(); const readings=d.readings||{};
+      let daySum=0, dayCnt=0;
+
       const tr=document.createElement('tr');
       const tdDate=document.createElement('td'); tdDate.className='date'; tdDate.textContent=d.date; tr.appendChild(tdDate);
 
       const rowExport={date:d.date};
 
-      order.forEach(function(slot){
+      order.forEach(slot=>{
         const r=readings[slot]; const td=document.createElement('td');
         if(!r||r.value==null){ td.textContent='—'; rowExport[slot]=''; }
         else{
+          // نعرض دائمًا بالـ mmol/L
           const mmol=Number(r.value)||0;
-          const disp=(preferredUnit==='mgdl')? (Math.round(mmol*18)+' mg/dL') : (mmol.toFixed(1)+' mmol/L');
-          const st   = r.status || (mmol<Number(childDoc.lowThreshold)?'low':(mmol>Number(childDoc.highThreshold)?'high':'ok'));
-          const cls  = (st==='low')?'low':((st==='high')?'high':'ok');
-          const name = (st==='ok')?'طبيعي':((st==='low')?'منخفض':'مرتفع');
+          const st = r.status || (mmol<childThresholds.low?'low':(mmol>childThresholds.high?'high':'ok'));
+          const meal=r.mealDose!=null? Number(r.mealDose) : null;
+          const corr=r.correctionGiven!=null? Number(r.correctionGiven) : null;
 
-          td.innerHTML = '<div><b>'+disp+'</b> <span class="badge '+cls+'">'+name+'</span></div>'+
-                         (r.mealDose!=null?('<div class="small">جرعة: '+r.mealDose+'U</div>'):'')+
-                         (r.correctionGiven!=null?('<div class="small">تصحيحي: '+r.correctionGiven+'U</div>'):'')+
-                         ((r.note||r.raisedWith)?('<div class="small">ملاحظة: '+escapeHTML(r.note||r.raisedWith)+'</div>'):'');
-          rowExport[slot]=disp+
-            (r.mealDose!=null?(' | جرعة: '+r.mealDose+'U'):'')+
-            (r.correctionGiven!=null?(' | تصحيحي: '+r.correctionGiven+'U'):'')+
-            ((r.note||r.raisedWith)?(' | ملاحظة: '+(r.note||r.raisedWith)):'');
           total++; sum+=mmol;
           if(st==='low')cLow++; else if(st==='high')cHigh++; else cOk++;
-          if(mmol<minR){minR=mmol; minD=d.date;} if(mmol>maxR){maxR=mmol; maxD=d.date;}
+          if(Number.isFinite(mmol)){
+            if(mmol<minR){minR=mmol; minD=d.date;}
+            if(mmol>maxR){maxR=mmol; maxD=d.date;}
+            daySum+=mmol; dayCnt++;
+            slotAgg[slot].sum+=mmol; slotAgg[slot].count++;
+          }
+          if(meal!=null) mealTotal+=meal;
+          if(corr!=null) corrTotal+=corr;
+
+          td.innerHTML='<div><b>'+mmol.toFixed(1)+' mmol/L</b> '+badge(st)+'</div>'+
+                       (meal!=null?('<div class="small">جرعة: '+meal+'U</div>'):'')+
+                       (corr!=null?('<div class="small">تصحيحي: '+corr+'U</div>'):'')+
+                       ((r.note||r.raisedWith)?('<div class="small">ملاحظة: '+esc(r.note||r.raisedWith)+'</div>'):'');
+          rowExport[slot]= (mmol.toFixed(1)+' mmol/L')+
+            (meal!=null?(' | جرعة: '+meal+'U'):'')+
+            (corr!=null?(' | تصحيحي: '+corr+'U'):'')+
+            ((r.note||r.raisedWith)?(' | ملاحظة: '+(r.note||r.raisedWith)):'');
         }
         tr.appendChild(td);
       });
+
       tbody.appendChild(tr);
       cachedDetailed.push(rowExport);
+
+      dailyAvgLabels.push(d.date);
+      dailyAvgValues.push(dayCnt? Number((daySum/dayCnt).toFixed(2)) : null);
     });
   }
 
+  // ملخص
   $('#s_total').textContent=total;
   $('#s_low').textContent=cLow;
   $('#s_ok').textContent=cOk;
   $('#s_high').textContent=cHigh;
-  const tir = total? Math.round((cOk/total)*100) : 0;
-  $('#s_tir').textContent = tir + '%';
-  $('#s_avg').textContent = total? (sum/total).toFixed(1) + ' mmol/L' : '—';
-  // مفيش أي محارف غريبة هنا
-  $('#s_minmax').textContent = (isFinite(minR)&&isFinite(maxR)) ? (minR.toFixed(1)+' / '+maxR.toFixed(1)+' mmol/L ('+minD+' - '+maxD+')') : '—';
+  const tir = total? Math.round((cOk/total)*100) : 0; $('#s_tir').textContent=tir+'%';
+  $('#s_avg').textContent = total? (sum/total).toFixed(1)+' mmol/L' : '— mmol/L';
+  $('#s_minmax').textContent = (Number.isFinite(minR)&&Number.isFinite(maxR)) ? 
+    (minR.toFixed(1)+' / '+maxR.toFixed(1)+' mmol/L ('+minD+' - '+maxD+')') : '—';
+  $('#s_meal').textContent = mealTotal.toFixed(1);
+  $('#s_corr').textContent = corrTotal.toFixed(1);
+
+  // Charts
+  renderCharts({low:cLow, ok:cOk, high:cHigh}, dailyAvgLabels, dailyAvgValues, slotAgg);
 }
 
-/* تصدير Excel */
-function exportXLSX(){
-  const XLSX=window.XLSX;
-  if(!XLSX){ alert('XLSX library not loaded'); return; }
+/* Charts */
+function renderCharts(dist, dailyLabels, dailyValues, slotAgg){
+  // destroy
+  if(chartPie) chartPie.destroy();
+  if(chartDaily) chartDaily.destroy();
+  if(chartSlots) chartSlots.destroy();
 
-  const childName=(childDoc && childDoc.name)? childDoc.name : 'child';
+  // Pie
+  chartPie=new Chart($('#chartPie'),{
+    type:'doughnut',
+    data:{
+      labels:['منخفض','طبيعي','مرتفع'],
+      datasets:[{data:[dist.low,dist.ok,dist.high],backgroundColor:['#fbbf24','#10b981','#f87171'],borderWidth:0}]
+    },
+    options:{plugins:{legend:{position:'bottom'}}}
+  });
+
+  // Daily
+  chartDaily=new Chart($('#chartDaily'),{
+    type:'line',
+    data:{
+      labels:dailyLabels,
+      datasets:[{label:'متوسط اليوم (mmol/L)',data:dailyValues,borderColor:'#0ea5e9',backgroundColor:'rgba(14,165,233,.15)',tension:.3,spanGaps:true}]
+    },
+    options:{plugins:{legend:{display:true}},scales:{x:{ticks:{autoSkip:true,maxTicksLimit:14}}}}
+  });
+
+  // Slots bar
+  const slotLabels=order.map(k=>labels[k]);
+  const slotMeans=order.map(k=>{
+    const a=slotAgg[k]||{sum:0,count:0};
+    return a.count? Number((a.sum/a.count).toFixed(2)) : 0;
+  });
+  chartSlots=new Chart($('#chartSlots'),{
+    type:'bar',
+    data:{labels:slotLabels,datasets:[{label:'متوسط الوقت (mmol/L)',data:slotMeans,backgroundColor:'#6ee7b7',borderColor:'#059669'}]},
+    options:{plugins:{legend:{display:true}},scales:{x:{ticks:{autoSkip:false}}}}
+  });
+}
+
+/* Excel */
+function exportXLSX(){
+  const XLSX=window.XLSX; if(!XLSX){ alert('XLSX library not loaded'); return; }
+  const childSel=$('#childSel');
+  const childText=childSel && childSel.selectedOptions[0] ? childSel.selectedOptions[0].textContent : 'child';
   const from=$('#from').value, to=$('#to').value;
 
-  const head=['التاريخ']; order.forEach(function(k){ head.push(labels[k]); });
-  const rows=cachedDetailed.map(function(r){
-    const a=[r.date]; order.forEach(function(k){ a.push(r[k]||''); }); return a;
-  });
+  const head=['التاريخ', ...order.map(k=>labels[k])];
+  const rows=cachedDetailed.map(r=>[r.date, ...order.map(k=>r[k]||'')]);
 
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
@@ -277,11 +341,13 @@ function exportXLSX(){
     ['مرتفع', $('#s_high').textContent],
     ['داخل النطاق %', $('#s_tir').textContent],
     ['متوسط القراءة', $('#s_avg').textContent],
-    ['أعلى / أقل', $('#s_minmax').textContent]
+    ['أعلى / أقل', $('#s_minmax').textContent],
+    ['جرعات الوجبة (U)', $('#s_meal').textContent],
+    ['جرعات التصحيحي (U)', $('#s_corr').textContent]
   ]), 'Summary');
 
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([head].concat(rows)), 'Detailed');
-  XLSX.writeFile(wb, 'doctor_followup_'+childName+'_'+from+'_to_'+to+'.xlsx');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([head, ...rows]), 'Detailed');
+  XLSX.writeFile(wb, 'doctor_followup_'+childText+'_'+from+'_to_'+to+'.xlsx');
 }
 </script>
 </body>
