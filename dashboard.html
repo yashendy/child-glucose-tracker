@@ -31,7 +31,7 @@ input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10
 .note{color:var(--muted);font-size:13px}
 .toast{position:fixed;bottom:16px;left:16px;background:#111;color:#fff;padding:10px 14px;border-radius:12px;opacity:0;transform:translateY(8px);transition:.3s}
 .toast.show{opacity:1;transform:none}
-.quick{display:grid;gap:12px;grid-template-columns:repeat(4,minmax(0,1fr))}
+.quick{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr))}
 @media(max-width:900px){.quick{grid-template-columns:1fr 1fr}}
 @media(max-width:620px){.quick{grid-template-columns:1fr}}
 .quick a{display:flex;gap:10px;align-items:center;justify-content:center;text-decoration:none;background:#ffffff;border:1px solid var(--line);border-radius:12px;padding:14px;color:#0f172a;font-weight:800}
@@ -62,7 +62,7 @@ input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10
   <section class="card">
     <div class="row" style="justify-content:space-between;align-items:center">
       <h2 style="margin:0">إجراءات سريعة</h2>
-      <span class="note">ممكن تستخدمي الأزرار العامة دي أو الأزرار الخاصة تحت كل طفل لفتح الصفحة مباشرة للطفل المختار.</span>
+      <span class="note">اختيارات عامة، أو افتحي الصفحات الخاصة من بطاقة كل طفل.</span>
     </div>
     <div class="quick" style="margin-top:10px">
       <a href="child.html">👧 إدارة الأطفال</a>
@@ -118,16 +118,14 @@ const auth=getAuth(app);
 const db=getFirestore(app);
 
 const $=s=>document.querySelector(s);
-const toast=(m)=>{const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1700);};
+const toast=(m)=>{const t=document.querySelector('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1700);};
 
 let uid=null;
 
 onAuthStateChanged(auth, async (u)=>{
   if(!u){ location.href='index.html'; return; }
   uid=u.uid;
-  // معلومات سريعة للمستخدم
-  const name=u.displayName || '';
-  $('#hello').textContent = name ? `مرحبًا ${name}` : `مرحبًا`;
+  document.querySelector('#hello').textContent='مرحبًا '+(u.displayName||'')+' — UID: '+u.uid;
   await loadParent();
   await loadKids();
 });
@@ -136,79 +134,73 @@ async function loadParent(){
   const ref=doc(db,'users',uid);
   const snap=await getDoc(ref);
   const p=(snap.data()||{}).parentInfo||{};
-  $('#guardianName').value=p.guardianName||'';
-  $('#fullName').value=p.name||'';
-  $('#civilId').value=p.civilId||'';
-  $('#phone').value=p.phone||'';
-  $('#email').value=p.email||'';
+  document.querySelector('#guardianName').value=p.guardianName||'';
+  document.querySelector('#fullName').value=p.name||'';
+  document.querySelector('#civilId').value=p.civilId||'';
+  document.querySelector('#phone').value=p.phone||'';
+  document.querySelector('#email').value=p.email||'';
 }
 
-$('#saveParent').addEventListener('click', async ()=>{
+document.querySelector('#saveParent').addEventListener('click', async ()=>{
   const ref=doc(db,'users',uid);
   const snap=await getDoc(ref);
   const root=snap.data()||{};
   root.parentInfo={
-    guardianName:$('#guardianName').value.trim(),
-    name:$('#fullName').value.trim(),
-    civilId:$('#civilId').value.trim(),
-    phone:$('#phone').value.trim(),
-    email:$('#email').value.trim()
+    guardianName:document.querySelector('#guardianName').value.trim(),
+    name:document.querySelector('#fullName').value.trim(),
+    civilId:document.querySelector('#civilId').value.trim(),
+    phone:document.querySelector('#phone').value.trim(),
+    email:document.querySelector('#email').value.trim()
   };
   await updateDoc(ref,root);
   toast('تم حفظ التعديلات ✅');
 });
 
 async function loadKids(){
-  const box=$('#kids'); box.innerHTML='';
+  const box=document.querySelector('#kids'); box.innerHTML='';
   const q=await getDocs(collection(db,'users',uid,'children'));
   if(q.empty){
     box.innerHTML='<div class="empty">لا يوجد أطفال بعد — اضغطي “👧 إدارة الأطفال”.</div>';
     return;
   }
-
   const todayISO=new Date().toISOString().slice(0,10);
-
   q.forEach(s=>{
     const c=s.data(); const id=s.id;
-
-    // شارة تنبيه زيارة الطبيب إن كانت خلال يومين
     let visitBadge='';
     if(c.doctorVisitDate){
       const diffDays=Math.ceil((new Date(c.doctorVisitDate)-new Date(todayISO))/(1000*60*60*24));
       if(diffDays<=2 && diffDays>=0){
-        visitBadge = '<span class="chip" style="background:#fff0e5;color:#b45309">🧑‍⚕️ زيارة الطبيب بعد '+diffDays+' يوم</span>';
+        visitBadge=`<span class="chip" style="background:#fff0e5;color:#b45309">🧑‍⚕️ زيارة الطبيب بعد ${diffDays} يوم</span>`;
       }
     }
+    const unitChip = c.preferredUnit==='mgdl' ? 'mg/dL' : 'mmol/L';
+    const civilChip = c.childCivilId ? `<span class="chip">الرقم المدني: <b>${c.childCivilId}</b></span>` : '';
 
-    // شارة الهدف (بدون template داخل template لتجنب أخطاء)
-    let targetChip='';
-    if(c.targetMmol!=null){ targetChip='<span class="chip">الهدف '+c.targetMmol+'</span>'; }
-
-    const card=document.createElement('div');
-    card.className='kid';
-    card.innerHTML =
-      '<div class="head">'+
-        '<div class="name">'+(c.name||'بدون اسم')+'</div>'+
-        '<div class="chips">'+
-          '<span class="chip">منخفض &lt; <b>'+ (c.lowThreshold ?? '—') +'</b></span>'+
-          '<span class="chip">مرتفع &gt; <b>'+ (c.highThreshold ?? '—') +'</b></span>'+
-          targetChip+
-          visitBadge+
-        '</div>'+
-      '</div>'+
-      '<div class="row actions">'+
-        '<a class="btn secondary" href="measure.html?child='+id+'">تسجيل قياسات</a>'+
-        '<a class="btn primary" href="report.html?child='+id+'">عرض التقارير</a>'+
-        '<a class="btn purple" href="doctor.html?child='+id+'">🧑‍⚕️ متابعة الطبيب</a>'+
-        '<a class="btn gray" href="child.html?child='+id+'">تعديل بيانات الطفل</a>'+
-      '</div>'+
-      '<div class="note">الطول: '+ (c.height ?? '—') +' سم • الوزن: '+ (c.weight ?? '—') +' كجم • تريسيبا: '+ (c.tresiba ?? '—') +' • نوفو: '+ (c.novo ?? '—') +'</div>';
-
+    const card=document.createElement('div'); card.className='kid';
+    card.innerHTML=`
+      <div class="head">
+        <div class="name">${c.name||'بدون اسم'}</div>
+        <div class="chips">
+          <span class="chip">الوحدة: <b>${unitChip}</b></span>
+          <span class="chip">منخفض &lt; <b>${c.lowThreshold??'—'}</b></span>
+          <span class="chip">مرتفع &gt; <b>${c.highThreshold??'—'}</b></span>
+          ${civilChip}
+          ${visitBadge}
+        </div>
+      </div>
+      <div class="row actions">
+        <a class="btn secondary" href="measure.html?child=${id}">تسجيل قياسات</a>
+        <a class="btn primary" href="report.html?child=${id}">عرض التقارير</a>
+        <a class="btn purple"  href="doctor.html?child=${id}">🧑‍⚕️ متابعة الطبيب</a>
+        <a class="btn gray"     href="child.html?child=${id}">تعديل بيانات الطفل</a>
+      </div>
+      <div class="note">الطول: ${c.height??'—'} سم • الوزن: ${c.weight??'—'} كجم • تريسيبا: ${c.tresiba??'—'} • نوفو: ${c.novo??'—'}</div>
+    `;
     box.appendChild(card);
   });
 }
 
-$('#btnLogout').addEventListener('click', ()=>signOut(auth).then(()=>location.href='index.html'));
+document.querySelector('#btnLogout').addEventListener('click', ()=>signOut(auth).then(()=>location.href='index.html'));
 </script>
 </body>
 </html>
