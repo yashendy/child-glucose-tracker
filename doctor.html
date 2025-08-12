@@ -22,7 +22,9 @@ main{max-width:1100px;margin:auto;padding:16px}
 .table thead th{background:#f8fafc;font-weight:800;text-align:right}
 .table td.date{background:#fbfdff;white-space:nowrap;font-weight:800}
 .badge{display:inline-block;padding:2px 8px;border-radius:999px}
-.badge.ok{background:var(--okbg);color:var(--ok)}.badge.low{background:var(--lowbg);color:var(--low)}.badge.high{background:var(--highbg);color:var(--high)}
+.badge.ok{background:var(--okbg);color:var(--ok)}
+.badge.low{background:var(--lowbg);color:var(--low)}
+.badge.high{background:var(--highbg);color:var(--high)}
 </style>
 </head>
 <body>
@@ -32,7 +34,7 @@ main{max-width:1100px;margin:auto;padding:16px}
     <a class="btn" href="dashboard.html">رجوع</a>
     <button id="btnPrint" class="btn" type="button">طباعة PDF</button>
     <button id="btnXLSX"  class="btn" type="button">تصدير Excel</button>
-    <!-- الأزرار الجديدة -->
+    <!-- أزرار إضافية -->
     <button id="btnPrintTable" class="btn" type="button">جدول القراءات فقط (PDF)</button>
     <button id="btnDoctorLog"  class="btn" type="button">سجل زيارات الطبيب</button>
   </div>
@@ -48,7 +50,9 @@ main{max-width:1100px;margin:auto;padding:16px}
       </div>
       <div><label class="small">من تاريخ</label><input id="from" type="date"></div>
       <div><label class="small">إلى تاريخ</label><input id="to" type="date"></div>
-      <div style="display:flex;align-items:end"><button id="run" style="width:100%;padding:10px;border:none;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer">عرض المتابعة</button></div>
+      <div style="display:flex;align-items:end">
+        <button id="run" style="width:100%;padding:10px;border:none;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer">عرض المتابعة</button>
+      </div>
     </div>
     <div id="meta" class="small" style="margin-top:6px"></div>
   </section>
@@ -85,6 +89,7 @@ main{max-width:1100px;margin:auto;padding:16px}
   </section>
 </main>
 
+<!-- XLSX مكتبة عالمية -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <script type="module">
@@ -92,99 +97,140 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebas
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { getFirestore, collection, getDocs, doc, getDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-const firebaseConfig={apiKey:"AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",authDomain:"child-glucose-tracker.firebaseapp.com",projectId:"child-glucose-tracker",storageBucket:"child-glucose-tracker.firebasestorage.app",messagingSenderId:"294563325904",appId:"1:294563325904:web:39562550bf305fc01abbd5"};
-const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getFirestore(app);
+/* Firebase */
+const firebaseConfig={
+  apiKey:"AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
+  authDomain:"child-glucose-tracker.firebaseapp.com",
+  projectId:"child-glucose-tracker",
+  storageBucket:"child-glucose-tracker.firebasestorage.app",
+  messagingSenderId:"294563325904",
+  appId:"1:294563325904:web:39562550bf305fc01abbd5"
+};
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
 
+/* Helpers */
 function $(s){return document.querySelector(s);}
-const labels={preBreakfast:'قبل الإفطار',postBreakfast:'بعد الإفطار',preLunch:'قبل الغداء',postLunch:'بعد الغداء',preDinner:'قبل العشاء',postDinner:'بعد العشاء',beforeSleep:'قبل النوم',duringSleep:'أثناء النوم',uponWake:'عند الاستيقاظ'};
+const labels={
+  preBreakfast:'قبل الإفطار',postBreakfast:'بعد الإفطار',
+  preLunch:'قبل الغداء',postLunch:'بعد الغداء',
+  preDinner:'قبل العشاء',postDinner:'بعد العشاء',
+  beforeSleep:'قبل النوم',duringSleep:'أثناء النوم',uponWake:'عند الاستيقاظ'
+};
 const order=['preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','uponWake'];
 
-let uid=null, initChildId=new URL(location.href).searchParams.get('child');
-let preferredUnit='mmol', civil='—';
+/* State */
+let uid=null;
+let initChildId=new URL(location.href).searchParams.get('child');
 let cachedDetailed=[];
 
-onAuthStateChanged(auth, async function(u){
+/* Auth */
+onAuthStateChanged(auth, async (u)=>{
   if(!u){ location.href='index.html'; return; }
-  uid=u.uid; await loadChildren(); setDefaults();
+  uid=u.uid;
+  await loadChildren();
+  setDefaults();
   if(initChildId){
-    var os=[].slice.call($('#childSel').options);
-    var o=os.find(function(x){return x.value===initChildId;});
-    if(o){ $('#childSel').value=initChildId; $('#childSel').disabled=true; }
+    const opts=[...$('#childSel').options];
+    const opt=opts.find(o=>o.value===initChildId);
+    if(opt){ $('#childSel').value=initChildId; $('#childSel').disabled=true; }
   }
 });
 
-function setDefaults(){ var d=new Date(), iso=d.toISOString().slice(0,10); $('#from').value=iso; $('#to').value=iso; }
+/* UI init */
+function setDefaults(){
+  const d=new Date(); const iso=d.toISOString().slice(0,10);
+  $('#from').value=iso; $('#to').value=iso;
+}
 async function loadChildren(){
-  var sel=$('#childSel'); sel.innerHTML='<option value="">— تحميل —</option>';
-  var q=await getDocs(collection(db,'users',uid,'children'));
+  const sel=$('#childSel'); sel.innerHTML='<option value="">— تحميل —</option>';
+  const q=await getDocs(collection(db,'users',uid,'children'));
   sel.innerHTML='<option value="">— اختاري الطفل —</option>';
-  q.forEach(function(s){ var o=document.createElement('option'); o.value=s.id; o.textContent=(s.data().name||'بدون اسم'); sel.appendChild(o); });
+  q.forEach(s=>{
+    const o=document.createElement('option');
+    o.value=s.id; o.textContent=s.data().name||'بدون اسم';
+    sel.appendChild(o);
+  });
 }
 
-document.getElementById('btnPrint').addEventListener('click', function(){ window.print(); });
-document.getElementById('btnXLSX').addEventListener('click', exportXLSX);
-document.getElementById('run').addEventListener('click', buildReport);
+/* Buttons */
+$('#btnPrint').addEventListener('click', ()=>window.print());
+$('#btnXLSX').addEventListener('click', exportXLSX);
+$('#run').addEventListener('click', buildReport);
 
-// زر: جدول القراءات فقط (PDF)
-document.getElementById('btnPrintTable').addEventListener('click', function(){
-  var c=$('#childSel').value, f=$('#from').value, t=$('#to').value;
+$('#btnPrintTable').addEventListener('click', ()=>{
+  const c=$('#childSel').value, f=$('#from').value, t=$('#to').value;
   if(!c||!f||!t){ alert('اختاري الطفل والفترة'); return; }
   window.open('readings-print.html?child='+encodeURIComponent(c)+'&from='+encodeURIComponent(f)+'&to='+encodeURIComponent(t),'_blank');
 });
-// زر: سجل زيارات الطبيب
-document.getElementById('btnDoctorLog').addEventListener('click', function(){
-  var c=$('#childSel').value; if(!c){ alert('اختاري الطفل أولًا'); return; }
+$('#btnDoctorLog').addEventListener('click', ()=>{
+  const c=$('#childSel').value; if(!c){ alert('اختاري الطفل أولًا'); return; }
   window.open('doctor-log.html?child='+encodeURIComponent(c),'_blank');
 });
 
+/* Build report */
 async function buildReport(){
-  var id=$('#childSel').value, from=$('#from').value, to=$('#to').value;
+  const id=$('#childSel').value, from=$('#from').value, to=$('#to').value;
   if(!id||!from||!to){ alert('اختاري الطفل وحددي الفترة'); return; }
 
-  var cs=await getDoc(doc(db,'users',uid,'children',id)); var c=cs.data()||{};
-  preferredUnit='mmol'; // تثبيت العرض بالـ mmol/L
-  civil=c.childCivilId||'—';
-  var name=(c.name||'—'), wt=(c.weight!=null?c.weight:'—'), ht=(c.height!=null?c.height:'—'),
-      lo=(c.lowThreshold!=null?c.lowThreshold:'—'), hi=(c.highThreshold!=null?c.highThreshold:'—');
-  $('#meta').innerHTML='الاسم: '+name+' • الرقم المدني: '+civil+' • الوزن: '+wt+' كجم • الطول: '+ht+
-                       ' سم • حدود: منخفض < '+lo+' — مرتفع > '+hi+' • الفترة: '+from+' -> '+to+
-                       ' • الوحدة: mmol/L';
+  const cs=await getDoc(doc(db,'users',uid,'children',id));
+  const c=cs.data()||{};
+  // العرض دائمًا mmol/L
+  const civil=c.childCivilId||'—';
+  const name=(c.name||'—');
+  const wt=(c.weight!=null?c.weight:'—');
+  const ht=(c.height!=null?c.height:'—');
+  const lo=(c.lowThreshold!=null?c.lowThreshold:'—');
+  const hi=(c.highThreshold!=null?c.highThreshold:'—');
 
-  var col=collection(db,'users',uid,'children',id,'measurements');
-  var qy=query(col, where('date','>=',from), where('date','<=',to), orderBy('date','asc'));
-  var qs=await getDocs(qy);
+  // استخدمت &lt; و &gt; لتفادي أي مشاكل HTML
+  $('#meta').innerHTML=
+    'الاسم: '+name+
+    ' • الرقم المدني: '+civil+
+    ' • الوزن: '+wt+' كجم'+
+    ' • الطول: '+ht+' سم'+
+    ' • حدود: منخفض &lt; '+lo+' — مرتفع &gt; '+hi+
+    ' • الفترة: '+from+' → '+to+
+    ' • الوحدة: mmol/L';
 
-  var total=0,cLow=0,cOk=0,cHigh=0,sum=0, minR=Infinity, maxR=-Infinity, minD='—', maxD='—';
+  const col=collection(db,'users',uid,'children',id,'measurements');
+  const qy=query(col, where('date','>=',from), where('date','<=',to), orderBy('date','asc'));
+  const qs=await getDocs(qy);
+
+  let total=0,cLow=0,cOk=0,cHigh=0,sum=0,minR=Infinity,maxR=-Infinity,minD='—',maxD='—';
   cachedDetailed=[];
-  var tbody=$('#rows'); tbody.innerHTML='';
+  const tbody=$('#rows'); tbody.innerHTML='';
 
-  if(qs.empty){ tbody.innerHTML='<tr><td colspan="10" class="small">لا توجد قراءات.</td></tr>'; }
-  else{
-    qs.forEach(function(s){
-      var d=s.data(); var readings=d.readings||{};
-      var tr=document.createElement('tr');
-      var tdDate=document.createElement('td'); tdDate.className='date'; tdDate.textContent=d.date; tr.appendChild(tdDate);
+  if(qs.empty){
+    tbody.innerHTML='<tr><td colspan="10" class="small">لا توجد قراءات.</td></tr>';
+  }else{
+    qs.forEach(s=>{
+      const d=s.data(); const readings=d.readings||{};
+      const tr=document.createElement('tr');
+      const tdDate=document.createElement('td'); tdDate.className='date'; tdDate.textContent=d.date; tr.appendChild(tdDate);
 
-      var rowExport={date:d.date};
+      const rowExport={date:d.date};
 
-      order.forEach(function(slot){
-        var r=readings[slot]; var td=document.createElement('td');
+      order.forEach(slot=>{
+        const r=readings[slot]; const td=document.createElement('td');
         if(!r||r.value==null){ td.textContent='—'; rowExport[slot]=''; }
         else{
-          var mmol=Number(r.value)||0;
-          var disp=(mmol.toFixed(1)+' mmol/L');
-          var st=r.status || (mmol<Number(c.lowThreshold)?'low':(mmol>Number(c.highThreshold)?'high':'ok'));
-          var cls=(st==='low')?'low':((st==='high')?'high':'ok');
-          var badge='<span class="badge '+cls+'">'+(st==='ok'?'طبيعي':(st==='low'?'منخفض':'مرتفع'))+'</span>';
-          td.innerHTML='<div><b>'+disp+'</b> '+badge+'</div>'+
-                       (r.mealDose!=null?('<div class="small">جرعة: '+r.mealDose+'U</div>'):'')+
-                       (r.correctionGiven!=null?('<div class="small">تصحيحي: '+r.correctionGiven+'U</div>'):'')+
-                       ((r.note||r.raisedWith)?('<div class="small">ملاحظة: '+(r.note||r.raisedWith)+'</div>'):'');
+          const mmol=Number(r.value)||0;
+          const disp=mmol.toFixed(1)+' mmol/L';
+          const st=r.status || (mmol<Number(c.lowThreshold)?'low':(mmol>Number(c.highThreshold)?'high':'ok'));
+          const cls=(st==='low')?'low':((st==='high')?'high':'ok');
+          const badge='<span class="badge '+cls+'">'+(st==='ok'?'طبيعي':(st==='low'?'منخفض':'مرتفع'))+'</span>';
+
+          td.innerHTML=
+            '<div><b>'+disp+'</b> '+badge+'</div>'+
+            (r.mealDose!=null?('<div class="small">جرعة: '+r.mealDose+'U</div>'):'')+
+            (r.correctionGiven!=null?('<div class="small">تصحيحي: '+r.correctionGiven+'U</div>'):'')+
+            ((r.note||r.raisedWith)?('<div class="small">ملاحظة: '+(r.note||r.raisedWith)+'</div>'):'');
           rowExport[slot]=disp+
             (r.mealDose!=null?(' | جرعة: '+r.mealDose+'U'):'')+
             (r.correctionGiven!=null?(' | تصحيحي: '+r.correctionGiven+'U'):'')+
             ((r.note||r.raisedWith)?(' | ملاحظة: '+(r.note||r.raisedWith)):'');
-
           total++; sum+=mmol;
           if(st==='low')cLow++; else if(st==='high')cHigh++; else cOk++;
           if(mmol<minR){minR=mmol; minD=d.date;} if(mmol>maxR){maxR=mmol; maxD=d.date;}
@@ -200,23 +246,31 @@ async function buildReport(){
   $('#s_low').textContent=cLow;
   $('#s_ok').textContent=cOk;
   $('#s_high').textContent=cHigh;
-  var tir= total? Math.round((cOk/total)*100) : 0; $('#s_tir').textContent=tir+'%';
+  const tir= total? Math.round((cOk/total)*100) : 0; $('#s_tir').textContent=tir+'%';
   $('#s_avg').textContent= total? (sum/total).toFixed(1)+' mmol/L' : '—';
-  $('#s_minmax').textContent=(isFinite(minR)&&isFinite(maxR))?(minR.toFixed(1)+' / '+maxR.toFixed(1)+' mmol/L ('+minD+' - '+maxD+')':'—';
+  $('#s_minmax').textContent=
+    (isFinite(minR)&&isFinite(maxR))
+      ? (minR.toFixed(1)+' / '+maxR.toFixed(1)+' mmol/L ('+minD+' - '+maxD+')')
+      : '—';
 }
 
+/* Export Excel */
 function exportXLSX(){
-  var XLSX=window.XLSX; if(!XLSX){ alert('XLSX library not loaded'); return; }
-  var childSel=document.getElementById('childSel');
-  var childText=childSel && childSel.selectedOptions[0]? childSel.selectedOptions[0].textContent : 'child';
-  var from=document.getElementById('from').value, to=document.getElementById('to').value;
+  const XLSX=window.XLSX;
+  if(!XLSX){ alert('XLSX library not loaded'); return; }
 
-  var head=['التاريخ']; order.forEach(function(k){ head.push(labels[k]); });
-  var rows=cachedDetailed.map(function(r){ var a=[r.date]; order.forEach(function(k){ a.push(r[k]||''); }); return a; });
+  const childSel=document.getElementById('childSel');
+  const childText=childSel && childSel.selectedOptions[0]? childSel.selectedOptions[0].textContent : 'child';
+  const from=document.getElementById('from').value, to=document.getElementById('to').value;
 
-  var wb=XLSX.utils.book_new();
+  const head=['التاريخ']; order.forEach(k=>head.push(labels[k]));
+  const rows=cachedDetailed.map(r=>{
+    const a=[r.date]; order.forEach(k=>a.push(r[k]||'')); return a;
+  });
+
+  const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
-    ['الفترة', from+' -> '+to],
+    ['الفترة', from+' → '+to],
     ['عدد القراءات', document.getElementById('s_total').textContent],
     ['منخفض', document.getElementById('s_low').textContent],
     ['طبيعي', document.getElementById('s_ok').textContent],
