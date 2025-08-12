@@ -20,7 +20,8 @@ main{max-width:1100px;margin:auto;padding:20px}
 h2{margin:0 0 12px}
 .grid{display:grid; gap:12px}
 .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
-@media (max-width:900px){ .g3{grid-template-columns:1fr} }
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:900px){ .g3,.g2{grid-template-columns:1fr} }
 label{display:block; font-size:13px; color:var(--muted); margin:0 0 6px}
 select,input{width:100%; padding:12px 12px; border:1px solid var(--line); border-radius:12px; background:#fff}
 .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
@@ -40,6 +41,9 @@ th{background:#f8fafc; color:#0f172a}
 .toast.show{opacity:1;transform:none}
 .hide{display:none!important}
 .suggest{display:inline-block;background:#eef6ff;color:#0369a1;padding:6px 10px;border-radius:999px;font-weight:800}
+.unit-inline{display:grid; grid-template-columns:1fr 160px; gap:8px; align-items:end}
+@media (max-width:520px){ .unit-inline{grid-template-columns:1fr} }
+.suffix{color:#334155;font-weight:700;font-size:12px;margin-top:6px}
 </style>
 </head>
 <body>
@@ -86,8 +90,18 @@ th{background:#f8fafc; color:#0f172a}
     <h2>إدخال القياس</h2>
     <div class="grid g3">
       <div>
-        <label>القراءة (mmol/L)</label>
-        <input id="reading" type="number" step="0.1" min="0" placeholder="اكتبي القراءة" />
+        <label>القراءة</label>
+        <div class="unit-inline">
+          <input id="reading" type="number" step="0.1" min="0" placeholder="اكتبي القراءة" />
+          <div>
+            <label>الوحدة</label>
+            <select id="unitSel">
+              <option value="mmol">mmol/L</option>
+              <option value="mgdl">mg/dL</option>
+            </select>
+          </div>
+        </div>
+        <div id="unitSuffix" class="suffix">الوحدة الحالية: mmol/L</div>
         <div id="bOk" class="badge b-ok hide">✔️ ضمن المدى</div>
         <div id="bLow" class="badge b-low hide">⬇︎ منخفض — يجب الرفع</div>
         <div id="bHigh" class="badge b-high hide">⬆︎ مرتفع — يرجى التصحيح</div>
@@ -155,15 +169,51 @@ const toast=(m)=>{const t=$('.toast');t.textContent=m;t.classList.add('show');se
 const labels={preBreakfast:'قبل الإفطار',postBreakfast:'بعد الإفطار',preLunch:'قبل الغداء',postLunch:'بعد الغداء',preDinner:'قبل العشاء',postDinner:'بعد العشاء',beforeSleep:'قبل النوم',duringSleep:'أثناء النوم',uponWake:'عند الاستيقاظ'};
 const order=['preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','uponWake'];
 
-let uid=null, childId=null, low=4, high=10, target=6.5, cfMmol=null;
+let uid=null, childId=null;
+let low=4, high=10, target=6.5, cfMmol=null; // كلها بالـ mmol/L داخليًا
 const initChildId=new URL(location.href).searchParams.get('child');
 
 onAuthStateChanged(auth, async (u)=>{
   if(!u){ location.href='index.html'; return; }
   uid=u.uid; await loadChildren(); setToday();
   if(initChildId){ $('#childSel').value=initChildId; $('#childSel').disabled=true; await onChildChanged(); }
+  refreshThresholdInfo(); // بعد ما تتظبط القيم الأولية
 });
 
+/* ====== وحدات القياس ====== */
+const unitSel = $('#unitSel');
+unitSel.addEventListener('change', ()=>{
+  adjustInputForUnit();
+  onReadingChange();
+  refreshDay();
+  refreshThresholdInfo();
+});
+function toMmol(value, unit){ // mg/dL -> mmol/L
+  if(!Number.isFinite(value)) return NaN;
+  return unit==='mgdl' ? value/18 : value;
+}
+function fromMmol(mmol, unit){ // mmol/L -> mg/dL
+  if(!Number.isFinite(mmol)) return NaN;
+  return unit==='mgdl' ? Math.round(mmol*18) : Number(mmol.toFixed(1));
+}
+function adjustInputForUnit(){
+  const u=unitSel.value;
+  $('#unitSuffix').textContent = 'الوحدة الحالية: ' + (u==='mgdl'?'mg/dL':'mmol/L');
+  const reading = $('#reading');
+  if(u==='mgdl'){ reading.step='1'; reading.placeholder='مثلاً 120'; }
+  else { reading.step='0.1'; reading.placeholder='مثلاً 6.5'; }
+}
+function refreshThresholdInfo(){
+  const u=unitSel.value;
+  const loDisp = fromMmol(low,u);
+  const hiDisp = fromMmol(high,u);
+  const tgtDisp = fromMmol(target,u);
+  $('#thrInfo').textContent = 'الحدود (حسب الوحدة): منخفض < '+loDisp+' • مرتفع > '+hiDisp+' • الهدف: '+tgtDisp+' ' + (u==='mgdl'?'mg/dL':'mmol/L');
+  // معامل التصحيح (ثابت بالـ mmol/L لكل وحدة)
+  $('#cfInfo').textContent = cfMmol ? ('معامل التصحيح: '+(Math.round(cfMmol*100)/100)+' mmol/L لكل 1U') : '⚠️ لم يتم ضبط معامل التصحيح';
+}
+
+/* ====== تحميل الأطفال والتاريخ ====== */
 function setToday(){
   const url=new URL(location.href); const dateFromUrl=url.searchParams.get('date');
   if(dateFromUrl){ $('#dateSel').value=dateFromUrl; }
@@ -176,6 +226,7 @@ async function loadChildren(){
   q.forEach(s=>{ const o=document.createElement('option'); o.value=s.id; o.textContent=s.data().name||'بدون اسم'; sel.appendChild(o); });
 }
 
+/* ====== أحداث ====== */
 $('#childSel').addEventListener('change', onChildChanged);
 $('#dateSel').addEventListener('change', refreshDay);
 $('#slotSel').addEventListener('change', ()=>onReadingChange());
@@ -183,38 +234,70 @@ $('#reading').addEventListener('input', onReadingChange);
 $('#clearBtn').addEventListener('click', clearInputs);
 $('#saveBtn').addEventListener('click', onSave);
 
+/* ====== تغيير الطفل ====== */
 async function onChildChanged(){
-  childId=$('#childSel').value||null; if(!childId){ $('#thrInfo').textContent=''; $('#cfInfo').textContent=''; $('#rows').innerHTML=emptyRow(); return; }
+  childId=$('#childSel').value||null; 
+  if(!childId){ $('#thrInfo').textContent=''; $('#cfInfo').textContent=''; $('#rows').innerHTML=emptyRow(); return; }
   const cs=await getDoc(doc(db,'users',uid,'children',childId));
-  const c=cs.data()||{}; low=c.lowThreshold??4; high=c.highThreshold??10; target=c.targetMmol??6.5;
-  cfMmol= c.correctionFactorMmol ?? (c.correctionFactorMgDl!=null ? (Number(c.correctionFactorMgDl)/18) : null);
-  $('#thrInfo').textContent=`الحدود: منخفض < ${low} • مرتفع > ${high} • الهدف: ${target}`;
-  $('#cfInfo').textContent=cfMmol?`معامل التصحيح: ${Math.round(cfMmol*100)/100} mmol/L لكل 1U`:'⚠️ لم يتم ضبط معامل التصحيح';
+  const c=cs.data()||{};
+  // القيم الأساسية بالـ mmol داخلياً
+  low   = (c.lowThreshold   ?? 4);
+  high  = (c.highThreshold  ?? 10);
+  target= (c.targetMmol     ?? 6.5);
+  // cfMmol = معامل التصحيح بالـ mmol/1U (لو موجود mg/dL نحوله)
+  cfMmol= (c.correctionFactorMmol!=null) ? Number(c.correctionFactorMmol)
+        : (c.correctionFactorMgDl!=null) ? Number(c.correctionFactorMgDl)/18
+        : null;
+
+  refreshThresholdInfo();
   refreshDay();
 }
 
 function emptyRow(){ return `<tr><td colspan="6" class="small">لا توجد قراءات لليوم المختار بعد.</td></tr>`; }
 
-function evaluate(v){ if(v===''||!Number.isFinite(Number(v)))return null; const n=Number(v); if(n<low)return'low'; if(n>high)return'high'; return'ok'; }
-
-function onReadingChange(){
-  const v=Number($('#reading').value);
-  [$('#bOk'),$('#bLow'),$('#bHigh')].forEach(e=>e.classList.add('hide'));
-  $('#extraLow').classList.add('hide'); $('#extraHigh').classList.add('hide'); $('#suggestWrap').classList.add('hide');
-  if(!Number.isFinite(v)) return;
-  const st=evaluate(v);
-  if(st==='low'){ $('#bLow').classList.remove('hide'); $('#extraLow').classList.remove('hide'); }
-  else if(st==='high'){
-    $('#bHigh').classList.remove('hide'); $('#extraHigh').classList.remove('hide');
-    const seg=suggestedCorrection(v); if(seg!=null){ $('#corrSuggestion').textContent=seg; $('#suggestWrap').classList.remove('hide'); }
-  } else { $('#bOk').classList.remove('hide'); }
+/* ====== تقييم الحالة ====== */
+function evaluate(mmol){ // يدخل mmol ويخرج الحالة
+  if(mmol===''||!Number.isFinite(Number(mmol)))return null; 
+  const n=Number(mmol);
+  if(n<low) return 'low'; 
+  if(n>high) return 'high'; 
+  return 'ok';
 }
 
-/* تقريب لأقرب 1U + حدود 0..10U */
-function suggestedCorrection(reading){
-  if(cfMmol==null||!Number.isFinite(reading)) return null;
-  const excess=reading-target; if(excess<=0) return 0;
-  let u=excess/cfMmol; u=Math.max(0,Math.min(10,u)); return Math.round(u);
+/* ====== تغيّر القراءة ====== */
+function onReadingChange(){
+  const raw=Number($('#reading').value);
+  const unit=unitSel.value;
+  const mmol=toMmol(raw, unit);
+
+  [$('#bOk'),$('#bLow'),$('#bHigh')].forEach(e=>e.classList.add('hide'));
+  $('#extraLow').classList.add('hide'); 
+  $('#extraHigh').classList.add('hide'); 
+  $('#suggestWrap').classList.add('hide');
+
+  if(!Number.isFinite(mmol)) return;
+  const st=evaluate(mmol);
+  if(st==='low'){ 
+    $('#bLow').classList.remove('hide'); 
+    $('#extraLow').classList.remove('hide'); 
+  }else if(st==='high'){
+    $('#bHigh').classList.remove('hide'); 
+    $('#extraHigh').classList.remove('hide');
+    const seg=suggestedCorrection(mmol); 
+    if(seg!=null){ $('#corrSuggestion').textContent=seg; $('#suggestWrap').classList.remove('hide'); }
+  } else { 
+    $('#bOk').classList.remove('hide'); 
+  }
+}
+
+/* ====== اقتراح التصحيح ====== */
+function suggestedCorrection(readingMmol){
+  if(cfMmol==null||!Number.isFinite(readingMmol)) return null;
+  const excess=readingMmol - target; 
+  if(excess<=0) return 0;
+  let u=excess/cfMmol; 
+  u=Math.max(0,Math.min(10,u)); 
+  return Math.round(u);
 }
 
 function clearInputs(){
@@ -223,6 +306,7 @@ function clearInputs(){
   $('#extraLow').classList.add('hide'); $('#extraHigh').classList.add('hide'); $('#suggestWrap').classList.add('hide');
 }
 
+/* ====== عرض قراءات اليوم ====== */
 let todayDocSnap=null;
 async function refreshDay(){
   const dateId=$('#dateSel').value; if(!childId||!dateId) return;
@@ -231,15 +315,19 @@ async function refreshDay(){
   const readings=(todayDocSnap.data()||{}).readings||{};
   const tbody=$('#rows'); tbody.innerHTML='';
   let any=false;
+  const unit=unitSel.value;
+
   order.forEach(k=>{
     const r=readings[k];
     if(r && r.value!=null){
       any=true;
+      const disp = fromMmol(Number(r.value), unit) + ' ' + (unit==='mgdl'?'mg/dL':'mmol/L');
+      const state = r.status || evaluate(Number(r.value));
       tbody.insertAdjacentHTML('beforeend', `
         <tr>
           <td>${labels[k]}</td>
-          <td>${r.value}</td>
-          <td>${badge(r.status)}</td>
+          <td>${disp}</td>
+          <td>${badge(state)}</td>
           <td>${r.mealDose!=null? r.mealDose : '—'}</td>
           <td>${r.correctionGiven!=null? r.correctionGiven : '—'}</td>
           <td>${r.note || r.raisedWith || ''}</td>
@@ -250,30 +338,40 @@ async function refreshDay(){
 }
 function badge(st){ if(st==='low')return`<span class="badge b-low">منخفض</span>`; if(st==='high')return`<span class="badge b-high">مرتفع</span>`; if(st==='ok')return`<span class="badge b-ok">طبيعي</span>`; return''; }
 
+/* ====== حفظ القراءة ====== */
 async function onSave(){
   if(!childId) return toast('اختاري الطفل أولًا');
   const dateId=$('#dateSel').value; if(!dateId) return toast('اختاري التاريخ');
   const slot=$('#slotSel').value; if(!slot) return toast('اختاري الوقت');
-  const val=Number($('#reading').value); if(!Number.isFinite(val)) return toast('أدخلي قراءة صحيحة');
 
+  const raw=Number($('#reading').value);
+  const unit=unitSel.value;
+  if(!Number.isFinite(raw)) return toast('أدخلي قراءة صحيحة');
+
+  const mmolVal = toMmol(raw, unit); // نخزن دائمًا بالـ mmol
   const ref=doc(db,'users',uid,'children',childId,'measurements',dateId);
   const snap=todayDocSnap && todayDocSnap.id===dateId? todayDocSnap : await getDoc(ref);
   const base=snap.exists()? snap.data() : { date:dateId, readings:{} };
+
   if(base.readings[slot] && base.readings[slot].value!=null) return toast('تم تسجيل هذا الوقت مسبقًا لهذا اليوم ❗');
 
-  const st=evaluate(val);
+  const st=evaluate(mmolVal);
   base.readings[slot]={
-    value:val, status:st,
+    value:mmolVal, // المخزن بالـ mmol/L
+    status:st,
     note:$('#note').value.trim()||null,
     mealDose:valNum('#mealDose'),
     correctionGiven:(st==='high'?valNum('#corrGiven'):null),
-    correctionSuggested:(st==='high'?suggestedCorrection(val):null),
+    correctionSuggested:(st==='high'?suggestedCorrection(mmolVal):null),
     raisedWith:(st==='low'?($('#raisedWith').value.trim()||null):null),
-    label:labels[slot]
+    label:labels[slot],
+    originalUnit: unit,            // أثَر إدخال
+    originalValue: Number(raw)     // أثَر إدخال
   };
   await setDoc(ref,base);
   toast('تم حفظ القياس ✅'); clearInputs(); todayDocSnap=null; refreshDay();
 }
+
 function valNum(sel){ const v=$(sel).value; if(v===''||v==null) return null; const n=Number(v); return Number.isFinite(n)?n:null; }
 </script>
 </body>
