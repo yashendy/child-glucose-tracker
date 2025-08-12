@@ -81,7 +81,7 @@ onAuthStateChanged(auth, async u=>{
 
   const cs=await getDoc(doc(db,'users',u.uid,'children',childId)); const c=cs.data()||{};
   $('#title').textContent='الطفل: '+(c.name||'—');
-  $('#meta').innerHTML='الاسم: '+(c.name||'—')+' • الرقم المدني: '+(c.childCivilId||'—')+' • الطول: '+(c.height??'—')+' سم • الوزن: '+(c.weight??'—')+' كجم • الفترة: '+from+' → '+to+' • الوحدة: mmol/L';
+  $('#meta').innerHTML='الاسم: '+(c.name||'—')+' • الرقم المدني: '+(c.childCivilId||'—')+' • الطول: '+(c.height??'—')+' سم • الوزن: '+(c.weight??'—')+' كجم • الفترة: '+from+' -> '+to+' • الوحدة: mmol/L';
 
   const qy=query(collection(db,'users',u.uid,'children',childId,'measurements'),
     where('date','>=',from), where('date','<=',to), orderBy('date','asc'));
