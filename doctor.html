@@ -25,6 +25,8 @@ main{max-width:1100px;margin:auto;padding:16px}
 .badge.ok{background:var(--okbg);color:var(--ok)}
 .badge.low{background:var(--lowbg);color:var(--low)}
 .badge.high{background:var(--highbg);color:var(--high)}
+input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.btn-main{padding:10px;border:none;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer}
 </style>
 </head>
 <body>
@@ -40,24 +42,25 @@ main{max-width:1100px;margin:auto;padding:16px}
 <main>
   <!-- فلاتر -->
   <section class="card">
-    <div style="display:grid;gap:10px;grid-template-columns:repeat(4,minmax(0,1fr))">
+    <div style="display:grid;gap:10px;grid-template-columns:repeat(5,minmax(0,1fr))">
+      <div style="grid-column:span 2">
+        <label class="small">بحث عن طفل (اسم / رقم مدني)</label>
+        <input id="kidSearch" placeholder="مثال: آسر / 2810..." />
+      </div>
       <div>
-        <label class="small">الطفل</label>
-        <select id="childSel"><option value="">— تحميل الأطفال ... —</option></select>
-        <div id="ownerInfo" class="small" style="margin-top:6px"></div>
+        <label class="small">اختر الطفل</label>
+        <select id="childSel"><option value="">— تحميل القائمة —</option></select>
       </div>
       <div><label class="small">من تاريخ</label><input id="from" type="date"></div>
       <div><label class="small">إلى تاريخ</label><input id="to" type="date"></div>
-      <div style="display:flex;align-items:end">
-        <button id="run" style="width:100%;padding:10px;border:none;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer">
-          عرض المتابعة
-        </button>
-      </div>
     </div>
-    <div id="meta" class="small" style="margin-top:6px"></div>
+    <div style="margin-top:10px">
+      <button id="run" class="btn-main">عرض المتابعة</button>
+    </div>
+    <div id="meta" class="small" style="margin-top:8px"></div>
   </section>
 
-  <!-- ملخص -->
+  <!-- ملخص بسيط -->
   <section class="card">
     <div style="display:grid;gap:10px;grid-template-columns:repeat(7,minmax(0,1fr))">
       <div><div class="small">عدد القراءات</div><div id="s_total" style="font-weight:800">—</div></div>
@@ -70,7 +73,7 @@ main{max-width:1100px;margin:auto;padding:16px}
     </div>
   </section>
 
-  <!-- جدول -->
+  <!-- جدول تفصيلي -->
   <section class="card">
     <table class="table">
       <thead>
@@ -89,81 +92,93 @@ main{max-width:1100px;margin:auto;padding:16px}
   </section>
 </main>
 
-<!-- XLSX مكتبة عالمية -->
+<!-- XLSX كمكتبة عالمية -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <script type="module">
-/* Firebase v9 */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, getDoc, query, where, orderBy, collectionGroup } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { getFirestore, collection, collectionGroup, getDocs, doc, getDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-/* إعدادات Firebase */
 const firebaseConfig={apiKey:"AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",authDomain:"child-glucose-tracker.firebaseapp.com",projectId:"child-glucose-tracker",storageBucket:"child-glucose-tracker.firebasestorage.app",messagingSenderId:"294563325904",appId:"1:294563325904:web:39562550bf305fc01abbd5"};
 const app=initializeApp(firebaseConfig); const db=getFirestore(app);
 
-/* أدوات */
 function $(s){return document.querySelector(s);}
 const labels={preBreakfast:'قبل الإفطار',postBreakfast:'بعد الإفطار',preLunch:'قبل الغداء',postLunch:'بعد الغداء',preDinner:'قبل العشاء',postDinner:'بعد العشاء',beforeSleep:'قبل النوم',duringSleep:'أثناء النوم',uponWake:'عند الاستيقاظ'};
 const order=['preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','uponWake'];
-function safe(t){return String(t||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]));}
 
-/* حالة عامة */
-let preferredUnit='mmol', civil='—', ownerUid=null, childId=null;
+let preferredUnit='mmol';
+let kids=[];            // [{name,civil,path}] path = users/{uid}/children/{childId}
 let cachedDetailed=[];
 
-/* تحميل كل الأطفال عبر collectionGroup */
-await loadAllChildren();
-setDefaultDates();
-
-async function loadAllChildren(){
-  const sel=$('#childSel'); sel.innerHTML='<option value="">— تحميل الأطفال ... —</option>';
-  const cg=await getDocs(collectionGroup(db,'children'));
-  sel.innerHTML='<option value="">— اختاري الطفل —</option>';
-  // value = ownerUid|childId
-  cg.forEach(snap=>{
-    const data=snap.data()||{};
-    const kidName=data.name||'بدون اسم';
-    const uid=snap.ref.parent.parent.id;  // users/{uid}/children
-    const cid=snap.id;
-    const opt=document.createElement('option');
-    opt.value=uid+'|'+cid;
-    opt.textContent=kidName+(data.childCivilId?(' — '+data.childCivilId):'');
-    sel.appendChild(opt);
+// تحميل جميع الأطفال من كل الأولياء (collection group)
+async function loadAllKids(){
+  const cg=query(collectionGroup(db,'children'), orderBy('name'));
+  const qs=await getDocs(cg);
+  kids=[];
+  qs.forEach(s=>{
+    const d=s.data()||{};
+    kids.push({ name:d.name||'بدون اسم', civil:d.childCivilId||'', path:s.ref.path });
   });
-  $('#ownerInfo').textContent=''; // يُملأ بعد الاختيار
+  renderKidOptions('');
 }
 
-function setDefaultDates(){
-  const iso=(new Date()).toISOString().slice(0,10);
+function renderKidOptions(filter){
+  const sel=$('#childSel');
+  sel.innerHTML='';
+  const f=(filter||'').toLowerCase().trim();
+  let count=0;
+  kids.forEach(k=>{
+    const hay=(k.name+' '+k.civil).toLowerCase();
+    if(!f || hay.indexOf(f)>=0){
+      const o=document.createElement('option');
+      o.value=k.path;
+      o.textContent=k.name+(k.civil?(' — '+k.civil):'');
+      sel.appendChild(o);
+      count++;
+    }
+  });
+  if(count===0){
+    const o=document.createElement('option');
+    o.value='';
+    o.textContent='لا نتائج مطابقة';
+    sel.appendChild(o);
+  }
+}
+
+// افتراضي تاريخ اليوم
+(function setDefaults(){
+  const iso=new Date().toISOString().slice(0,10);
   $('#from').value=iso; $('#to').value=iso;
-}
+})();
 
-/* أزرار */
+// بحث مباشر
+$('#kidSearch').addEventListener('input', function(){ renderKidOptions(this.value); });
+
 document.getElementById('btnPrint').addEventListener('click', ()=>window.print());
 document.getElementById('btnXLSX').addEventListener('click', exportXLSX);
 document.getElementById('run').addEventListener('click', buildReport);
 
-/* بناء التقرير */
-async function buildReport(){
-  const sel=$('#childSel').value, from=$('#from').value, to=$('#to').value;
-  if(!sel||!from||!to){ alert('اختاري الطفل وحددي الفترة'); return; }
-  const parts=sel.split('|'); ownerUid=parts[0]; childId=parts[1];
+// تحميل القائمة عند الفتح
+loadAllKids();
 
-  // بيانات الطفل
-  const cs=await getDoc(doc(db,'users',ownerUid,'children',childId));
-  const c=cs.data()||{};
+async function buildReport(){
+  const path=$('#childSel').value, from=$('#from').value, to=$('#to').value;
+  if(!path || !from || !to){ alert('اختاري الطفل وحددي الفترة'); return; }
+
+  // مرجع الطفل المختار (من أي مستخدم)
+  const childRef=doc(db, path);
+  const cs=await getDoc(childRef); const c=cs.data()||{};
   preferredUnit=c.preferredUnit||'mmol';
-  civil=c.childCivilId||'—';
-  const name=(c.name||'—'), wt=(c.weight!=null?c.weight:'—'), ht=(c.height!=null?c.height:'—'),
+  const name=(c.name||'—'), civil=(c.childCivilId||'—'),
+        wt=(c.weight!=null?c.weight:'—'), ht=(c.height!=null?c.height:'—'),
         lo=(c.lowThreshold!=null?c.lowThreshold:'—'), hi=(c.highThreshold!=null?c.highThreshold:'—');
 
-  $('#ownerInfo').textContent='مالك السجل: '+ownerUid;
-  $('#meta').innerHTML='الاسم: '+safe(name)+' • الرقم المدني: '+safe(civil)+' • الوزن: '+wt+' كجم • الطول: '+ht+
+  $('#meta').innerHTML='الاسم: '+name+' • الرقم المدني: '+civil+' • الوزن: '+wt+' كجم • الطول: '+ht+
                        ' سم • حدود: منخفض &lt; '+lo+' — مرتفع &gt; '+hi+' • الفترة: '+from+' → '+to+
                        ' • الوحدة: '+(preferredUnit==='mgdl'?'mg/dL':'mmol/L');
 
-  // قياسات
-  const col=collection(db,'users',ownerUid,'children',childId,'measurements');
+  // measurements تحت نفس مستند الطفل
+  const col=collection(childRef,'measurements');
   const qy=query(col, where('date','>=',from), where('date','<=',to), orderBy('date','asc'));
   const qs=await getDocs(qy);
 
@@ -171,14 +186,12 @@ async function buildReport(){
   cachedDetailed=[];
   const tbody=$('#rows'); tbody.innerHTML='';
 
-  if(qs.empty){
-    tbody.innerHTML='<tr><td colspan="10" class="small">لا توجد قراءات.</td></tr>';
-  }else{
+  if(qs.empty){ tbody.innerHTML='<tr><td colspan="10" class="small">لا توجد قراءات.</td></tr>'; }
+  else{
     qs.forEach(s=>{
       const d=s.data(); const readings=d.readings||{};
       const tr=document.createElement('tr');
       const tdDate=document.createElement('td'); tdDate.className='date'; tdDate.textContent=d.date; tr.appendChild(tdDate);
-
       const rowExport={date:d.date};
 
       order.forEach(slot=>{
@@ -193,18 +206,18 @@ async function buildReport(){
           td.innerHTML='<div><b>'+disp+'</b> '+badge+'</div>'+
                        (r.mealDose!=null?('<div class="small">جرعة: '+r.mealDose+'U</div>'):'')+
                        (r.correctionGiven!=null?('<div class="small">تصحيحي: '+r.correctionGiven+'U</div>'):'')+
-                       ((r.note||r.raisedWith)?('<div class="small">ملاحظة: '+safe(r.note||r.raisedWith)+'</div>'):'');
+                       ((r.note||r.raisedWith)?('<div class="small">ملاحظة: '+(r.note||r.raisedWith)+'</div>'):'');
           rowExport[slot]=disp+
             (r.mealDose!=null?(' | جرعة: '+r.mealDose+'U'):'')+
             (r.correctionGiven!=null?(' | تصحيحي: '+r.correctionGiven+'U'):'')+
             ((r.note||r.raisedWith)?(' | ملاحظة: '+(r.note||r.raisedWith)):'');
-
           total++; sum+=mmol;
           if(st==='low')cLow++; else if(st==='high')cHigh++; else cOk++;
           if(mmol<minR){minR=mmol; minD=d.date;} if(mmol>maxR){maxR=mmol; maxD=d.date;}
         }
         tr.appendChild(td);
       });
+
       tbody.appendChild(tr);
       cachedDetailed.push(rowExport);
     });
@@ -214,16 +227,16 @@ async function buildReport(){
   $('#s_low').textContent=cLow;
   $('#s_ok').textContent=cOk;
   $('#s_high').textContent=cHigh;
-  const tir = total? Math.round((cOk/total)*100) : 0; $('#s_tir').textContent=tir+'%';
-  $('#s_avg').textContent = total? (sum/total).toFixed(1)+' mmol/L' : '—';
-  $('#s_minmax').textContent = (isFinite(minR)&&isFinite(maxR)) ? (minR.toFixed(1)+' / '+maxR.toFixed(1)+' mmol/L ('+minD+' — '+maxD+')' : '—';
+  const tir= total? Math.round((cOk/total)*100) : 0; $('#s_tir').textContent=tir+'%';
+  $('#s_avg').textContent= total? (sum/total).toFixed(1)+' mmol/L' : '—';
+  $('#s_minmax').textContent=(isFinite(minR)&&isFinite(maxR))?(minR.toFixed(1)+' / '+maxR.toFixed(1)+' mmol/L ('+minD+' — '+maxD+')':'—';
 }
 
 /* تصدير Excel */
 function exportXLSX(){
   const XLSX=window.XLSX; if(!XLSX){ alert('XLSX library not loaded'); return; }
-  const sel=document.getElementById('childSel');
-  const childText=sel && sel.selectedOptions[0]? sel.selectedOptions[0].textContent : 'child';
+  const childSel=document.getElementById('childSel');
+  const childText=childSel && childSel.selectedOptions[0] ? childSel.selectedOptions[0].textContent : 'child';
   const from=document.getElementById('from').value, to=document.getElementById('to').value;
 
   const head=['التاريخ']; order.forEach(k=>head.push(labels[k]));
