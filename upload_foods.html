@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>إدارة الأصناف — إدخال / رفع</title>
+  <title>إدارة الأصناف — إدخال أو رفع Excel</title>
   <style>
     body { font-family: 'Cairo', sans-serif; background: #f4f6f8; padding: 20px; color: #333; }
     h1 { color: #0ea5e9; text-align: center; margin-bottom: 20px; }
@@ -12,144 +12,147 @@
     form button:hover, .btn:hover { background: #0284c7; }
     table { width: 100%; border-collapse: collapse; margin: 20px auto 0; max-width: 800px; }
     th, td { padding: 10px; border: 1px solid #ddd; text-align: center; }
-    .btn-delete { background: #ef4444; }
+    .btn-delete { background: #ef4444; color: white; }
     .btn-delete:hover { background: #dc2626; }
-    .btn-edit { background: #f59e0b; }
+    .btn-edit { background: #f59e0b; color: white; }
     .btn-edit:hover { background: #d97706; }
-    .btn-save { background: #10b981; margin: 20px auto; display: block; }
+    .btn-save { background: #10b981; color: white; margin: 20px auto; display: block; }
     .btn-save:hover { background: #059669; }
   </style>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<h1>إدارة الأصناف — إدخال أو رفع من Excel</h1>
+  <h1>إدارة الأصناف — إدخال أو رفع من Excel</h1>
 
-<!--  نموذج الإدخال اليدوي -->
-<form id="manualForm">
-  <input type="text" id="name" placeholder="اسم الصنف" required>
-  <input type="text" id="category" placeholder="التصنيف (مثلاً: مخبوزات)" required>
-  <input type="number" id="carbsPer100g" placeholder="الكربوهيدرات لكل 100 جم" required>
-  <input type="text" id="servingDescription" placeholder="وصف الكمية (مثلاً: رغيف متوسط)" required>
-  <input type="number" id="gramsPerServing" placeholder="الجرام في الكمية" required>
-  <input type="url" id="imageUrl" placeholder="رابط صورة (اختياري)">
-  <button type="submit">أضف / عدّل صنف</button>
-</form>
+  <!-- نموذج الإدخال اليدوي -->
+  <form id="manualForm">
+    <input type="text" id="name" placeholder="اسم الصنف" required>
+    <input type="text" id="category" placeholder="التصنيف (مثل: مخبوزات)" required>
+    <input type="number" id="carbsPer100g" placeholder="الكربوهيدرات لكل 100 جم" step="0.1" required>
+    <input type="text" id="servingDescription" placeholder="وصف الكمية (مثل: رغيف متوسط)" required>
+    <input type="number" id="gramsPerServing" placeholder="الجَرام في الكمية" step="0.1" required>
+    <input type="url" id="imageUrl" placeholder="رابط صورة (اختياري)">
+    <button type="submit">أضف / عدّل صنف</button>
+  </form>
 
-<!--  قسم رفع ملف Excel -->
-<div class="excel-section">
-  <input type="file" id="excelInput" accept=".xlsx, .xls">
-</div>
+  <!-- قسم رفع ملف Excel -->
+  <div class="excel-section">
+    <input type="file" id="excelInput" accept=".xlsx, .xls">
+  </div>
 
-<!--  جدول عرض الأصناف -->
-<table id="foodsTable">
-  <thead>
-    <tr>
-      <th>اسم الصنف</th>
-      <th>التصنيف</th>
-      <th>كربو/100 جم</th>
-      <th>وصف الكمية</th>
-      <th>جم/وحدة</th>
-      <th>إجراءات</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
-
-<button class="btn btn-save" id="saveBtn">حفظ الأصناف في Firebase</button>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-  import { getFirestore, collection, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    // أضف إعدادات Firebase هنا
-  };
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  const manualForm = document.getElementById('manualForm');
-  const excelInput = document.getElementById('excelInput');
-  const tableBody = document.querySelector('#foodsTable tbody');
-  let foods = [];
-
-  function renderTable() {
-    tableBody.innerHTML = foods.map((f, idx) => `
+  <!-- جدول عرض الأصناف -->
+  <table id="foodsTable">
+    <thead>
       <tr>
-        <td>${f.name}</td>
-        <td>${f.category}</td>
-        <td>${f.carbsPer100g}</td>
-        <td>${f.servingDescription}</td>
-        <td>${f.gramsPerServing}</td>
-        <td>
-          <button class="btn btn-edit" data-idx="${idx}">تعديل</button>
-          <button class="btn btn-delete" data-idx="${idx}">حذف</button>
-        </td>
-      </tr>`).join('');
-  }
+        <th>اسم الصنف</th>
+        <th>التصنيف</th>
+        <th>كربو/100 جم</th>
+        <th>وصف الكمية</th>
+        <th>ج/وحدة</th>
+        <th>إجراءات</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-  tableBody.addEventListener('click', e => {
-    const idx = e.target.dataset.idx;
-    if (e.target.matches('.btn-delete')) {
-      foods.splice(idx, 1);
-      renderTable();
-    } else if (e.target.matches('.btn-edit')) {
-      const f = foods[idx];
-      manualForm.name.value = f.name;
-      manualForm.category.value = f.category;
-      manualForm.carbsPer100g.value = f.carbsPer100g;
-      manualForm.servingDescription.value = f.servingDescription;
-      manualForm.gramsPerServing.value = f.gramsPerServing;
-      manualForm.imageUrl.value = f.imageUrl;
-      foods.splice(idx, 1);
-      renderTable();
-    }
-  });
+  <!-- زر حفظ الأصناف لـ Firebase -->
+  <button class="btn btn-save" id="saveBtn">حفظ الأصناف في Firebase</button>
 
-  manualForm.addEventListener('submit', e => {
-    e.preventDefault();
-    const f = {
-      name: manualForm.name.value.trim(),
-      category: manualForm.category.value.trim(),
-      carbsPer100g: parseFloat(manualForm.carbsPer100g.value),
-      servingDescription: manualForm.servingDescription.value.trim(),
-      gramsPerServing: parseFloat(manualForm.gramsPerServing.value),
-      imageUrl: manualForm.imageUrl.value.trim()
+  <!-- مكتبة Excel (SheetJS) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import { getFirestore, collection, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      // صلي هنا بيانات Firebase الخاصة بمشروعك
     };
-    if (!foods.some(x => x.name === f.name)) foods.push(f);
-    else foods = foods.map(x => x.name === f.name ? f : x);
-    renderTable();
-    manualForm.reset();
-  });
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-  excelInput.addEventListener('change', async e => {
-    const file = e.target.files[0];
-    const data = await file.arrayBuffer();
-    const workbook = XLSX.read(data, { type: 'array' });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const arr = XLSX.utils.sheet_to_json(sheet);
-    arr.forEach(item => {
-      if (item.name && !foods.some(x => x.name === item.name.trim())) {
-        foods.push({
-          name: item.name.trim(),
-          category: item.category?.trim() || "",
-          carbsPer100g: parseFloat(item.carbsPer100g) || 0,
-          servingDescription: item.servingDescription?.trim() || "",
-          gramsPerServing: parseFloat(item.gramsPerServing) || 0,
-          imageUrl: item.imageUrl?.trim() || ""
-        });
+    const manualForm = document.getElementById('manualForm');
+    const excelInput = document.getElementById('excelInput');
+    const tableBody = document.querySelector('#foodsTable tbody');
+    let foods = [];
+
+    function renderTable() {
+      tableBody.innerHTML = foods.map((f, idx) => `
+        <tr>
+          <td>${f.name}</td>
+          <td>${f.category}</td>
+          <td>${f.carbsPer100g}</td>
+          <td>${f.servingDescription}</td>
+          <td>${f.gramsPerServing}</td>
+          <td>
+            <button class="btn btn-edit" data-idx="${idx}">تعديل</button>
+            <button class="btn btn-delete" data-idx="${idx}">حذف</button>
+          </td>
+        </tr>`).join('');
+    }
+
+    tableBody.addEventListener('click', e => {
+      const idx = e.target.dataset.idx;
+      if (e.target.matches('.btn-delete')) {
+        foods.splice(idx, 1);
+        renderTable();
+      } else if (e.target.matches('.btn-edit')) {
+        const f = foods[idx];
+        manualForm.name.value = f.name;
+        manualForm.category.value = f.category;
+        manualForm.carbsPer100g.value = f.carbsPer100g;
+        manualForm.servingDescription.value = f.servingDescription;
+        manualForm.gramsPerServing.value = f.gramsPerServing;
+        manualForm.imageUrl.value = f.imageUrl;
+        foods.splice(idx, 1);
+        renderTable();
       }
     });
-    renderTable();
-  });
 
-  document.getElementById('saveBtn').addEventListener('click', async () => {
-    for (const f of foods) {
-      await setDoc(doc(collection(db, "foods"), f.name), f);
-    }
-    alert("تم حفظ الأصناف إلى Firebase بنجاح!");
-  });
-</script>
+    manualForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const f = {
+        name: manualForm.name.value.trim(),
+        category: manualForm.category.value.trim(),
+        carbsPer100g: parseFloat(manualForm.carbsPer100g.value),
+        servingDescription: manualForm.servingDescription.value.trim(),
+        gramsPerServing: parseFloat(manualForm.gramsPerServing.value),
+        imageUrl: manualForm.imageUrl.value.trim()
+      };
+      const existing = foods.find(x => x.name === f.name);
+      if (!existing) foods.push(f);
+      else Object.assign(existing, f);
+      renderTable();
+      manualForm.reset();
+    });
+
+    excelInput.addEventListener('change', async e => {
+      const file = e.target.files[0];
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const arr = XLSX.utils.sheet_to_json(sheet);
+      arr.forEach(item => {
+        if (item.name && !foods.some(x => x.name === item.name.trim())) {
+          foods.push({
+            name: item.name.trim(),
+            category: item.category?.trim() || "",
+            carbsPer100g: parseFloat(item.carbsPer100g) || 0,
+            servingDescription: item.servingDescription?.trim() || "",
+            gramsPerServing: parseFloat(item.gramsPerServing) || 0,
+            imageUrl: item.imageUrl?.trim() || ""
+          });
+        }
+      });
+      renderTable();
+    });
+
+    document.getElementById('saveBtn').addEventListener('click', async () => {
+      for (const f of foods) {
+        await setDoc(doc(collection(db, "foods"), f.name), f);
+      }
+      alert("تم حفظ الأصناف إلى Firebase بنجاح!");
+    });
+  </script>
 </body>
 </html>
