@@ -17,6 +17,10 @@
       text-align: center;
       margin-bottom: 20px;
     }
+ <button id="downloadJsonBtn" class="btn btn-save" style="margin: 10px auto 30px;">تحميل ملف الأصناف JSON</button>
+    <!-- ✅ زر تحميل الأصناف كملف JSON -->
+
+
     form, .excel-section {
       max-width: 600px;
       margin: 0 auto 20px;
@@ -80,6 +84,25 @@
     .btn-save:hover {
       background: #059669;
     }
+      // ✅ زر تحميل ملف JSON
+  document.getElementById('downloadJsonBtn').addEventListener('click', async () => {
+    try {
+      const res = await fetch('foods_data_arabic.json'); // تأكدي من وجود الملف بنفس الاسم
+      const data = await res.blob();
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'foods_data_arabic.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("⚠️ حدث خطأ أثناء تحميل الملف");
+      console.error(err);
+    }
+  });
+
   </style>
 </head>
 <body>
