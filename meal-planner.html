@@ -1,0 +1,190 @@
+<!-- ✅ meal-planner.html -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <title>اختيار الوجبة — لطفلك</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --primary: #06b6d4;
+      --secondary: #10b981;
+      --highlight: #f97316;
+      --bg: #f0fafd;
+      --card: #ffffff;
+      --text: #0f172a;
+    }
+//الجزء الثاني
+    body {
+      margin: 0;
+      font: 16px/1.6 system-ui, "Tajawal", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--primary);
+      font-size: 28px;
+      margin-bottom: 24px;
+    }
+
+    .meals-grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+
+    .meal-card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      transition: transform 0.2s;
+      cursor: pointer;
+    }
+
+    .meal-card:hover {
+      transform: scale(1.05);
+    }
+
+    .meal-card img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      margin-bottom: 8px;
+    }
+
+    .meal-card .name {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .meal-card .carbs {
+      font-size: 14px;
+      color: var(--secondary);
+      margin-bottom: 8px;
+    }
+
+    .meal-card button {
+      background: var(--secondary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .meal-card button:hover {
+      background: #047857;
+    }
+
+    .summary {
+      margin-top: 30px;
+      padding: 16px;
+      background: var(--card);
+      border-radius: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .summary p {
+      margin: 8px 0;
+      font-size: 16px;
+    }
+
+    .confirm-btn {
+      background: var(--highlight);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 18px;
+      cursor: pointer;
+      margin-top: 12px;
+      width: 100%;
+    }
+
+    .confirm-btn:hover {
+      background: #c2410c;
+    }
+  </style>
+</head>
+<body>
+  <h1>اختر وجبتك 🍽️</h1>
+
+  <div class="meals-grid" id="mealsGrid">
+    <!-- سيتم إدراج الأصناف هنا -->
+  </div>
+
+  <div class="summary" id="summarySection" style="display:none;">
+    <p>عدد الوجبات المختارة: <span id="count">0</span></p>
+    <p>إجمالي الكربوهيدرات: <span id="totalCarbs">0</span> جرام</p>
+    <button class="confirm-btn" id="confirmBtn">✅ تأكيد الاختيار</button>
+  </div>
+
+ // الجزء الثالث
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
+    authDomain: "child-glucose-tracker.firebaseapp.com",
+    projectId: "child-glucose-tracker"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const mealsGrid = document.getElementById("mealsGrid");
+  const summarySection = document.getElementById("summarySection");
+  const countSpan = document.getElementById("count");
+  const totalCarbsSpan = document.getElementById("totalCarbs");
+
+  const selectedMeals = [];
+  let totalCarbs = 0;
+
+  // ✅ تحميل الأصناف من Firestore
+  async function loadFoods() {
+    const querySnapshot = await getDocs(collection(db, "foods"));
+    querySnapshot.forEach(doc => {
+      const food = doc.data();
+      renderFoodItem(food);
+    });
+  }
+
+  // ✅ عرض صنف واحد ككارت
+  function renderFoodItem(food) {
+    const card = document.createElement("div");
+    card.className = "meal-card";
+    card.innerHTML = `
+      <img src="${food.imageUrl || 'https://cdn-icons-png.flaticon.com/512/1046/1046784.png'}" alt="${food.name}">
+      <div class="name">${food.name}</div>
+      <div class="carbs">كربوهيدرات: ${food.carbsPer100g} جرام / 100 جم</div>
+      <button>إضافة</button>
+    `;
+
+    card.querySelector("button").addEventListener("click", () => {
+      selectedMeals.push(food);
+      totalCarbs += parseFloat(food.carbsPer100g);
+      updateSummary();
+    });
+
+    mealsGrid.appendChild(card);
+  }
+
+  // ✅ تحديث الملخص
+  function updateSummary() {
+    countSpan.textContent = selectedMeals.length;
+    totalCarbsSpan.textContent = totalCarbs.toFixed(1);
+    summarySection.style.display = "block";
+  }
+
+  // ✅ تشغيل
+  loadFoods();
+</script>
+</body>
+</html>
