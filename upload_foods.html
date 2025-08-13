@@ -2,86 +2,154 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>رفع الأصناف إلى Firebase</title>
+  <title>إدارة الأصناف — إدخال / رفع</title>
   <style>
-    body {
-      font-family: 'Cairo', sans-serif;
-      background-color: #f0f4f8;
-      text-align: center;
-      padding: 50px;
-    }
-    h1 {
-      color: #0CBABA;
-    }
-    button {
-      padding: 15px 25px;
-      font-size: 18px;
-      background-color: #0CBABA;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-    button:hover {
-      background-color: #089e9e;
-    }
-    #status {
-      margin-top: 20px;
-      font-size: 18px;
-      color: #333;
-    }
+    body { font-family: 'Cairo', sans-serif; background: #f4f6f8; padding: 20px; color: #333; }
+    h1 { color: #0ea5e9; text-align: center; margin-bottom: 20px; }
+    form, .excel-section { max-width: 600px; margin: 0 auto 20px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    form input, .excel-section input[type="file"] { display: block; width: 100%; padding: 8px; margin: 8px 0; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
+    form button, .btn { padding: 10px 14px; background: #0ea5e9; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
+    form button:hover, .btn:hover { background: #0284c7; }
+    table { width: 100%; border-collapse: collapse; margin: 20px auto 0; max-width: 800px; }
+    th, td { padding: 10px; border: 1px solid #ddd; text-align: center; }
+    .btn-delete { background: #ef4444; }
+    .btn-delete:hover { background: #dc2626; }
+    .btn-edit { background: #f59e0b; }
+    .btn-edit:hover { background: #d97706; }
+    .btn-save { background: #10b981; margin: 20px auto; display: block; }
+    .btn-save:hover { background: #059669; }
   </style>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-  <h1>رفع الأصناف الجاهزة إلى Firebase</h1>
-  <button onclick="uploadFoods()">ابدأ تحميل البيانات</button>
-  <div id="status">...</div>
+<h1>إدارة الأصناف — إدخال أو رفع من Excel</h1>
 
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js";
-    import {
-      getFirestore,
-      collection,
-      addDoc
-    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+<!--  نموذج الإدخال اليدوي -->
+<form id="manualForm">
+  <input type="text" id="name" placeholder="اسم الصنف" required>
+  <input type="text" id="category" placeholder="التصنيف (مثلاً: مخبوزات)" required>
+  <input type="number" id="carbsPer100g" placeholder="الكربوهيدرات لكل 100 جم" required>
+  <input type="text" id="servingDescription" placeholder="وصف الكمية (مثلاً: رغيف متوسط)" required>
+  <input type="number" id="gramsPerServing" placeholder="الجرام في الكمية" required>
+  <input type="url" id="imageUrl" placeholder="رابط صورة (اختياري)">
+  <button type="submit">أضف / عدّل صنف</button>
+</form>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
-      authDomain: "child-glucose-tracker.firebaseapp.com",
-      projectId: "child-glucose-tracker",
-      storageBucket: "child-glucose-tracker.appspot.com",
-      messagingSenderId: "294563325904",
-      appId: "1:294563325904:web:39562550bf305fc01abbd5",
-      measurementId: "G-TWC063TD6X"
-    };
+<!--  قسم رفع ملف Excel -->
+<div class="excel-section">
+  <input type="file" id="excelInput" accept=".xlsx, .xls">
+</div>
 
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const db = getFirestore(app);
+<!--  جدول عرض الأصناف -->
+<table id="foodsTable">
+  <thead>
+    <tr>
+      <th>اسم الصنف</th>
+      <th>التصنيف</th>
+      <th>كربو/100 جم</th>
+      <th>وصف الكمية</th>
+      <th>جم/وحدة</th>
+      <th>إجراءات</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
 
-    async function uploadFoods() {
-      const status = document.getElementById('status');
-      status.textContent = "جاري التحميل...";
-      try {
-        const response = await fetch('foods_data_arabic.json');
-        const foods = await response.json();
-        for (const food of foods) {
-          await addDoc(collection(db, "foods"), food);
-        }
-        status.textContent = "✅ تم رفع الأصناف بنجاح!";
-      } catch (error) {
-        console.error("❌ حدث خطأ:", error);
-        status.textContent = "❌ فشل في التحميل. تحقق من الملف أو الاتصال.";
-      }
+<button class="btn btn-save" id="saveBtn">حفظ الأصناف في Firebase</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+  import { getFirestore, collection, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    // أضف إعدادات Firebase هنا
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const manualForm = document.getElementById('manualForm');
+  const excelInput = document.getElementById('excelInput');
+  const tableBody = document.querySelector('#foodsTable tbody');
+  let foods = [];
+
+  function renderTable() {
+    tableBody.innerHTML = foods.map((f, idx) => `
+      <tr>
+        <td>${f.name}</td>
+        <td>${f.category}</td>
+        <td>${f.carbsPer100g}</td>
+        <td>${f.servingDescription}</td>
+        <td>${f.gramsPerServing}</td>
+        <td>
+          <button class="btn btn-edit" data-idx="${idx}">تعديل</button>
+          <button class="btn btn-delete" data-idx="${idx}">حذف</button>
+        </td>
+      </tr>`).join('');
+  }
+
+  tableBody.addEventListener('click', e => {
+    const idx = e.target.dataset.idx;
+    if (e.target.matches('.btn-delete')) {
+      foods.splice(idx, 1);
+      renderTable();
+    } else if (e.target.matches('.btn-edit')) {
+      const f = foods[idx];
+      manualForm.name.value = f.name;
+      manualForm.category.value = f.category;
+      manualForm.carbsPer100g.value = f.carbsPer100g;
+      manualForm.servingDescription.value = f.servingDescription;
+      manualForm.gramsPerServing.value = f.gramsPerServing;
+      manualForm.imageUrl.value = f.imageUrl;
+      foods.splice(idx, 1);
+      renderTable();
     }
+  });
 
-    // ربط الدالة بزر الصفحة
-    window.uploadFoods = uploadFoods;
-  </script>
+  manualForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const f = {
+      name: manualForm.name.value.trim(),
+      category: manualForm.category.value.trim(),
+      carbsPer100g: parseFloat(manualForm.carbsPer100g.value),
+      servingDescription: manualForm.servingDescription.value.trim(),
+      gramsPerServing: parseFloat(manualForm.gramsPerServing.value),
+      imageUrl: manualForm.imageUrl.value.trim()
+    };
+    if (!foods.some(x => x.name === f.name)) foods.push(f);
+    else foods = foods.map(x => x.name === f.name ? f : x);
+    renderTable();
+    manualForm.reset();
+  });
 
+  excelInput.addEventListener('change', async e => {
+    const file = e.target.files[0];
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data, { type: 'array' });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const arr = XLSX.utils.sheet_to_json(sheet);
+    arr.forEach(item => {
+      if (item.name && !foods.some(x => x.name === item.name.trim())) {
+        foods.push({
+          name: item.name.trim(),
+          category: item.category?.trim() || "",
+          carbsPer100g: parseFloat(item.carbsPer100g) || 0,
+          servingDescription: item.servingDescription?.trim() || "",
+          gramsPerServing: parseFloat(item.gramsPerServing) || 0,
+          imageUrl: item.imageUrl?.trim() || ""
+        });
+      }
+    });
+    renderTable();
+  });
+
+  document.getElementById('saveBtn').addEventListener('click', async () => {
+    for (const f of foods) {
+      await setDoc(doc(collection(db, "foods"), f.name), f);
+    }
+    alert("تم حفظ الأصناف إلى Firebase بنجاح!");
+  });
+</script>
 </body>
 </html>
