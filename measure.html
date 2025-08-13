@@ -113,56 +113,68 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
-    // إعداد Firebase
-    const firebaseConfig = { apiKey:"...", authDomain:"...", projectId:"child-glucose-tracker" };
+    const firebaseConfig = {
+      apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
+      authDomain: "child-glucose-tracker.firebaseapp.com",
+      projectId: "child-glucose-tracker",
+    };
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
 
     const $ = s => document.querySelector(s);
 
-    // قراءة نطاق البيانات من الرابط
     const params = new URLSearchParams(location.search);
     const childId = params.get("child");
     const prefillCarbs = params.get("carbs");
     const prefillDose = params.get("dose");
     const prefillTime = params.get("time");
 
-    if (!childId) {
-      alert("خطأ: لم يتم تحديد الطفل!");
-    } else {
-      const childRef = doc(db, "users", /* هنا uid الفعلي للمستخدم */, "children", childId);
-      getDoc(childRef).then(snap => {
-        if (!snap.exists()) {
-          alert("الطفل غير موجود!");
-        } else {
-          const data = snap.data();
-          $('#childSel').innerHTML = `<option value="${childId}" selected>${data.name}</option>`;
-          $('#limits').textContent = `ICR: ${data.icr} · منخفض < ${data.lowThreshold} · مرتفع > ${data.highThreshold}`;
-          window.icr = data.icr;
-        }
-      });
-    }
+    let uid = null;
 
-    const mealTimes = ["preBreakfast","preLunch","preDinner"];
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return location.href = "index.html";
+      uid = user.uid;
+
+      if (!childId) {
+        alert("خطأ: لم يتم تحديد الطفل!");
+        return;
+      }
+
+      const childRef = doc(db, "users", uid, "children", childId);
+      const snap = await getDoc(childRef);
+
+      if (!snap.exists()) {
+        alert("الطفل غير موجود!");
+        return;
+      }
+
+      const data = snap.data();
+      $('#childSel').innerHTML = `<option value="${childId}" selected>${data.name}</option>`;
+      $('#limits').textContent = `ICR: ${data.icr} · منخفض < ${data.lowThreshold} · مرتفع > ${data.highThreshold}`;
+      window.icr = data.icr;
+    });
+
+    const mealTimes = ["preBreakfast", "preLunch", "preDinner"];
     $('#slotSel').addEventListener("change", () => {
       $('#openMealBtn').style.display = mealTimes.includes($('#slotSel').value) ? "inline-block" : "none";
     });
 
     $('#openMealBtn').onclick = () => {
       const slot = $('#slotSel').value;
-      if (!window.icr) {
-        alert("الرجاء التأكد من بيانات الطفل أولاً");
-      } else {
-        window.location.href = `meal_selector.html?child=${childId}&time=${slot}&icr=${window.icr}`;
+      if (!window.icr || !childId) {
+        alert("الرجاء التأكد من بيانات الطفل والوقت");
+        return;
       }
+      window.location.href = `meal_selector.html?child=${childId}&time=${slot}&icr=${window.icr}`;
     };
 
-    // استقبال الكربوهيدرات والجرعة عند العودة
     if (prefillCarbs) $('#carbs').value = prefillCarbs;
     if (prefillDose) $('#mealDose').value = prefillDose;
     if (prefillTime) $('#slotSel').value = prefillTime;
-
   </script>
 </body>
 </html>
