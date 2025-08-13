@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>رفع الأصناف إلى Firebase</title>
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      background-color: #f0f4f8;
+      text-align: center;
+      padding: 50px;
+    }
+    h1 {
+      color: #0CBABA;
+    }
+    button {
+      padding: 15px 25px;
+      font-size: 18px;
+      background-color: #0CBABA;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background-color: #089e9e;
+    }
+    #status {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>رفع الأصناف الجاهزة إلى Firebase</h1>
+  <button onclick="uploadFoods()">ابدأ تحميل البيانات</button>
+  <div id="status">...</div>
+
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
+      authDomain: "child-glucose-tracker.firebaseapp.com",
+      projectId: "child-glucose-tracker",
+      storageBucket: "child-glucose-tracker.appspot.com",
+      messagingSenderId: "294563325904",
+      appId: "1:294563325904:web:39562550bf305fc01abbd5",
+      measurementId: "G-TWC063TD6X"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
+
+    async function uploadFoods() {
+      const status = document.getElementById('status');
+      status.textContent = "جاري التحميل...";
+
+      try {
+        const response = await fetch('foods_data_arabic.json');
+        const foods = await response.json();
+
+        for (const food of foods) {
+          await db.collection("foods").add(food);
+        }
+
+        status.textContent = "✅ تم رفع الأصناف بنجاح!";
+      } catch (error) {
+        console.error("❌ حدث خطأ:", error);
+        status.textContent = "❌ فشل في التحميل. تحقق من الملف أو الاتصال.";
+      }
+    }
+  </script>
+
+</body>
+</html>
