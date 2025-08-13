@@ -1,268 +1,204 @@
-<!-- ✅ meal_selector.html — الجزء 1 -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>اختيار الوجبة</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>اختيار وجبة الطفل</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Cairo', sans-serif;
-      background: #f0f4f8;
-      margin: 0;
-      padding: 20px;
-      color: #333;
-    }
-    h1, h2 {
-      color: #0ea5e9;
-      text-align: center;
-    }
-    .child-info {
-      background-color: #e0f7fa;
-      border-radius: 10px;
-      padding: 15px;
-      margin: 20px auto;
-      max-width: 800px;
-      font-size: 18px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .layout {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      justify-content: center;
-      margin-top: 30px;
-    }
-    .categories {
-      width: 200px;
-      background-color: #ffffff;
-      border-radius: 8px;
-      padding: 10px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      height: 400px;
-      overflow-y: auto;
-    }
-    .categories button {
-      width: 100%;
-      margin-bottom: 10px;
-      padding: 10px;
-      background-color: #f9fafb;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    .categories button:hover {
-      background-color: #e0f2fe;
-    }
-    .items {
-      flex: 1;
-      max-width: 600px;
-      background-color: #ffffff;
-      padding: 10px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      height: 400px;
-      overflow-y: auto;
-    }
-    .item-card {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #eee;
-      padding: 8px 0;
-    }
-    .item-card input {
-      width: 60px;
-      padding: 5px;
-      text-align: center;
-    }
-    .item-card button {
-      padding: 6px 10px;
-      background-color: #10b981;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .item-card button:hover {
-      background-color: #059669;
-    }
+    body { font-family: 'Cairo', sans-serif; background: #f0f4f8; color: #333; margin: 0; padding: 20px; }
+    h1, h2 { color: #0ea5e9; text-align: center; }
+    .child-info { background: #e0f7fa; padding: 15px; border-radius: 10px; max-width: 800px; margin: 20px auto; font-size: 18px; }
+    .layout { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin: 30px auto; max-width: 1000px; }
+    .categories, .items { background: #fff; border-radius: 8px; padding: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); height: 400px; overflow-y: auto; }
+    .categories { width: 200px; }
+    .categories button { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px; background: #f9fafb; font-size: 16px; cursor: pointer; }
+    .categories button:hover { background: #e0f2fe; }
+    .item-card { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; }
+    .item-card input { width: 60px; padding: 5px; text-align: center; margin: 0 10px; }
+    .item-card button { background: #10b981; color: #fff; padding: 6px 10px; border: none; border-radius: 6px; cursor: pointer; }
+    .item-card button:hover { background: #059669; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; margin: 20px auto; max-width: 800px; }
+    th, td { padding: 10px; text-align: center; border: 1px solid #ddd; }
+    th { background-color: #f0f9ff; }
+    .totals { text-align: center; font-size: 18px; margin-top: 20px; }
+    .totals p { margin: 8px 0; }
+    .btn-save { display: block; margin: 30px auto; padding: 12px 25px; font-size: 18px; border: none; border-radius: 8px; background: #0ea5e9; color: #fff; cursor: pointer; }
+    .btn-save:hover { background: #0284c7; }
   </style>
 </head>
 <body>
 
-  <h1>🍽️ اختيار الأصناف للوجبة</h1>
+  <h1>🍽 اختيار الوجبة</h1>
+  <div class="child-info" id="childInfo">جاري التحميل...</div>
 
-  <!-- 🧒 بيانات الطفل -->
-  <div class="child-info" id="childInfo">
-    <strong>الاسم:</strong> أسيل | <strong>ICR:</strong> 12 جرام / وحدة | <strong>الوقت:</strong> قبل الإفطار
-  </div>
-
-  <!-- 🧭 التصنيفات والأصناف -->
   <div class="layout">
     <div class="categories" id="categoryList">
-      <!-- سيتم ملؤها ديناميكيًا -->
+      تحميل التصنيفات...
     </div>
     <div class="items" id="foodList">
-      <p>اختر تصنيفًا من اليمين لعرض الأصناف.</p>
+      اختر تصنيفًا من اليمين لعرض الأصناف
     </div>
   </div>
-  <!-- ✅ الجزء 2: جدول الأصناف المختارة -->
-  <h2>🥗 الأصناف المختارة</h2>
-  <div style="max-width: 800px; margin: 0 auto;">
-    <table style="width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden;">
-      <thead style="background-color: #f0f9ff;">
-        <tr>
-          <th style="padding: 10px;">الصنف</th>
-          <th>الكمية (جم)</th>
-          <th>الكارب</th>
-          <th>إجراء</th>
-        </tr>
-      </thead>
-      <tbody id="selectedFoodsTable"></tbody>
-    </table>
 
-    <!-- ✅ إجمالي الكارب والجرعة -->
-    <div style="margin-top: 20px; text-align: center; font-size: 18px;">
-      <p>إجمالي الكربوهيدرات: <strong id="totalCarbs">0</strong> جم</p>
-      <p>جرعة الأنسولين المطلوبة: <strong id="insulinDose">0</strong> وحدات</p>
-    </div>
-
-    <!-- ✅ زر حفظ الوجبة -->
-    <div style="text-align: center; margin-top: 30px;">
-      <button class="btn-save" id="saveMealBtn" style="padding: 12px 25px; font-size: 18px;">💾 حفظ الوجبة والعودة</button>
-    </div>
-  </div>
-<!-- ✅ الجزء 3: السكربت والتفاعل مع الصفحة -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-  import { getFirestore, collection, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-
-  // إعداد Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
-    authDomain: "child-glucose-tracker.firebaseapp.com",
-    projectId: "child-glucose-tracker",
-    storageBucket: "child-glucose-tracker.appspot.com",
-    messagingSenderId: "294563325904",
-    appId: "1:294563325904:web:39562550bf305fc01abbd5",
-    measurementId: "G-TWC063TD6X"
-  };
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  // عناصر من الصفحة
-  const categoryList = document.getElementById("categoryList");
-  const foodList = document.getElementById("foodList");
-  const selectedFoodsTable = document.getElementById("selectedFoodsTable");
-  const totalCarbsEl = document.getElementById("totalCarbs");
-  const insulinDoseEl = document.getElementById("insulinDose");
-  const saveMealBtn = document.getElementById("saveMealBtn");
-  const childInfo = document.getElementById("childInfo");
-
-  // بيانات تجهز تلقائيًا:
-  const urlParams = new URLSearchParams(window.location.search);
-  const childId = urlParams.get("child") || "";    // زي child=uhLz...
-  const mealTime = urlParams.get("time") || "";    // زي time=beforeBreakfast
-  const ICR = parseFloat(urlParams.get("icr")) || 12;
-
-  childInfo.innerHTML = `
-    <strong>الاسم:</strong> – &nbsp;|&nbsp;
-    <strong>ICR:</strong> ${ICR} جرام/وحدة &nbsp;|&nbsp;
-    <strong>الوقت:</strong> ${mealTime.replace(/([A-Z])/g, ' $1').trim()}
-  `;
-
-  let categories = [];
-  let foods = [];
-  let selectedFoods = [];
-
-  // جلب التصنيفات من "foods" في Firebase
-  async function loadFoods() {
-    const snapshot = await getDocs(collection(db, "foods"));
-    const arr = [];
-    snapshot.forEach(doc => arr.push(doc.data()));
-    foods = arr;
-    categories = Array.from(new Set(arr.map(f => f.category)));
-    renderCategories();
-  }
-
-  function renderCategories() {
-    categoryList.innerHTML = categories.map(cat => `
-      <button data-cat="${cat}">${cat}</button>
-    `).join('');
-    categoryList.querySelectorAll("button").forEach(btn => {
-      btn.addEventListener("click", () => renderFoods(btn.dataset.cat));
-    });
-  }
-
-  function renderFoods(cat) {
-    foodList.innerHTML = "";
-    foods.filter(f => f.category === cat).forEach(f => {
-      const div = document.createElement("div");
-      div.className = "item-card";
-      div.innerHTML = `
-        <span>${f.name}</span>
-        <input type="number" placeholder="الكمية جرام" min="0" step="0.1" id="input-${f.name}">
-        <button data-name="${f.name}">أضف</button>
-      `;
-      foodList.appendChild(div);
-    });
-    foodList.querySelectorAll(".item-card button").forEach(btn => {
-      btn.addEventListener("click", () => addFood(btn.dataset.name));
-    });
-  }
-
-  function addFood(name) {
-    const food = foods.find(f => f.name === name);
-    const qtyInput = document.getElementById(`input-${name}`);
-    const qty = parseFloat(qtyInput.value);
-    if (!qty || qty <= 0) return alert("أدخلي كمية صالحة");
-    const carbs = qty * (food.carbsPer100g / 100);
-    selectedFoods.push({ ...food, qty, carbs });
-    renderSelected();
-    qtyInput.value = "";
-  }
-
-  function renderSelected() {
-    selectedFoodsTable.innerHTML = selectedFoods.map((f, i) => `
+  <h2>الأصناف المختارة</h2>
+  <table>
+    <thead>
       <tr>
-        <td>${f.name}</td>
-        <td>${f.qty}</td>
-        <td>${f.carbs.toFixed(1)}</td>
-        <td><button data-idx="${i}">حذف</button></td>
+        <th>الصنف</th>
+        <th>الكمية (جم)</th>
+        <th>الكارب</th>
+        <th>حذف</th>
       </tr>
-    `).join('');
-    selectedFoodsTable.querySelectorAll("button").forEach(btn => {
-      btn.addEventListener("click", () => {
-        selectedFoods.splice(parseInt(btn.dataset.idx), 1);
-        renderSelected();
+    </thead>
+    <tbody id="selectedFoodsTable">
+      <tr><td colspan="4">لا توجد أصناف مختارة بعد.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="totals">
+    <p>إجمالي الكربوهيدرات: <strong id="totalCarbs">0</strong> جم</p>
+    <p>جرعة الإنسولين المطلوبة: <strong id="insulinDose">0</strong> وحدة</p>
+  </div>
+
+  <button class="btn-save" id="saveMealBtn">💾 حفظ الوجبة والعودة</button>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
+      authDomain: "child-glucose-tracker.firebaseapp.com",
+      projectId: "child-glucose-tracker",
+      storageBucket: "child-glucose-tracker.appspot.com",
+      messagingSenderId: "294563325904",
+      appId: "1:294563325904:web:39562550bf305fc01abbd5",
+      measurementId: "G-TWC063TD6X"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const childInfo = document.getElementById("childInfo");
+    const categoryList = document.getElementById("categoryList");
+    const foodList = document.getElementById("foodList");
+    const selectedFoodsTable = document.getElementById("selectedFoodsTable");
+    const totalCarbsEl = document.getElementById("totalCarbs");
+    const insulinDoseEl = document.getElementById("insulinDose");
+    const saveMealBtn = document.getElementById("saveMealBtn");
+
+    const params = new URLSearchParams(location.search);
+    const childId = params.get("child");
+    const mealTime = params.get("time");
+    let ICR = parseFloat(params.get("icr")) || 10;
+
+    async function loadChildData() {
+      const docRef = doc(db, "users", "/* uid محذوف */", "children", childId);
+      const snapshot = await getDocs(collection(db, "users", "/* uid محذوف */", "children"));
+      // حسب تصميمك، ممكن تستدعي document فردي بدل collection
+      // لكن إلي هنا فقط العنصر.
+      childInfo.textContent = `✔ جاري التحميل...`;
+      // بعد الحصول على البيانات، غير العنصرين أسفله:
+      // childInfo.textContent = `الاسم: ${data.name} | ICR: ${data.icr} | الوقت: ${mealTime}`;
+    }
+
+    loadChildData();
+
+    // بقى كود تحميل الأصناف، التصنيفات، والإضافة للجدول و الحفظ:
+    let categories = [];
+    let foods = [];
+    let selectedFoods = [];
+
+    async function loadFoods() {
+      const snapshot = await getDocs(collection(db, "foods"));
+      const arr = [];
+      snapshot.forEach(doc => arr.push(doc.data()));
+      foods = arr;
+      categories = [...new Set(arr.map(f => f.category))];
+      renderCategories();
+    }
+
+    function renderCategories() {
+      categoryList.innerHTML = categories.map(cat => `<button data-cat="${cat}">${cat}</button>`).join('');
+      categoryList.querySelectorAll("button").forEach(btn =>
+        btn.addEventListener("click", () => renderFoods(btn.dataset.cat))
+      );
+    }
+
+    function renderFoods(cat) {
+      foodList.innerHTML = "";
+      foods
+        .filter(f => f.category === cat)
+        .forEach(f => {
+          const div = document.createElement("div");
+          div.className = "item-card";
+          div.innerHTML = `
+            <span>${f.name}</span>
+            <input type="number" min="0" step="0.1" id="input-${f.name}" placeholder="جم">
+            <button data-name="${f.name}">أضف</button>
+          `;
+          foodList.appendChild(div);
+        });
+      foodList.querySelectorAll(".item-card button").forEach(btn =>
+        btn.addEventListener("click", () => addFood(btn.dataset.name))
+      );
+    }
+
+    function addFood(name) {
+      const food = foods.find(f => f.name === name);
+      const qtyInput = document.getElementById(`input-${name}`);
+      const qty = parseFloat(qtyInput.value);
+      if (!qty || qty <= 0) return alert("يرجى إدخال كمية صالحة");
+      const carbsVal = qty * (food.carbsPer100g / 100);
+      selectedFoods.push({ ...food, qty, carbs: carbsVal });
+      renderSelected();
+      qtyInput.value = "";
+    }
+
+    function renderSelected() {
+      if (!selectedFoods.length) {
+        selectedFoodsTable.innerHTML = "<tr><td colspan='4'>لا توجد أصناف مختارة.</td></tr>";
+        return;
+      }
+      selectedFoodsTable.innerHTML = selectedFoods.map((f, i) => `
+        <tr>
+          <td>${f.name}</td>
+          <td>${f.qty}</td>
+          <td>${f.carbs.toFixed(1)}</td>
+          <td><button data-idx="${i}">حذف</button></td>
+        </tr>
+      `).join('');
+      selectedFoodsTable.querySelectorAll("button").forEach(btn =>
+        btn.addEventListener("click", () => {
+          selectedFoods.splice(+btn.dataset.idx, 1);
+          renderSelected();
+        })
+      );
+      updateTotals();
+    }
+
+    function updateTotals() {
+      const total = selectedFoods.reduce((sum, f) => sum + f.carbs, 0);
+      totalCarbsEl.textContent = total.toFixed(1);
+      insulinDoseEl.textContent = (total / ICR).toFixed(1);
+    }
+
+    saveMealBtn.addEventListener("click", async () => {
+      if (!childId) return alert("خطأ: لم يتم تحديد الطفل.");
+      const today = new Date().toISOString().slice(0, 10);
+      const mealDocRef = doc(db, "users", "/* uid محذوف */", "children", childId, "meals", today + "_" + mealTime);
+      await setDoc(mealDocRef, {
+        time: mealTime,
+        foods: selectedFoods,
+        totalCarbs: parseFloat(totalCarbsEl.textContent),
+        insulinDose: parseFloat(insulinDoseEl.textContent),
+        createdAt: new Date()
       });
+      window.location = `measure.html?child=${childId}&time=${mealTime}&carbs=${totalCarbsEl.textContent}&dose=${insulinDoseEl.textContent}`;
     });
-    updateTotals();
-  }
 
-  function updateTotals() {
-    const total = selectedFoods.reduce((sum, f) => sum + f.carbs, 0);
-    totalCarbsEl.textContent = total.toFixed(1);
-    insulinDoseEl.textContent = (total / ICR).toFixed(1);
-  }
-
-  saveMealBtn.addEventListener("click", async () => {
-    if (!childId) return alert("لم يتم تحديد الطفل!");
-    const today = new Date().toISOString().split("T")[0];
-    const ref = doc(db, "users", childId, "children", childId, "meals", today + "_" + mealTime);
-    await setDoc(ref, {
-      time: mealTime,
-      foods: selectedFoods,
-      totalCarbs: parseFloat(totalCarbsEl.textContent),
-      insulinDose: parseFloat(insulinDoseEl.textContent),
-      createdAt: new Date()
-    });
-    window.location = `measure.html?child=${childId}&time=${mealTime}&carbs=${totalCarbsEl.textContent}&dose=${insulinDoseEl.textContent}`;
-  });
-
-  loadFoods();
-</script>
+    loadFoods();
+  </script>
 </body>
 </html>
