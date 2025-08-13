@@ -1,20 +1,133 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>اختيار وجبة الطفل</title>
   <style>
-    /* CSS لا يتغير */
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: #f0f4f8;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
+    h1, h2 {
+      color: #0ea5e9;
+      text-align: center;
+    }
+    .child-info {
+      background: #e0f7fa;
+      padding: 15px;
+      border-radius: 10px;
+      max-width: 800px;
+      margin: 20px auto;
+      font-size: 18px;
+    }
+    .layout {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      margin: 30px auto;
+      max-width: 1000px;
+    }
+    .categories, .items {
+      background: #fff;
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      height: 400px;
+      overflow-y: auto;
+    }
+    .categories {
+      width: 200px;
+    }
+    .categories button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #f9fafb;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .categories button:hover {
+      background: #e0f2fe;
+    }
+    .item-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .item-card input {
+      width: 80px;
+      padding: 5px;
+      text-align: center;
+      margin: 0 10px;
+    }
+    .item-card button {
+      background: #10b981;
+      color: #fff;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .item-card button:hover {
+      background: #059669;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 20px auto;
+      max-width: 800px;
+    }
+    th, td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+    th {
+      background-color: #f0f9ff;
+    }
+    .totals {
+      text-align: center;
+      font-size: 18px;
+      margin-top: 20px;
+    }
+    .btn-save {
+      display: block;
+      margin: 30px auto;
+      padding: 12px 25px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      background: #0ea5e9;
+      color: #fff;
+      cursor: pointer;
+    }
+    .btn-save:hover {
+      background: #0284c7;
+    }
   </style>
 </head>
 <body>
+
   <h1>🍽 اختيار وجبة الطفل</h1>
   <div class="child-info" id="childInfo">تحميل بيانات الطفل...</div>
+
   <div class="layout">
     <div class="categories" id="categoryList">تحميل التصنيفات...</div>
     <div class="items" id="foodList">اختر تصنيفًا لعرض الأصناف</div>
   </div>
+
   <h2>الأصناف المختارة</h2>
   <table>
     <thead>
@@ -24,10 +137,12 @@
       <tr><td colspan="4">لا توجد أصناف مختارة.</td></tr>
     </tbody>
   </table>
+
   <div class="totals">
     <p>إجمالي الكربوهيدرات: <strong id="totalCarbs">0</strong> جم</p>
     <p>جرعة الإنسولين: <strong id="insulinDose">0</strong> وحدة</p>
   </div>
+
   <button class="btn-save" id="saveMealBtn">💾 حفظ الوجبة</button>
 
   <script type="module">
@@ -36,13 +151,14 @@
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
+      apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
       authDomain: "child-glucose-tracker.firebaseapp.com",
       projectId: "child-glucose-tracker",
       storageBucket: "child-glucose-tracker.appspot.com",
       messagingSenderId: "294563325904",
       appId: "1:294563325904:web:39562550bf305fc01abbd5"
     };
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
@@ -61,30 +177,28 @@
     const mealTime = params.get("time");
     let ICR = parseFloat(params.get("icr")) || 1;
 
-    // بداية تسجيل دخول مجهول
-    signInAnonymously(auth)
-      .catch(err => console.error("خطأ في تسجيل الدخول المجهول:", err));
+    signInAnonymously(auth).catch(err => console.error("تسجيل الدخول المجهول فشل:", err));
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) return alert("فشل تسجيل الدخول");
-      const uid = user.uid;
 
-      // تحميل بيانات الطفل فقط بعد التأكد من وجود auth
+      const uid = user.uid;
       const snap = await getDoc(doc(db, "users", uid, "children", childId));
       if (!snap.exists()) {
-        childInfo.textContent = "للأسف، الطفل غير موجود.";
+        childInfo.textContent = "لم يتم العثور على بيانات الطفل.";
         return;
       }
+
       const data = snap.data();
       childInfo.textContent = `الاسم: ${data.name} | ICR: ${data.icr} جم/وحدة`;
       ICR = data.icr;
 
-      // بعد تحميل الطفل، نبدأ تحميل الأصناف والتفاعلات:
       await loadFoods();
-      setupSave();
+      setupSave(uid);
     });
 
     let foods = [], selected = [];
+
     async function loadFoods() {
       const snap = await getDocs(collection(db, "foods"));
       foods = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -112,7 +226,7 @@
     function addFood(id) {
       const f = foods.find(x => x.id === id);
       const qty = parseInt($(`#unit-${id}`).value);
-      if (!(qty > 0)) return alert("أدخلي عدد وحدات صالحة!");
+      if (!(qty > 0)) return alert("أدخل عدد وحدات صالح");
       const carbs = qty * (f.carbsPerUnit || 0);
       selected.push({ name: f.name, qty, carbs });
       renderSelected();
@@ -141,10 +255,10 @@
       insulinDoseEl.textContent = (total / ICR).toFixed(1);
     }
 
-    function setupSave() {
+    function setupSave(uid) {
       saveMealBtn.onclick = async () => {
         const dateKey = new Date().toISOString().split("T")[0];
-        await setDoc(doc(db, "users", auth.currentUser.uid, "children", childId, "meals", dateKey + "_" + mealTime), {
+        await setDoc(doc(db, "users", uid, "children", childId, "meals", dateKey + "_" + mealTime), {
           time: mealTime,
           items: selected,
           totalCarbs: parseFloat(totalCarbsEl.textContent),
@@ -155,5 +269,6 @@
       };
     }
   </script>
+
 </body>
 </html>
