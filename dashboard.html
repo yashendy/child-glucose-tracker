@@ -1,120 +1,196 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>لوحة التحكم — متابعة سكر الأطفال</title>
-  
-  <!-- ✅ الجزء (1): تنسيقات عصرية للصفحة -->
+
   <style>
-    :root {
-      --brand:#0ea5e9; --brand2:#6ee7b7; --line:#e5e7eb;
-      --ink:#0f172a; --muted:#6b7280; --bg:#f6fbff;
-      --card:#fff; --chip:#eef6ff;
-    }
+  /* رقم 1: ألوان وأساسيات */
+  :root {
+    --brand: #0ea5e9;
+    --brand2: #6ee7b7;
+    --line: #e5e7eb;
+    --ink: #0f172a;
+    --muted: #6b7280;
+    --bg: #f6fbff;
+    --card: #fff;
+    --chip: #eef6ff
+  }
 
-    * { box-sizing: border-box }
-    body {
-      margin: 0;
-      font: 15px/1.6 system-ui, "Tajawal", "Noto Sans Arabic", sans-serif;
-      background: var(--bg);
-      color: var(--ink);
-    }
+  * { box-sizing: border-box }
+  body {
+    margin: 0;
+    font: 15px/1.6 system-ui, "Tajawal", "Noto Sans Arabic", sans-serif;
+    background: var(--bg);
+    color: var(--ink)
+  }
 
-    header {
-      position: sticky;
-      top: 0;
-      background: linear-gradient(90deg, var(--brand), var(--brand2));
-      color: #fff;
-      padding: 14px 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
+  header {
+    position: sticky;
+    top: 0;
+    background: linear-gradient(90deg, var(--brand), var(--brand2));
+    color: #fff;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between
+  }
 
-    header .title { font-weight: 800 }
+  header .title {
+    font-weight: 800
+  }
 
-    main { max-width: 1200px; margin: auto; padding: 18px }
+  main {
+    max-width: 1200px;
+    margin: auto;
+    padding: 18px
+  }
 
-    /* ✅ تنسيق جديد لبطاقة ولي الأمر */
-    .card-parent {
-      background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      margin-bottom: 30px;
-      border: 1px solid #cce7f6;
-    }
+  /* رقم 2: البطاقات */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, .05);
+    margin-bottom: 14px
+  }
 
-    .card-parent h2 {
-      margin-bottom: 20px;
-      font-size: 22px;
-      color: #0c4a6e;
-      text-align: center;
-    }
+  h2 { margin: 0 0 10px }
 
-    .parent-fields {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 16px;
-    }
+  label {
+    display: block;
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 6px
+  }
 
-    .parent-fields input {
-      padding: 10px 14px;
-      border: 1px solid #bae6fd;
-      border-radius: 10px;
-      background-color: #fff;
-      transition: 0.3s ease;
-    }
+  input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff
+  }
 
-    .parent-fields input:focus {
-      border-color: #38bdf8;
-      outline: none;
-      background: #f0f9ff;
-    }
+  .grid {
+    display: grid;
+    gap: 12px
+  }
 
-    .save-btn {
-      background: #0284c7;
-      color: white;
-      padding: 12px 18px;
-      border: none;
-      border-radius: 10px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.3s ease;
-      display: block;
-      margin: 20px auto 0;
-    }
+  .grid.cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+  }
 
-    .save-btn:hover {
-      background: #0369a1;
-    }
+  .grid.cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+  }
 
-    .note {
-      color: var(--muted);
-      font-size: 13px;
-    }
+  @media (max-width: 1000px) {
+    .grid.cols-3 { grid-template-columns: 1fr 1fr }
+  }
 
-    .toast {
-      position: fixed;
-      bottom: 16px;
-      left: 16px;
-      background: #111;
-      color: #fff;
-      padding: 10px 14px;
-      border-radius: 12px;
-      opacity: 0;
-      transform: translateY(8px);
-      transition: .3s;
-    }
+  @media (max-width: 720px) {
+    .grid.cols-2, .grid.cols-3 { grid-template-columns: 1fr }
+  }
 
-    .toast.show {
-      opacity: 1;
-      transform: none;
-    }
+  .row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center
+  }
+
+  .btn {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block
+  }
+
+  .btn.primary { background: var(--brand); color: #fff }
+  .btn.secondary { background: #10b981; color: #fff }
+  .btn.gray { background: #eef2f7 }
+  .btn.purple { background: #7c3aed; color: #fff }
+
+  .note {
+    color: var(--muted);
+    font-size: 13px
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    background: #111;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 12px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: .3s
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: none
+  }
+
+  /* رقم 3: كروت الأطفال الجديدة */
+  .kid-card {
+    background: #e0f7fa;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08)
+  }
+
+  .kid-card h3 {
+    font-size: 24px;
+    color: #0f172a;
+    margin: 0 0 10px
+  }
+
+  .kid-info {
+    color: #374151;
+    font-size: 15px;
+    margin-bottom: 12px
+  }
+
+  .kid-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px
+  }
+
+  .kid-actions button {
+    padding: 10px 14px;
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px
+  }
+
+  .btn-blue    { background-color: #3b82f6 }
+  .btn-green   { background-color: #10b981 }
+  .btn-purple  { background-color: #8b5cf6 }
+  .btn-orange  { background-color: #f97316 }
+  .btn-gray    { background-color: #6b7280 }
+
   </style>
 </head>
-  //الجزء الثاني
+
+<!-- // الجزء الثاني -->
 <body>
   <!-- ✅ رأس الصفحة -->
   <header>
@@ -128,48 +204,50 @@
   <!-- ✅ محتوى الصفحة الرئيسي -->
   <main>
 
-    <!-- ✅ بطاقة وليّ الأمر (مُنسقة بعناية) -->
+    <!-- ✅ بطاقة وليّ الأمر (مُنسقة بالكامل) -->
     <section class="card-parent">
       <h2>👨‍👩‍👧 بيانات وليّ الأمر</h2>
       <div id="hello" class="note" style="text-align:center; margin-bottom: 10px;">تحميل...</div>
       <div class="parent-fields">
         <div>
-          <label>اسم وليّ الأمر</label>
+          <label for="guardianName">👤 اسم وليّ الأمر</label>
           <input id="guardianName" placeholder="مثال: ياسر حمدي">
         </div>
         <div>
-          <label>الاسم (اختياري)</label>
+          <label for="fullName">👨‍💼 الاسم (اختياري)</label>
           <input id="fullName" placeholder="الاسم الكامل">
         </div>
         <div>
-          <label>الرقم المدني</label>
+          <label for="civilId">🆔 الرقم المدني</label>
           <input id="civilId" placeholder="مثال: 281042603532">
         </div>
         <div>
-          <label>رقم الهاتف</label>
+          <label for="phone">📱 رقم الهاتف</label>
           <input id="phone" placeholder="مثال: 50534441">
         </div>
         <div>
-          <label>البريد الإلكتروني</label>
+          <label for="email">📧 البريد الإلكتروني</label>
           <input id="email" disabled>
         </div>
       </div>
       <button id="saveParent" class="save-btn">💾 حفظ التعديلات</button>
     </section>
-    //الجزء الثالث
-    <!-- ✅ كروت الأطفال -->
-    <section class="card">
-      <h2 style="text-align:center; color:#0ea5e9;">🧒 أطفالي</h2>
-      <div id="kids" class="kids">
-        <div class="note">تحميل الأطفال...</div>
-      </div>
-    </section>
 
-  </main>
+  <!-- // الجزء الثالث -->
+<!-- ✅ كروت الأطفال -->
+<section>
+  <h2 style="text-align:center; color:#0ea5e9; font-size:26px; margin-bottom: 16px;">🧒 أطفالي</h2>
+  <div id="kids">
+    <div class="note" style="text-align:center;">تحميل الأطفال...</div>
+  </div>
+</section>
 
-  <!-- ✅ إشعار مؤقت -->
-  <div id="toast" class="toast"></div>
-  //الجزء الرابع
+</main>
+
+<!-- ✅ إشعار مؤقت -->
+<div id="toast" class="toast"></div>
+
+ <!-- // الجزء الرابع -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
@@ -236,13 +314,14 @@
     toast("✅ تم حفظ التعديلات");
   });
 
-  // ✅ تحميل الأطفال
+  // ✅ تحميل الأطفال (منسق بالكامل)
   async function loadKids() {
     const container = $("#kids");
     container.innerHTML = "";
     const query = await getDocs(collection(db, "users", uid, "children"));
+
     if (query.empty) {
-      container.innerHTML = '<div class="note">لا يوجد أطفال بعد — اضغطي “👧 إدارة الأطفال”.</div>';
+      container.innerHTML = '<div class="note" style="text-align:center;">لا يوجد أطفال بعد — اضغطي “👧 إدارة الأطفال”.</div>';
       return;
     }
 
@@ -252,28 +331,26 @@
       const unit = c.preferredUnit === "mgdl" ? "mg/dL" : "mmol/L";
 
       const card = document.createElement("div");
-      card.className = "kid";
+      card.className = "kid-card";
+
       card.innerHTML = `
-        <h3 style="color:#0ea5e9; margin: 0 0 6px;">👧 ${c.name || "بدون اسم"}</h3>
-        <div class="note">
+        <h3>👧 ${c.name || "بدون اسم"}</h3>
+        <div class="kid-info">
           📏 الطول: ${c.height ?? "—"} سم<br>
           ⚖️ الوزن: ${c.weight ?? "—"} كجم<br>
           💉 تريسيبا: ${c.tresiba ?? "—"} - نوفو: ${c.novo ?? "—"}<br>
-          🧾 الرقم المدني: ${c.childCivilId ?? "—"}
-        </div>
-        <div class="chips" style="margin:8px 0;">
-          <span class="chip">الوحدة: ${unit}</span>
-          <span class="chip">منخفض &lt; ${c.lowThreshold ?? "—"}</span>
-          <span class="chip">مرتفع &gt; ${c.highThreshold ?? "—"}</span>
+          🧾 الرقم المدني: ${c.childCivilId ?? "—"}<br>
+          💡 الوحدة: ${unit} — منخفض &lt; ${c.lowThreshold ?? "—"} • مرتفع &gt; ${c.highThreshold ?? "—"}
         </div>
         <div class="kid-actions">
-          <a class="btn secondary" href="measure.html?child=${id}">🩺 تسجيل قياسات</a>
-          <a class="btn primary" href="report.html?child=${id}">📊 عرض التقارير</a>
-          <a class="btn purple"  href="doctor.html?child=${id}">🧑‍⚕️ متابعة الطبيب</a>
-          <a class="btn gray"     href="child.html?child=${id}">🛠️ تعديل بيانات الطفل</a>
-          <button class="btn orange" onclick="goToMealPlanner('${id}')">🍔 اختيار وجبة</button>
+          <button class="btn-green" onclick="location.href='measure.html?child=${id}'">📝 تسجيل قياسات</button>
+          <button class="btn-blue" onclick="location.href='report.html?child=${id}'">📊 عرض التقارير</button>
+          <button class="btn-purple" onclick="location.href='doctor.html?child=${id}'">🧑‍⚕️ متابعة الطبيب</button>
+          <button class="btn-gray" onclick="location.href='child.html?child=${id}'">🛠️ تعديل بيانات الطفل</button>
+          <button class="btn-orange" onclick="goToMealPlanner('${id}')">🍔 اختيار وجبة</button>
         </div>
       `;
+
       container.appendChild(card);
     });
   }
@@ -291,3 +368,4 @@
 </script>
 </body>
 </html>
+
