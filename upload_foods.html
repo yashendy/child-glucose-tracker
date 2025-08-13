@@ -43,7 +43,11 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js";
-    import { getFirestore } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
@@ -59,7 +63,6 @@
     const analytics = getAnalytics(app);
     const db = getFirestore(app);
 
-    // ✅ دالة رفع الأصناف
     async function uploadFoods() {
       const status = document.getElementById('status');
       status.textContent = "جاري التحميل...";
@@ -67,7 +70,7 @@
         const response = await fetch('foods_data_arabic.json');
         const foods = await response.json();
         for (const food of foods) {
-          await db.collection("foods").add(food);
+          await addDoc(collection(db, "foods"), food);
         }
         status.textContent = "✅ تم رفع الأصناف بنجاح!";
       } catch (error) {
@@ -76,7 +79,7 @@
       }
     }
 
-    // ✅ مهم عشان الزر يقدر يشوف الدالة
+    // ربط الدالة بزر الصفحة
     window.uploadFoods = uploadFoods;
   </script>
 
