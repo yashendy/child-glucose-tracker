@@ -39,7 +39,7 @@
   <button onclick="uploadFoods()">ابدأ تحميل البيانات</button>
   <div id="status">...</div>
 
-  <!-- Firebase SDKs -->
+  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js";
@@ -59,24 +59,25 @@
     const analytics = getAnalytics(app);
     const db = getFirestore(app);
 
+    // ✅ دالة رفع الأصناف
     async function uploadFoods() {
       const status = document.getElementById('status');
       status.textContent = "جاري التحميل...";
-
       try {
         const response = await fetch('foods_data_arabic.json');
         const foods = await response.json();
-
         for (const food of foods) {
           await db.collection("foods").add(food);
         }
-
         status.textContent = "✅ تم رفع الأصناف بنجاح!";
       } catch (error) {
         console.error("❌ حدث خطأ:", error);
         status.textContent = "❌ فشل في التحميل. تحقق من الملف أو الاتصال.";
       }
     }
+
+    // ✅ مهم عشان الزر يقدر يشوف الدالة
+    window.uploadFoods = uploadFoods;
   </script>
 
 </body>
