@@ -1,180 +1,149 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>تسجيل القياسات — متابعة سكر الأطفال</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>قياس السكر اليومي</title>
   <style>
-    :root{--brand:#0ea5e9;--brand2:#6ee7b7;--line:#e5e7eb;--ink:#0f172a;--muted:#64748b;--bg:#f7fbff;--card:#fff;--ok:#22c55e;--low:#b45309;--high:#dc2626;}
-    *{box-sizing:border-box;margin:0;padding:0;}
-    body{font:15px/1.6 system-ui, 'Tajawal','Noto Sans Arabic',sans-serif; background:var(--bg);color:var(--ink);}
-    header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:14px 18px;display:flex;justify-content:space-between;}
-    .btn{border:none;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer;}
-    .btn.primary{background:var(--brand);color:white;}
-    .btn.gray{background:#eef2f7;}
-    main{max-width:1100px;margin:20px auto;padding:0 20px;}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:20px;}
-    .grid{display:grid;gap:12px;}
-    .g3{grid-template-columns:repeat(3,minmax(0,1fr));}
-    @media(max-width:900px){.g3{grid-template-columns:1fr;}}
-    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;}
-    select,input{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px;}
-    .badge{display:inline-block;padding:6px 10px;border-radius:999px;font-size:13px;}
-    .b-ok{background:#ecfdf5;color:var(--ok);}
-    .b-low{background:#fff7ed;color:var(--low);}
-    .b-high{background:#fee2e2;color:var(--high);}
-    .small{font-size:12px;color:var(--muted);}
-    table{width:100%;border-collapse:collapse;margin-top:20px;}
-    th,td{padding:10px;text-align:right;border:1px solid var(--line);}
-    th{background:#f8fafc;}
+    body { font-family: 'Cairo', sans-serif; background: #f0f4f8; color: #333; margin: 0; padding: 20px; }
+    h1 { text-align: center; color: #0ea5e9; }
+    .container { max-width: 800px; margin: auto; }
+    .child-info { background: #dff9fb; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 18px; }
+    .field-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    select, input, textarea {
+      width: 100%; padding: 10px; border: 1px solid #ccc;
+      border-radius: 6px; box-sizing: border-box;
+    }
+    button {
+      background: #0ea5e9; color: white; border: none; padding: 12px 25px;
+      border-radius: 8px; cursor: pointer; font-size: 16px;
+    }
+    button:hover { background: #0284c7; }
+    .note { font-size: 14px; color: #888; margin-top: 5px; }
   </style>
 </head>
 <body>
-  <header>
-    <div>تسجيل القياسات</div>
-    <a class="btn gray" href="dashboard.html">⬅ لوحة التحكم</a>
-  </header>
 
-  <main>
-    <!--  اختيار الطفل والتاريخ والوقت -->
-    <section class="card">
-      <h2>اختيار الطفل والتاريخ</h2>
-      <div class="grid g3">
-        <div>
-          <label>الطفل</label>
-          <select id="childSel"><option value="">— اختاري الطفل —</option></select>
-          <div id="limits" class="small" style="margin-top:6px;"></div>
-        </div>
-        <div>
-          <label>التاريخ</label>
-          <input id="dateSel" type="date"/>
-        </div>
-        <div>
-          <label>اختيار الوقت</label>
-          <select id="slotSel">
-            <option value="">— اختاري الوقت —</option>
-            <option value="uponWake">عند الاستيقاظ</option>
-            <option value="preBreakfast">قبل الإفطار</option>
-            <option value="postBreakfast">بعد الإفطار</option>
-            <option value="preLunch">قبل الغداء</option>
-            <option value="postLunch">بعد الغداء</option>
-            <option value="preDinner">قبل العشاء</option>
-            <option value="postDinner">بعد العشاء</option>
-            <option value="beforeSleep">قبل النوم</option>
-            <option value="duringSleep">أثناء النوم</option>
-          </select>
-        </div>
-      </div>
-      <div class="row">
-        <button id="openMealBtn" class="btn gray" style="display:none;">🍔 اختيار الوجبة</button>
-      </div>
-    </section>
+  <div class="container">
+    <h1>📏 تسجيل قياس السكر</h1>
+    <div class="child-info" id="childInfo">تحميل بيانات الطفل...</div>
 
-    <!--  إدخال القياس والوجبة -->
-    <section class="card">
-      <h2>إدخال القياس</h2>
-      <div class="grid g3">
-        <div>
-          <label>القراءة</label>
-          <input id="reading" type="number" placeholder="مثلاً 6.5"/>
-          <div id="statusOk" class="badge b-ok" style="display:none;">ضمن المدى</div>
-          <div id="statusLow" class="badge b-low" style="display:none;">منخفض</div>
-          <div id="statusHigh" class="badge b-high" style="display:none;">مرتفع</div>
-        </div>
-        <div>
-          <label>الوجبة — كربوهيدرات (جم) — اختياري</label>
-          <input id="carbs" type="number" placeholder="مثلاً 45"/>
-          <label>جرعة الوجبة (وحدة)</label>
-          <input id="mealDose" type="number" placeholder="مثلاً 3"/>
-        </div>
-        <div>
-          <label>ملاحظة</label>
-          <input id="note" placeholder="اختياري"/>
-        </div>
-      </div>
-      <div class="row">
-        <button id="saveBtn" class="btn primary">حفظ القياس</button>
-      </div>
-    </section>
+    <div class="field-group">
+      <label for="time">وقت القياس</label>
+      <select id="time">
+        <option value="wakeUp">الاستيقاظ</option>
+        <option value="preBreakfast">قبل الإفطار</option>
+        <option value="postBreakfast">بعد الإفطار</option>
+        <option value="preLunch">قبل الغداء</option>
+        <option value="postLunch">بعد الغداء</option>
+        <option value="preDinner">قبل العشاء</option>
+        <option value="postDinner">بعد العشاء</option>
+        <option value="bedTime">عند النوم</option>
+        <option value="overnight">أثناء النوم</option>
+      </select>
+    </div>
 
-    <!--  جدول قراءات اليوم -->
-    <section class="card">
-      <h2>قراءات اليوم المختار</h2>
-      <table>
-        <thead>
-          <tr><th>الوقت</th><th>القراءة</th><th>الحالة</th><th>جرعة الوجبة</th><th>ملاحظة</th></tr>
-        </thead>
-        <tbody id="rows"><tr><td colspan="5" class="small">لا توجد قراءات بعد.</td></tr></tbody>
-      </table>
-    </section>
-  </main>
+    <div class="field-group">
+      <label for="value">قراءة السكر (mg/dL)</label>
+      <input type="number" id="value" placeholder="مثلاً 120" />
+    </div>
+
+    <div class="field-group" id="mealGroup" style="display: none;">
+      <label for="carbs">كمية الكربوهيدرات (جم)</label>
+      <input type="number" id="carbs" placeholder="مثلاً 45" />
+      
+      <label for="dose">جرعة الأنسولين (وحدة)</label>
+      <input type="number" id="dose" placeholder="مثلاً 3" />
+    </div>
+
+    <div class="field-group">
+      <label for="notes">ملاحظات</label>
+      <textarea id="notes" rows="3" placeholder="ملاحظات إضافية..."></textarea>
+    </div>
+
+    <button id="saveBtn">💾 حفظ</button>
+  </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, setDoc
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+    import {
+      getAuth, signInAnonymously
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
-      authDomain: "child-glucose-tracker.firebaseapp.com",
-      projectId: "child-glucose-tracker",
+      // 🔐 أدخلي معلومات مشروع Firebase هنا
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    const $ = s => document.querySelector(s);
-
     const params = new URLSearchParams(location.search);
     const childId = params.get("child");
-    const prefillCarbs = params.get("carbs");
-    const prefillDose = params.get("dose");
-    const prefillTime = params.get("time");
 
-    let uid = null;
+    const timeSelect = document.getElementById("time");
+    const valueInput = document.getElementById("value");
+    const carbsInput = document.getElementById("carbs");
+    const doseInput = document.getElementById("dose");
+    const notesInput = document.getElementById("notes");
+    const saveBtn = document.getElementById("saveBtn");
+    const childInfo = document.getElementById("childInfo");
+    const mealGroup = document.getElementById("mealGroup");
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return location.href = "index.html";
-      uid = user.uid;
-
-      if (!childId) {
-        alert("خطأ: لم يتم تحديد الطفل!");
-        return;
+    // ⏳ إظهار الحقول الخاصة بالوجبات في بعض الأوقات
+    timeSelect.addEventListener("change", () => {
+      const value = timeSelect.value;
+      if (value === "preBreakfast" || value === "preLunch" || value === "preDinner") {
+        mealGroup.style.display = "block";
+      } else {
+        mealGroup.style.display = "none";
+        carbsInput.value = "";
+        doseInput.value = "";
       }
-
-      const childRef = doc(db, "users", uid, "children", childId);
-      const snap = await getDoc(childRef);
-
-      if (!snap.exists()) {
-        alert("الطفل غير موجود!");
-        return;
-      }
-
-      const data = snap.data();
-      $('#childSel').innerHTML = `<option value="${childId}" selected>${data.name}</option>`;
-      $('#limits').textContent = `ICR: ${data.icr} · منخفض < ${data.lowThreshold} · مرتفع > ${data.highThreshold}`;
-      window.icr = data.icr;
     });
 
-    const mealTimes = ["preBreakfast", "preLunch", "preDinner"];
-    $('#slotSel').addEventListener("change", () => {
-      $('#openMealBtn').style.display = mealTimes.includes($('#slotSel').value) ? "inline-block" : "none";
-    });
+    // 🧠 تسجيل الدخول كمجهول للوصول للبيانات
+    await signInAnonymously(auth);
 
-    $('#openMealBtn').onclick = () => {
-      const slot = $('#slotSel').value;
-      if (!window.icr || !childId) {
-        alert("الرجاء التأكد من بيانات الطفل والوقت");
-        return;
+    // 📦 تحميل بيانات الطفل
+    const userId = "jlvVQpKzwZaDgUTA2HaXPqJXKfT2"; // ← استبدليها بـ UID الثابت الخاص بكِ
+    const childRef = doc(db, "users", userId, "children", childId);
+    const childSnap = await getDoc(childRef);
+    const childData = childSnap.data();
+    childInfo.textContent = `الاسم: ${childData.name} | ICR: ${childData.icr} جم/وحدة`;
+
+    // ✅ حفظ القياس
+    saveBtn.onclick = async () => {
+      const time = timeSelect.value;
+      const value = parseInt(valueInput.value);
+      const carbs = parseFloat(carbsInput.value) || 0;
+      const dose = parseFloat(doseInput.value) || 0;
+      const notes = notesInput.value.trim();
+
+      if (!value) return alert("أدخلي قراءة السكر!");
+
+      const now = new Date();
+      const dateId = now.toISOString().split("T")[0] + "_" + time;
+      const data = {
+        createdAt: now,
+        value,
+        time,
+        notes,
+      };
+
+      if (["preBreakfast", "preLunch", "preDinner"].includes(time)) {
+        data.carbs = carbs;
+        data.insulinDose = dose;
       }
-      window.location.href = `meal_selector.html?child=${childId}&time=${slot}&icr=${window.icr}`;
+
+      await setDoc(doc(db, "users", userId, "children", childId, "measurements", dateId), data);
+      alert("تم حفظ القياس بنجاح ✅");
+      location.reload();
     };
-
-    if (prefillCarbs) $('#carbs').value = prefillCarbs;
-    if (prefillDose) $('#mealDose').value = prefillDose;
-    if (prefillTime) $('#slotSel').value = prefillTime;
   </script>
 </body>
 </html>
