@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>اختيار الوجبة</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      background-color: #FFFDE7;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #FFEB3B;
+      padding: 15px;
+      text-align: center;
+      font-size: 24px;
+      color: #333;
+      font-weight: bold;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: row-reverse;
+      padding: 20px;
+    }
+
+    .meals-list {
+      width: 25%;
+      padding: 20px;
+      background-color: #FFF9C4;
+      border-left: 2px dashed #FF9800;
+    }
+
+    .meals-list h3 {
+      color: #FF5722;
+    }
+
+    .meals-list button {
+      display: block;
+      margin: 10px 0;
+      padding: 10px;
+      width: 100%;
+      font-size: 18px;
+      background-color: #FFD54F;
+      border: none;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+
+    .meal-content {
+      width: 75%;
+      padding: 20px;
+    }
+
+    .food-card {
+      display: flex;
+      align-items: center;
+      background: #FFF8E1;
+      border: 2px solid #FFD54F;
+      margin-bottom: 15px;
+      padding: 15px;
+      border-radius: 12px;
+    }
+
+    .food-card img {
+      width: 60px;
+      margin-left: 15px;
+    }
+
+    .food-card input[type="number"] {
+      width: 60px;
+      margin: 0 10px;
+      padding: 5px;
+    }
+
+    #totalCarbs, #insulinDose {
+      font-size: 20px;
+      margin-top: 20px;
+      color: #4CAF50;
+    }
+
+    button.save-btn {
+      background-color: #4CAF50;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<header>🍽️ اختر وجبتك وكمية الطعام</header>
+
+<div class="container">
+  <!-- القائمة اليمنى -->
+  <div class="meals-list">
+    <h3>الوجبات</h3>
+    <button onclick="selectMeal('الفطور')">🍳 الفطور</button>
+    <button onclick="selectMeal('الغداء')">🍗 الغداء</button>
+    <button onclick="selectMeal('العشاء')">🍲 العشاء</button>
+  </div>
+
+  <!-- محتوى الوجبة -->
+  <div class="meal-content" id="mealContent">
+    <h2 id="mealTitle">اختر الوجبة من القائمة</h2>
+    <div id="foodOptions"></div>
+
+    <div id="totalCarbs"></div>
+    <div id="insulinDose"></div>
+    <button class="save-btn" onclick="saveMeasurement()">💾 حفظ القياس</button>
+  </div>
+</div>
+
+<!-- بيانات الطعام -->
+<script>
+  const foods = {
+    "بيض": { "تصنيف": "بروتين", "كارب": 1, "صورة": "https://cdn-icons-png.flaticon.com/512/616/616408.png" },
+    "عيش": { "تصنيف": "نشويات", "كارب": 50, "صورة": "https://cdn-icons-png.flaticon.com/512/135/135620.png" },
+    "موز": { "تصنيف": "فواكه", "كارب": 23, "صورة": "https://cdn-icons-png.flaticon.com/512/590/590685.png" },
+    "جبنة": { "تصنيف": "بروتين", "كارب": 2, "صورة": "https://cdn-icons-png.flaticon.com/512/1046/1046784.png" }
+  };
+
+  let selectedMeal = '';
+  let childICR = 12; // سيتم جلبها لاحقًا من Firebase
+  let selectedFoods = {};
+
+  function selectMeal(mealName) {
+    selectedMeal = mealName;
+    document.getElementById('mealTitle').textContent = `الوجبة: ${mealName}`;
+    const container = document.getElementById('foodOptions');
+    container.innerHTML = '';
+
+    for (let food in foods) {
+      const item = foods[food];
+      const card = document.createElement('div');
+      card.className = 'food-card';
+      card.innerHTML = `
+        <img src="${item.صورة}" alt="${food}">
+        <strong>${food} (${item.تصنيف})</strong>
+        <input type="number" placeholder="جم" min="0" onchange="updateFood('${food}', this.value)">
+        <span>جم</span>
+      `;
+      container.appendChild(card);
+    }
+
+    updateResults();
+  }
+
+  function updateFood(food, qty) {
+    if (qty > 0) {
+      selectedFoods[food] = Number(qty);
+    } else {
+      delete selectedFoods[food];
+    }
+    updateResults();
+  }
+
+  function updateResults() {
+    let total = 0;
+    for (let food in selectedFoods) {
+      let qty = selectedFoods[food];
+      let carbPer100 = foods[food].كارب;
+      total += (carbPer100 / 100) * qty;
+    }
+
+    let dose = (total / childICR).toFixed(1);
+
+    document.getElementById('totalCarbs').textContent = `إجمالي الكربوهيدرات: ${total.toFixed(1)} جم`;
+    document.getElementById('insulinDose').textContent = `الجرعة المقترحة: ${dose} وحدة`;
+  }
+
+  function saveMeasurement() {
+    alert("✅ تم حفظ القياس (سيتم ربطه بـ Firebase لاحقًا)");
+  }
+</script>
+
+</body>
+</html>
