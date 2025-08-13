@@ -25,10 +25,10 @@
 
   <h1>إدارة الأصناف — إدخال أو رفع من Excel</h1>
 
-  <!-- نموذج الإدخال اليدوي -->
+  <!-- نموذج الإدخال اليدوي للصنف -->
   <form id="manualForm">
     <input type="text" id="name" placeholder="اسم الصنف" required>
-    <input type="text" id="category" placeholder="التصنيف (مثل: مخبوزات)" required>
+    <input type="text" id="category" placeholder="التصنيف (مثلاً: مخبوزات)" required>
     <input type="number" id="carbsPer100g" placeholder="الكربوهيدرات لكل 100 جم" step="0.1" required>
     <input type="text" id="servingDescription" placeholder="وصف الكمية (مثل: رغيف متوسط)" required>
     <input type="number" id="gramsPerServing" placeholder="الجَرام في الكمية" step="0.1" required>
@@ -41,7 +41,7 @@
     <input type="file" id="excelInput" accept=".xlsx, .xls">
   </div>
 
-  <!-- جدول عرض الأصناف -->
+  <!-- جدول عرض الأصناف المُضافة -->
   <table id="foodsTable">
     <thead>
       <tr>
@@ -49,24 +49,24 @@
         <th>التصنيف</th>
         <th>كربو/100 جم</th>
         <th>وصف الكمية</th>
-        <th>ج/وحدة</th>
+        <th>جم/وحدة</th>
         <th>إجراءات</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
 
-  <!-- زر حفظ الأصناف لـ Firebase -->
+  <!-- زر لحفظ الأصناف في Firebase -->
   <button class="btn btn-save" id="saveBtn">حفظ الأصناف في Firebase</button>
 
-  <!-- مكتبة Excel (SheetJS) -->
+  <!-- تضمين مكتبة Excel (SheetJS) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
     import { getFirestore, collection, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
     const firebaseConfig = {
-      // صلي هنا بيانات Firebase الخاصة بمشروعك
+      // أدخلي هنا جميع إعدادات Firebase الخاصة بمشروعك
     };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
