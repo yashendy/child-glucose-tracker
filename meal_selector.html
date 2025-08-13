@@ -5,117 +5,24 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>اختيار وجبة الطفل</title>
   <style>
-    body {
-      font-family: 'Cairo', sans-serif;
-      background: #f0f4f8;
-      color: #333;
-      margin: 0;
-      padding: 20px;
-    }
-    h1, h2 {
-      color: #0ea5e9;
-      text-align: center;
-    }
-    .child-info {
-      background: #e0f7fa;
-      padding: 15px;
-      border-radius: 10px;
-      max-width: 800px;
-      margin: 20px auto;
-      font-size: 18px;
-    }
-    .layout {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      justify-content: center;
-      margin: 30px auto;
-      max-width: 1000px;
-    }
-    .categories, .items {
-      background: #fff;
-      border-radius: 8px;
-      padding: 10px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      height: 400px;
-      overflow-y: auto;
-    }
-    .categories {
-      width: 200px;
-    }
-    .categories button {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      background: #f9fafb;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .categories button:hover {
-      background: #e0f2fe;
-    }
-    .item-card {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px solid #eee;
-    }
-    .item-card input {
-      width: 80px;
-      padding: 5px;
-      text-align: center;
-      margin: 0 10px;
-    }
-    .item-card button {
-      background: #10b981;
-      color: #fff;
-      padding: 6px 10px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .item-card button:hover {
-      background: #059669;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-      border-radius: 8px;
-      overflow: hidden;
-      margin: 20px auto;
-      max-width: 800px;
-    }
-    th, td {
-      padding: 10px;
-      text-align: center;
-      border: 1px solid #ddd;
-    }
-    th {
-      background-color: #f0f9ff;
-    }
-    .totals {
-      text-align: center;
-      font-size: 18px;
-      margin-top: 20px;
-    }
-    .btn-save {
-      display: block;
-      margin: 30px auto;
-      padding: 12px 25px;
-      font-size: 18px;
-      border: none;
-      border-radius: 8px;
-      background: #0ea5e9;
-      color: #fff;
-      cursor: pointer;
-    }
-    .btn-save:hover {
-      background: #0284c7;
-    }
+    body { font-family: 'Cairo', sans-serif; background: #f0f4f8; color: #333; margin: 0; padding: 20px; }
+    h1, h2 { color: #0ea5e9; text-align: center; }
+    .child-info { background: #e0f7fa; padding: 15px; border-radius: 10px; max-width: 800px; margin: 20px auto; font-size: 18px; }
+    .layout { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin: 30px auto; max-width: 1000px; }
+    .categories, .items { background: #fff; border-radius: 8px; padding: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); height: 400px; overflow-y: auto; }
+    .categories { width: 200px; }
+    .categories button { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px; background: #f9fafb; font-size: 16px; cursor: pointer; }
+    .categories button:hover { background: #e0f2fe; }
+    .item-card { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; }
+    .item-card input { width: 80px; padding: 5px; text-align: center; margin: 0 10px; }
+    .item-card button { background: #10b981; color: #fff; padding: 6px 10px; border: none; border-radius: 6px; cursor: pointer; }
+    .item-card button:hover { background: #059669; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; margin: 20px auto; max-width: 800px; }
+    th, td { padding: 10px; text-align: center; border: 1px solid #ddd; }
+    th { background-color: #f0f9ff; }
+    .totals { text-align: center; font-size: 18px; margin-top: 20px; }
+    .btn-save { display: block; margin: 30px auto; padding: 12px 25px; font-size: 18px; border: none; border-radius: 8px; background: #0ea5e9; color: #fff; cursor: pointer; }
+    .btn-save:hover { background: #0284c7; }
   </style>
 </head>
 <body>
@@ -177,7 +84,8 @@
     const mealTime = params.get("time");
     let ICR = parseFloat(params.get("icr")) || 1;
 
-    signInAnonymously(auth).catch(err => console.error("تسجيل الدخول المجهول فشل:", err));
+    // تسجيل دخول مجهول
+    signInAnonymously(auth).catch(err => console.error("فشل تسجيل الدخول المجهول:", err));
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) return alert("فشل تسجيل الدخول");
@@ -204,28 +112,29 @@
       foods = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       const cats = [...new Set(foods.map(f => f.category))];
       categoryList.innerHTML = cats.map(c => `<button data-cat="${c}">${c}</button>`).join("");
-      categoryList.querySelectorAll("button")
-        .forEach(b => b.onclick = () => renderFoods(b.dataset.cat));
+      categoryList.querySelectorAll("button").forEach(b => b.onclick = () => renderFoods(b.dataset.cat));
     }
 
     function renderFoods(cat) {
       foodList.innerHTML = "";
       foods.filter(f => f.category === cat).forEach(f => {
+        const safeId = encodeURIComponent(f.id);
         const div = document.createElement("div");
         div.className = "item-card";
         div.innerHTML = `
           <span>${f.name}</span>
-          <input type="number" min="1" step="1" placeholder="عدد" id="unit-${f.id}">
+          <input type="number" min="1" step="1" placeholder="عدد" id="unit-${safeId}">
           <button data-id="${f.id}">أضف</button>`;
         foodList.append(div);
       });
-      foodList.querySelectorAll("button")
-        .forEach(b => b.onclick = () => addFood(b.dataset.id));
+      foodList.querySelectorAll(".item-card button").forEach(b => b.onclick = () => addFood(b.dataset.id));
     }
 
     function addFood(id) {
       const f = foods.find(x => x.id === id);
-      const qty = parseInt($(`#unit-${id}`).value);
+      const safeId = encodeURIComponent(id);
+      const inp = document.getElementById(`unit-${safeId}`);
+      const qty = parseInt(inp.value);
       if (!(qty > 0)) return alert("أدخل عدد وحدات صالح");
       const carbs = qty * (f.carbsPerUnit || 0);
       selected.push({ name: f.name, qty, carbs });
@@ -242,10 +151,10 @@
           <td>${s.name}</td><td>${s.qty}</td><td>${s.carbs.toFixed(1)}</td>
           <td><button data-i="${i}">حذف</button></td>
         </tr>`).join("");
-      selectedFoodsTable.querySelectorAll("button")
-        .forEach(b => b.onclick = () => {
-          selected.splice(b.dataset.i, 1); renderSelected();
-        });
+      selectedFoodsTable.querySelectorAll("button").forEach(b => b.onclick = () => {
+        selected.splice(b.dataset.i, 1);
+        renderSelected();
+      });
       updateTotals();
     }
 
