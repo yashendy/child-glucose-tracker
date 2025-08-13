@@ -3,150 +3,175 @@
     "name": "أرز أبيض",
     "category": "نشويات",
     "carbsPer100g": 28,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/135/135620.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/135/135620.png",
+    "type": "lunch"
   },
   {
     "name": "خبز عربي",
     "category": "نشويات",
     "carbsPer100g": 55,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/1665/1665586.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/1665/1665586.png",
+    "type": "breakfast"
   },
   {
     "name": "مكرونة",
     "category": "نشويات",
     "carbsPer100g": 75,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/2913/2913465.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/2913/2913465.png",
+    "type": "lunch"
   },
   {
     "name": "بيتزا",
     "category": "وجبة سريعة",
     "carbsPer100g": 30,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/3595/3595455.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/3595/3595455.png",
+    "type": "dinner"
   },
   {
     "name": "بطاطس مقلية",
     "category": "وجبة سريعة",
     "carbsPer100g": 40,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/135/135645.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/135/135645.png",
+    "type": "lunch"
   },
   {
     "name": "موز",
     "category": "فواكه",
     "carbsPer100g": 23,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/590/590685.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/590/590685.png",
+    "type": "breakfast"
   },
   {
     "name": "تفاح",
     "category": "فواكه",
     "carbsPer100g": 14,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/415/415733.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/415/415733.png",
+    "type": "breakfast"
   },
   {
     "name": "تمر سكري",
     "category": "فواكه",
     "carbsPer100g": 80,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/590/590698.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/590/590698.png",
+    "type": "breakfast"
   },
   {
     "name": "بسبوسة",
     "category": "حلويات",
     "carbsPer100g": 50,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/962/962401.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/962/962401.png",
+    "type": "dinner"
   },
   {
     "name": "كنافة",
     "category": "حلويات",
     "carbsPer100g": 60,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/1674/1674785.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/1674/1674785.png",
+    "type": "dinner"
   },
   {
     "name": "حلاوة طحينية",
     "category": "حلويات",
     "carbsPer100g": 60.5,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/3075/3075685.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/3075/3075685.png",
+    "type": "breakfast"
   },
   {
     "name": "فلافل",
     "category": "وجبة سريعة",
     "carbsPer100g": 31,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/3082/3082267.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/3082/3082267.png",
+    "type": "breakfast"
   },
   {
     "name": "حمص",
     "category": "معلبات",
     "carbsPer100g": 14,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/3428/3428416.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/3428/3428416.png",
+    "type": "lunch"
   },
   {
     "name": "فول مدمس",
     "category": "معلبات",
     "carbsPer100g": 20,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/2041/2041585.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/2041/2041585.png",
+    "type": "dinner"
   },
   {
     "name": "كشري",
     "category": "وجبة سريعة",
     "carbsPer100g": 35,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/3075/3075856.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/3075/3075856.png",
+    "type": "lunch"
   },
   {
     "name": "سكر",
     "category": "محليات",
     "carbsPer100g": 100,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/3068/3068177.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/3068/3068177.png",
+    "type": "breakfast"
   },
   {
     "name": "عسل",
     "category": "محليات",
     "carbsPer100g": 82,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/1182/1182293.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/1182/1182293.png",
+    "type": "breakfast"
   },
   {
     "name": "لبن زبادي",
     "category": "ألبان",
     "carbsPer100g": 5,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/1046/1046784.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/1046/1046784.png",
+    "type": "dinner"
   },
   {
     "name": "لبنة",
     "category": "ألبان",
     "carbsPer100g": 3,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/1046/1046865.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/1046/1046865.png",
+    "type": "dinner"
   },
   {
     "name": "فطير مشلتت",
     "category": "معجنات",
     "carbsPer100g": 50,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/1568/1568544.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/1568/1568544.png",
+    "type": "breakfast"
   },
   {
     "name": "سندويتش شاورما",
     "category": "وجبة سريعة",
     "carbsPer100g": 28,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/2215/2215070.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/2215/2215070.png",
+    "type": "lunch"
   },
   {
     "name": "كوكيز",
     "category": "حلويات",
     "carbsPer100g": 60,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/3075/3075900.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/3075/3075900.png",
+    "type": "dinner"
   },
   {
     "name": "عصير برتقال",
     "category": "مشروبات",
     "carbsPer100g": 10,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/590/590712.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/590/590712.png",
+    "type": "breakfast"
   },
   {
     "name": "عصير تفاح",
     "category": "مشروبات",
     "carbsPer100g": 12,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/590/590693.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/590/590693.png",
+    "type": "breakfast"
   },
   {
     "name": "فول سوداني محمص",
     "category": "حلويات",
     "carbsPer100g": 16,
-    "imageUrl": "https://cdn-icons-png.flaticon.com/512/3075/3075911.png"
+    "imageUrl": "https://cdn-icons-png.flaticon.com/512/3075/3075911.png",
+    "type": "dinner"
   }
 ]
