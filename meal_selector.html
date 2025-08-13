@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>اختيار وجبة الطفل</title>
   <style>
     body { font-family: 'Cairo', sans-serif; background: #f0f4f8; color: #333; margin: 0; padding: 20px; }
@@ -47,34 +47,54 @@
 
   <div class="totals">
     <p>إجمالي الكربوهيدرات: <strong id="totalCarbs">0</strong> جم</p>
-    <p>جرعة الأنسولين: <strong id="insulinDose">0</strong> وحدة</p>
+    <p>جرعة الإنسولين: <strong id="insulinDose">0</strong> وحدة</p>
   </div>
 
   <button class="btn-save" id="saveMealBtn">💾 حفظ الوجبة</button>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-  import { getFirestore, collection, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+  import { getFirestore, collection, getDocs, setDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-  const firebaseConfig = { /*your config*/ };
+  const firebaseConfig = {
+    apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
+    authDomain: "child-glucose-tracker.firebaseapp.com",
+    projectId: "child-glucose-tracker",
+    storageBucket: "child-glucose-tracker.appspot.com",
+    messagingSenderId: "294563325904",
+    appId: "1:294563325904:web:39562550bf305fc01abbd5"
+  };
+
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  const childInfo = $("#childInfo"), categoryList = $("#categoryList"), foodList = $("#foodList");
-  const selectedFoodsTable = $("#selectedFoodsTable"), totalCarbsEl = $("#totalCarbs"), insulinDoseEl = $("#insulinDose");
+  const uid = "jIvVQpKzwZaDgUTA2HaXPqJXKfT2"; // الـUID بتاعك من الصورة 
+
+  const $ = s => document.querySelector(s);
+  const childInfo = $("#childInfo");
+  const categoryList = $("#categoryList");
+  const foodList = $("#foodList");
+  const selectedFoodsTable = $("#selectedFoodsTable");
+  const totalCarbsEl = $("#totalCarbs");
+  const insulinDoseEl = $("#insulinDose");
   const saveMealBtn = $("#saveMealBtn");
 
   const params = new URLSearchParams(location.search);
-  const childId = params.get("child"), mealTime = params.get("time");
+  const childId = params.get("child");
+  const mealTime = params.get("time");
   let ICR = parseFloat(params.get("icr")) || 1;
 
   async function loadChildData() {
-    const snap = await getDoc(doc(db, "users", /*uid*/, "children", childId));
-    if (!snap.exists()) { alert("الطفل غير موجود!"); return; }
+    const snap = await getDoc(doc(db, "users", uid, "children", childId));
+    if (!snap.exists()) {
+      alert("الطفل غير موجود!");
+      return;
+    }
     const data = snap.data();
     childInfo.textContent = `الاسم: ${data.name} | ICR: ${data.icr} جم/وحدة`;
     ICR = data.icr;
   }
+
   await loadChildData();
 
   let foods = [], categories = [], selected = [];
@@ -82,56 +102,74 @@
   async function loadFoods() {
     const snap = await getDocs(collection(db, "foods"));
     foods = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    categories = [...new Set(foods.map(f=>f.category))];
-    categoryList.innerHTML = categories.map(c=>`<button data-cat="${c}">${c}</button>`).join('');
-    categoryList.querySelectorAll("button").forEach(b=>b.onclick=()=>renderFoods(b.dataset.cat));
+    categories = [...new Set(foods.map(f => f.category))];
+    categoryList.innerHTML = categories.map(c => `<button data-cat="${c}">${c}</button>`).join('');
+    categoryList.querySelectorAll("button").forEach(b => b.onclick = () => renderFoods(b.dataset.cat));
   }
+
   await loadFoods();
 
   function renderFoods(cat) {
     foodList.innerHTML = '';
-    foods.filter(f=>f.category === cat).forEach(f=>{
-      const div = document.createElement("div"); div.className="item-card";
-      div.innerHTML = `<span>${f.name}</span>
+    foods.filter(f => f.category === cat).forEach(f => {
+      const div = document.createElement("div");
+      div.className = "item-card";
+      div.innerHTML = `
+        <span>${f.name}</span>
         <input type="number" min="1" step="1" placeholder="عدد" id="unit-${f.id}">
-        <button data-id="${f.id}">أضف</button>`;
+        <button data-id="${f.id}">أضف</button>
+      `;
       foodList.append(div);
     });
-    foodList.querySelectorAll(".item-card button").forEach(b=>b.onclick=()=>addFood(b.dataset.id));
+    foodList.querySelectorAll(".item-card button").forEach(b => b.onclick = () => addFood(b.dataset.id));
   }
 
   function addFood(id) {
-    const f = foods.find(x=>x.id===id), inp = $(`#unit-${id}`);
+    const f = foods.find(x => x.id === id);
+    const inp = $(`#unit-${id}`);
     const qty = parseInt(inp.value);
-    if (!(qty>0)) return alert("أدخلي عدد وحدات صالحة!");
-    const carbs = qty * f.carbsPerUnit; // assuming field exists
-    selected.push({ f, qty, carbs });
+    if (!(qty > 0)) return alert("أدخلي عدد وحدات صالحة!");
+    const carbs = qty * (f.carbsPerUnit || 0); // لو مش موجود، نحسب بصفر
+    selected.push({ name: f.name, qty, carbs });
     renderSelected();
   }
 
   function renderSelected() {
-    if(!selected.length){
+    if (!selected.length) {
       selectedFoodsTable.innerHTML = `<tr><td colspan="4">لا توجد أصناف مختارة.</td></tr>`;
       return;
     }
-    selectedFoodsTable.innerHTML = selected.map((s,i)=>`
+    selectedFoodsTable.innerHTML = selected.map((s, i) => `
       <tr>
-        <td>${s.f.name}</td><td>${s.qty}</td><td>${s.carbs}</td>
+        <td>${s.name}</td>
+        <td>${s.qty}</td>
+        <td>${s.carbs.toFixed(1)}</td>
         <td><button data-i="${i}">حذف</button></td>
-      </tr>`).join('');
-    selectedFoodsTable.querySelectorAll("button").forEach(b=>b.onclick=()=>{ selected.splice(b.dataset.i,1); renderSelected(); });
+      </tr>
+    `).join('');
+    selectedFoodsTable.querySelectorAll("button").forEach(b => b.onclick = () => {
+      selected.splice(b.dataset.i, 1);
+      renderSelected();
+    });
     updateTotals();
   }
 
-  function updateTotals(){
-    const total = selected.reduce((a,s)=>a+s.carbs,0);
-    totalCarbsEl.textContent = total;
+  function updateTotals() {
+    const total = selected.reduce((a, s) => a + s.carbs, 0);
+    totalCarbsEl.textContent = total.toFixed(1);
     insulinDoseEl.textContent = (total / ICR).toFixed(1);
   }
 
-  saveMealBtn.onclick = async()=>{
-    await setDoc(doc(db, "users", /*uid*/, "children", childId, "meals", new Date().toISOString()), { time: mealTime, items: selected });
-    window.location=`measure.html?child=${childId}&time=${mealTime}&carbs=${totalCarbsEl.textContent}&dose=${insulinDoseEl.textContent}`;
+  saveMealBtn.onclick = async () => {
+    const date = new Date().toISOString().split('T')[0];
+    await setDoc(doc(db, "users", uid, "children", childId, "meals", date + "_" + mealTime), {
+      time: mealTime,
+      items: selected,
+      totalCarbs: parseFloat(totalCarbsEl.textContent),
+      insulinDose: parseFloat(insulinDoseEl.textContent),
+      createdAt: new Date()
+    });
+    window.location = `measure.html?child=${childId}&time=${mealTime}&carbs=${totalCarbsEl.textContent}&dose=${insulinDoseEl.textContent}`;
   };
 </script>
 
