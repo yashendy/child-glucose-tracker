@@ -17,10 +17,6 @@
       text-align: center;
       margin-bottom: 20px;
     }
- <button id="downloadJsonBtn" class="btn btn-save" style="margin: 10px auto 30px;">تحميل ملف الأصناف JSON</button>
-    <!-- ✅ زر تحميل الأصناف كملف JSON -->
-
-
     form, .excel-section {
       max-width: 600px;
       margin: 0 auto 20px;
@@ -78,36 +74,18 @@
     .btn-save {
       background: #10b981;
       color: white;
-      margin: 20px auto;
+      margin: 10px auto;
       display: block;
     }
     .btn-save:hover {
       background: #059669;
     }
-      // ✅ زر تحميل ملف JSON
-  document.getElementById('downloadJsonBtn').addEventListener('click', async () => {
-    try {
-      const res = await fetch('foods_data_arabic.json'); // تأكدي من وجود الملف بنفس الاسم
-      const data = await res.blob();
-      const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'foods_data_arabic.json';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      alert("⚠️ حدث خطأ أثناء تحميل الملف");
-      console.error(err);
-    }
-  });
-
   </style>
 </head>
 <body>
   <h1>إدارة الأصناف — إدخال أو رفع من Excel</h1>
-<!-- ✅ الجزء 2: نموذج الإدخال + إدخال ملف Excel + جدول العرض -->
+
+  <!-- ✅ الجزء 2: نموذج الإدخال اليدوي -->
   <form id="manualForm">
     <input type="text" id="name" placeholder="اسم الصنف" required>
     <input type="text" id="category" placeholder="التصنيف (مثل: مخبوزات)" required>
@@ -118,10 +96,12 @@
     <button type="submit">أضف / عدّل صنف</button>
   </form>
 
+  <!-- ✅ الجزء 3: رفع ملف Excel -->
   <div class="excel-section">
     <input type="file" id="excelInput" accept=".xlsx, .xls">
   </div>
 
+  <!-- ✅ الجزء 4: جدول عرض الأصناف -->
   <table id="foodsTable">
     <thead>
       <tr>
@@ -136,107 +116,134 @@
     <tbody></tbody>
   </table>
 
-  <button class="btn btn-save" id="saveBtn">حفظ الأصناف في Firebase</button>
-<!-- ✅ الجزء 3: Firebase + Excel + منطق الجدول -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-  import { getFirestore, collection, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+  <!-- ✅ الجزء 5: أزرار العمليات -->
+  <button class="btn btn-save" id="saveBtn">🗂️ حفظ الأصناف في Firebase</button>
+  <button class="btn btn-save" id="downloadJsonBtn">📦 تحميل JSON</button>
+  <button class="btn btn-save" id="exportExcelBtn">📥 تصدير إلى Excel</button>
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
-    authDomain: "child-glucose-tracker.firebaseapp.com",
-    projectId: "child-glucose-tracker",
-    storageBucket: "child-glucose-tracker.appspot.com",
-    messagingSenderId: "294563325904",
-    appId: "1:294563325904:web:39562550bf305fc01abbd5",
-    measurementId: "G-TWC063TD6X"
-  };
+  <!-- ✅ الجزء 6: المكتبات -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import { getFirestore, collection, setDoc, doc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  const manualForm = document.getElementById('manualForm');
-  const excelInput = document.getElementById('excelInput');
-  const tableBody = document.querySelector('#foodsTable tbody');
-  let foods = [];
-
-  function renderTable() {
-    tableBody.innerHTML = foods.map((f, idx) => `
-      <tr>
-        <td>${f.name}</td>
-        <td>${f.category}</td>
-        <td>${f.carbsPer100g}</td>
-        <td>${f.servingDescription}</td>
-        <td>${f.gramsPerServing}</td>
-        <td>
-          <button class="btn btn-edit" data-idx="${idx}">تعديل</button>
-          <button class="btn btn-delete" data-idx="${idx}">حذف</button>
-        </td>
-      </tr>`).join('');
-  }
-
-  tableBody.addEventListener('click', e => {
-    const idx = e.target.dataset.idx;
-    if (e.target.matches('.btn-delete')) {
-      foods.splice(idx, 1);
-      renderTable();
-    } else if (e.target.matches('.btn-edit')) {
-      const f = foods[idx];
-      manualForm.name.value = f.name;
-      manualForm.category.value = f.category;
-      manualForm.carbsPer100g.value = f.carbsPer100g;
-      manualForm.servingDescription.value = f.servingDescription;
-      manualForm.gramsPerServing.value = f.gramsPerServing;
-      manualForm.imageUrl.value = f.imageUrl;
-      foods.splice(idx, 1);
-      renderTable();
-    }
-  });
-  manualForm.addEventListener('submit', e => {
-    e.preventDefault();
-    const f = {
-      name: manualForm.name.value.trim(),
-      category: manualForm.category.value.trim(),
-      carbsPer100g: parseFloat(manualForm.carbsPer100g.value),
-      servingDescription: manualForm.servingDescription.value.trim(),
-      gramsPerServing: parseFloat(manualForm.gramsPerServing.value),
-      imageUrl: manualForm.imageUrl.value.trim()
+    const firebaseConfig = {
+      apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
+      authDomain: "child-glucose-tracker.firebaseapp.com",
+      projectId: "child-glucose-tracker",
+      storageBucket: "child-glucose-tracker.appspot.com",
+      messagingSenderId: "294563325904",
+      appId: "1:294563325904:web:39562550bf305fc01abbd5",
+      measurementId: "G-TWC063TD6X"
     };
-    const existing = foods.find(x => x.name === f.name);
-    if (!existing) foods.push(f);
-    else Object.assign(existing, f);
-    renderTable();
-    manualForm.reset();
-  });
 
-  excelInput.addEventListener('change', async e => {
-    const file = e.target.files[0];
-    const data = await file.arrayBuffer();
-    const workbook = XLSX.read(data, { type: 'array' });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const arr = XLSX.utils.sheet_to_json(sheet);
-    arr.forEach(item => {
-      if (item.name && !foods.some(x => x.name === item.name.trim())) {
-        foods.push({
-          name: item.name.trim(),
-          category: item.category?.trim() || "",
-          carbsPer100g: parseFloat(item.carbsPer100g) || 0,
-          servingDescription: item.servingDescription?.trim() || "",
-          gramsPerServing: parseFloat(item.gramsPerServing) || 0,
-          imageUrl: item.imageUrl?.trim() || ""
-        });
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const manualForm = document.getElementById('manualForm');
+    const excelInput = document.getElementById('excelInput');
+    const tableBody = document.querySelector('#foodsTable tbody');
+    const downloadJsonBtn = document.getElementById('downloadJsonBtn');
+    const exportExcelBtn = document.getElementById('exportExcelBtn');
+    let foods = [];
+
+    function renderTable() {
+      tableBody.innerHTML = foods.map((f, idx) => `
+        <tr>
+          <td>${f.name}</td>
+          <td>${f.category}</td>
+          <td>${f.carbsPer100g}</td>
+          <td>${f.servingDescription}</td>
+          <td>${f.gramsPerServing}</td>
+          <td>
+            <button class="btn btn-edit" data-idx="${idx}">تعديل</button>
+            <button class="btn btn-delete" data-idx="${idx}">حذف</button>
+          </td>
+        </tr>`).join('');
+    }
+
+    tableBody.addEventListener('click', e => {
+      const idx = e.target.dataset.idx;
+      if (e.target.matches('.btn-delete')) {
+        foods.splice(idx, 1);
+        renderTable();
+      } else if (e.target.matches('.btn-edit')) {
+        const f = foods[idx];
+        manualForm.name.value = f.name;
+        manualForm.category.value = f.category;
+        manualForm.carbsPer100g.value = f.carbsPer100g;
+        manualForm.servingDescription.value = f.servingDescription;
+        manualForm.gramsPerServing.value = f.gramsPerServing;
+        manualForm.imageUrl.value = f.imageUrl;
+        foods.splice(idx, 1);
+        renderTable();
       }
     });
-    renderTable();
-  });
 
-  document.getElementById('saveBtn').addEventListener('click', async () => {
-    for (const f of foods) {
-      await setDoc(doc(collection(db, "foods"), f.name), f);
-    }
-    alert("✅ تم حفظ الأصناف إلى Firebase بنجاح!");
-  });
-</script>
+    manualForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const f = {
+        name: manualForm.name.value.trim(),
+        category: manualForm.category.value.trim(),
+        carbsPer100g: parseFloat(manualForm.carbsPer100g.value),
+        servingDescription: manualForm.servingDescription.value.trim(),
+        gramsPerServing: parseFloat(manualForm.gramsPerServing.value),
+        imageUrl: manualForm.imageUrl.value.trim()
+      };
+      const existing = foods.find(x => x.name === f.name);
+      if (!existing) foods.push(f);
+      else Object.assign(existing, f);
+      renderTable();
+      manualForm.reset();
+    });
+
+    excelInput.addEventListener('change', async e => {
+      const file = e.target.files[0];
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const arr = XLSX.utils.sheet_to_json(sheet);
+      arr.forEach(item => {
+        if (item.name && !foods.some(x => x.name === item.name.trim())) {
+          foods.push({
+            name: item.name.trim(),
+            category: item.category?.trim() || "",
+            carbsPer100g: parseFloat(item.carbsPer100g) || 0,
+            servingDescription: item.servingDescription?.trim() || "",
+            gramsPerServing: parseFloat(item.gramsPerServing) || 0,
+            imageUrl: item.imageUrl?.trim() || ""
+          });
+        }
+      });
+      renderTable();
+    });
+
+    document.getElementById('saveBtn').addEventListener('click', async () => {
+      for (const f of foods) {
+        await setDoc(doc(collection(db, "foods"), f.name), f);
+      }
+      alert("✅ تم حفظ الأصناف إلى Firebase بنجاح!");
+    });
+
+    // ✅ تحميل JSON
+    downloadJsonBtn.addEventListener('click', () => {
+      const jsonStr = JSON.stringify(foods, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'foods_data_arabic.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // ✅ تصدير إلى Excel
+    exportExcelBtn.addEventListener('click', () => {
+      const ws = XLSX.utils.json_to_sheet(foods);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Foods');
+      XLSX.writeFile(wb, 'foods_export.xlsx');
+    });
+  </script>
 </body>
 </html>
