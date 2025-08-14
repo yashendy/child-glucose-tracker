@@ -1,1046 +1,572 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>لوحة الطفل — متابعة سكر الأطفال</title>
+<title>لوحة الطفل</title>
 <style>
-:root{
-  --brand:#0ea5e9;--brand2:#6ee7b7;--line:#e5e7eb;--ink:#0f172a;--muted:#6b7280;
-  --bg:#f6fbff;--card:#fff;--ok:#10b981;--warn:#d97706;--bad:#ef4444;--chip:#eef6ff;--hi:#f97316
-}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "Tajawal",system-ui,sans-serif;display:flex;min-height:100vh}
+:root{--brand:#0ea5e9;--brand2:#6ee7b7;--line:#e5e7eb;--ink:#0f172a;--muted:#6b7280;--bg:#f6fbff;--card:#fff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif}
+a{color:inherit;text-decoration:none}
+.btn{border:none;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
+.btn.primary{background:var(--brand);color:#fff}.btn.gray{background:#eef2f7}
+.note{color:var(--muted);font-size:13px}
+.badge{display:inline-block;background:#eef6ff;color:#0369a1;border-radius:999px;padding:6px 10px;font-weight:800}
+.badge-soft{display:inline-block;background:#eef6ff;color:#0369a1;border-radius:999px;padding:4px 8px;font-weight:800;font-size:12px}
 
-/* Sidebar */
-.sidebar{width:260px;flex:0 0 260px;background:linear-gradient(180deg,var(--brand),var(--brand2));color:#fff;padding:16px;position:sticky;top:0;height:100vh;overflow:auto}
-.sb-title{font-weight:800;font-size:18px;margin-bottom:12px}
-.sb-btn{display:block;width:100%;text-align:right;background:transparent;border:none;color:#fff;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700;margin:4px 0}
-.sb-btn:hover,.sb-btn.active{background:rgba(255,255,255,.18)}
-.spacer{height:6px}
+/* ===== Layout with sidebar ===== */
+.topbar{position:sticky;top:0;z-index:10;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:10px 14px;display:flex;justify-content:space-between;align-items:center}
+.topbar .btn{background:#ffffff22;border:1px solid #ffffff66;color:#fff}
+.layout{display:grid;grid-template-columns:260px 1fr;gap:14px;max-width:1200px;margin:auto;padding:14px}
+@media(max-width:980px){.layout{grid-template-columns:1fr}}
+.sidebar{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;position:sticky;top:66px;height:max-content}
+.navbtn{display:flex;align-items:center;gap:8px;width:100%;border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer;font-weight:700}
+.navbtn.active,.navbtn:hover{background:#e6f7ff;border-color:#b3e5ff}
+.content{min-width:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 6px 24px rgba(0,0,0,.04);margin-bottom:14px}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.grid{display:grid;gap:10px}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:920px){.g2,.g3{grid-template-columns:1fr}}
+.sep{height:1px;background:var(--line);margin:10px 0}
 
-/* Header */
-.main{flex:1;min-width:0}
-header{position:sticky;top:0;z-index:10;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
-.head-left{display:flex;align-items:center;gap:12px}
-.kid-photo{width:56px;height:56px;border-radius:16px;overflow:hidden;border:2px solid #ffffffbf;background:#fff;display:grid;place-items:center}
-.kid-photo img{width:100%;height:100%;object-fit:cover;display:block}
-.avatar-fallback{width:100%;height:100%;display:none;place-items:center;background:#e0f7fa;color:#0f172a;font-weight:800;font-size:18px}
-.title-wrap{display:flex;flex-direction:column}
-.hello{font-size:14px;opacity:.9}
-.kid-name{font-size:18px;font-weight:800}
-.head-actions{display:flex;gap:8px;flex-wrap:wrap}
-.btn{border:none;border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer}
-.btn.gray{background:#eef2f7}
-.btn.dark{background:#0f172a;color:#fff}
-.btn.primary{background:var(--brand);color:#fff}
-.btn.orange{background:var(--hi);color:#fff}
+/* child header */
+.child-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.kid{display:flex;align-items:center;gap:12px}
+.avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.12)}
 
-main{max-width:1200px;margin:auto;padding:16px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.05);margin-bottom:14px}
-.note{color:var(--muted);font-size:14px}
-.badge{display:inline-block;padding:2px 8px;border-radius:999px;background:var(--chip);color:#0f172a;font-size:12px;margin-inline-start:6px}
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
-input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
-textarea{min-height:90px;resize:vertical}
-.grid{display:grid;gap:12px}
-.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
-.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
-@media (max-width:900px){.g3{grid-template-columns:1fr 1fr}}
-@media (max-width:680px){.g2,.g3{grid-template-columns:1fr}}
+/* meals grid */
+.meals-wrap{display:grid;grid-template-columns:220px 1fr;gap:12px}
+@media(max-width:900px){.meals-wrap{grid-template-columns:1fr}}
+.cats{display:flex;flex-direction:column;gap:8px}
+.cat-btn{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff;cursor:pointer;text-align:right;font-weight:800}
+.cat-btn.active,.cat-btn:hover{background:#e6f7ff;border-color:#b3e5ff}
+.foods-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.food{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.food img{width:80px;height:80px;object-fit:contain}
+.food .name{font-weight:800;margin-top:6px}
+.food .carb{color:#0f766e;font-weight:700;font-size:13px}
+.input-mini{width:84px}
 
-table{width:100%;border-collapse:collapse}
-th,td{border:1px solid var(--line);padding:8px;text-align:center}
-th{background:#f0f9ff}
-.status{display:inline-block;padding:6px 10px;border-radius:999px;font-size:12px}
-.ok{background:#ecfdf5;color:#10b981}
-.high{background:#fee2e2;color:#ef4444}
-.low{background:#fff7ed;color:#b45309}
-.section{display:none}
-.section.active{display:block}
+/* basket */
+.basket table{width:100%;border-collapse:separate;border-spacing:0}
+.basket th,.basket td{border:1px solid var(--line);padding:8px;text-align:center}
+.basket thead th{background:#f0f9ff}
 
-/* ===== Reports (weekly) ===== */
-.wk-controls .pill{background:#f1f5f9;border-radius:999px;padding:4px 8px;font-size:12px}
-.wk-wrap{display:grid;grid-template-columns:1fr;gap:12px}
-.page{page-break-after:always}
-.page:last-child{page-break-after:auto}
-.page-title{font-weight:800;margin:6px 0 10px}
-.day-card{border:1px solid var(--line);border-radius:14px;background:#fff;padding:12px;display:flex;flex-direction:column;gap:10px}
-.day-head{display:flex;justify-content:space-between;align-items:center}
-.day-date{font-weight:800}
-.legend{font-size:12px;color:#475569}
-.day-table{width:100%;border-collapse:separate;border-spacing:0}
-.day-table th,.day-table td{border:1px solid #e2e8f0;padding:6px;font-size:13px;text-align:center;vertical-align:top}
-.slot-name{font-weight:800;color:#334155}
-.val{font-weight:800}
-.arrow-up{color:#ef4444}.arrow-down{color:#d97706}.arrow-ok{color:#10b981}
-.mnote{font-size:12px;color:#475569;margin-top:2px}
-.meal-mini{font-size:12px;color:#7c2d12;background:#fff7ef;border:1px solid #ffd1b2;border-radius:8px;padding:2px 6px;display:inline-block;margin-top:4px}
-.kpis{display:flex;flex-wrap:wrap;gap:8px}
-.chip{background:#f1f5f9;border-radius:999px;padding:6px 10px;font-size:12px}
+/* measures table */
+.table{width:100%;border-collapse:separate;border-spacing:0}
+.table th,.table td{border:1px solid var(--line);padding:8px;text-align:right;vertical-align:top}
+.table thead th{background:#f0f9ff;font-weight:800}
+.center{text-align:center}
+.state{display:inline-block;padding:2px 8px;border-radius:999px}
+.state.ok{background:#ecfdf5;color:#16a34a}.state.low{background:#fff7ed;color:#b45309}.state.high{background:#fee2e2;color:#dc2626}
 
-/* ===== Meals ===== */
-.meals-layout{display:grid;grid-template-columns:220px 1fr;gap:12px}
-.cats{display:flex;flex-direction:column;gap:8px;max-height:480px;overflow:auto}
-.cat-btn{border:1px solid var(--line);background:#fff;padding:8px;border-radius:10px;text-align:right;cursor:pointer}
-.cat-btn.active,.cat-btn:hover{background:#eff6ff;border-color:#bfdbfe}
-.foods-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
-.food-card{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff;display:flex;flex-direction:column;gap:6px}
-.food-card img{width:90px;height:90px;object-fit:contain;margin:auto}
-.food-name{font-weight:800;text-align:center}
-.food-carb{font-size:12px;color:#0f766e;text-align:center}
-.mode-tabs{display:flex;gap:6px;justify-content:center}
-.mode-tabs button{border:1px solid var(--line);background:#fff;padding:4px 8px;border-radius:999px;cursor:pointer;font-size:12px}
-.mode-tabs button.active{background:#0ea5e9;color:#fff;border-color:#0ea5e9}
-.qty-row{display:flex;gap:6px;align-items:center;justify-content:center}
-.small{font-size:12px;color:var(--muted)}
-.basket table tfoot td{font-weight:800}
-@media(max-width:900px){.meals-layout{grid-template-columns:1fr}}
-
-/* Print */
-@media print{
-  @page{size:A4 portrait;margin:10mm}
-  header,.no-print,.sidebar{display:none!important}
-  body{background:#fff;font-size:12px}
-  .card{border:0;box-shadow:none;padding:0;margin:0}
-  main{max-width:100%;padding:0}
-  .page{page-break-after:always}
-  .page:last-child{page-break-after:auto}
-}
+/* reports */
+.table-report{width:100%;border-collapse:collapse}
+.table-report th,.table-report td{border:1px solid var(--line);padding:6px;text-align:center;vertical-align:top}
+.table-report thead th{background:#f1f5f9;font-weight:800}
+.report-meta{font-size:13px;margin-bottom:8px;color:var(--muted)}
+@media print{header,.sidebar{display:none!important}.layout{display:block;padding:0}.card{border:0;box-shadow:none}}
+.toast{position:fixed;bottom:16px;left:16px;background:#111;color:#fff;padding:10px 14px;border-radius:10px;opacity:0;transform:translateY(8px);transition:.3s;z-index:9999}
+.toast.show{opacity:1;transform:none}
 </style>
 </head>
 <body>
 
-<!-- Sidebar -->
-<aside class="sidebar">
-  <div class="sb-title">👧 لوحة الطفل</div>
-  <button class="sb-btn active" data-target="sec-home">🏠 الرئيسية</button>
-  <div class="spacer"></div>
-  <button class="sb-btn" data-target="sec-info">⚙️ بيانات الطفل</button>
-  <button class="sb-btn" data-target="sec-measure">📝 قياسات السكر</button>
-  <button class="sb-btn" data-target="sec-meals">🍽️ الوجبات</button>
-  <button class="sb-btn" data-target="sec-reports">📊 التقارير</button>
-  <button class="sb-btn" data-target="sec-doctor">🧑‍⚕️ الطبيب</button>
-  <button class="sb-btn" data-target="sec-visits">📅 الزيارات الطبية</button>
-</aside>
+<header class="topbar">
+  <div class="row">
+    <a class="btn" href="dashboard.html">لوحة وليّ الأمر</a>
+    <button id="btnLogout" class="btn" type="button">خروج</button>
+  </div>
+  <div id="hello" class="row">مرحبًا…</div>
+</header>
 
-<div class="main">
-  <!-- Header -->
-  <header>
-    <div class="head-left">
-      <div class="kid-photo">
-        <img id="childPhoto" alt="صورة الطفل">
-        <div id="avatarFallback" class="avatar-fallback">👧</div>
-      </div>
-      <div class="title-wrap">
-        <div class="hello">مرحبًا 👋</div>
-        <div id="kidName" class="kid-name">جاري التحميل...</div>
-      </div>
-    </div>
-    <div class="head-actions">
-      <a class="btn gray" href="dashboard.html">لوحة وليّ الأمر</a>
-      <button id="btnLogout" class="btn dark">خروج</button>
-    </div>
-  </header>
+<div class="layout">
+  <!-- ===== Sidebar ===== -->
+  <aside class="sidebar">
+    <button class="navbtn active" data-target="#sec-home">🏠 الرئيسية</button>
+    <button class="navbtn" data-target="#sec-info">👶 بيانات الطفل</button>
+    <button class="navbtn" data-target="#sec-measures">🧪 قياسات السكر</button>
+    <button class="navbtn" data-target="#sec-meals">🍽️ الوجبات</button>
+    <button class="navbtn" data-target="#sec-report">📊 تقرير الطبيب</button>
+    <button class="navbtn" data-target="#sec-visits">🩺 الزيارات الطبية</button>
+  </aside>
 
-  <main>
-    <!-- Home -->
-    <section id="sec-home" class="section active">
-      <div class="card"><div class="note">اختاري من القائمة اليمنى القسم المطلوب.</div></div>
+  <!-- ===== Content ===== -->
+  <main class="content">
+
+    <!-- الرئيسية -->
+    <section class="card child-head" id="sec-home">
+      <div class="kid">
+        <img id="kidAvatar" class="avatar" src="images/avatar-default.png" alt="صورة الطفل" onerror="this.src='https://cdn-icons-png.flaticon.com/512/9131/9131529.png'">
+        <div>
+          <div class="name" id="kidName">—</div>
+          <div class="note" id="kidMeta">—</div>
+        </div>
+      </div>
+      <span class="badge" id="unitBadge">الوحدة: mmol/L</span>
     </section>
 
-    <!-- (1) بيانات الطفل -->
-    <section id="sec-info" class="section">
-      <div class="card">
-        <h3>⚙️ بيانات الطفل</h3>
-        <div class="grid g3">
-          <div><label>اسم الطفل</label><input id="childName"></div>
-          <div>
-            <label>النوع</label>
-            <div class="row" style="gap:14px">
-              <label><input type="radio" name="gender" value="male"> ذكر</label>
-              <label><input type="radio" name="gender" value="female"> أنثى</label>
-            </div>
-          </div>
-          <div><label>الرقم المدني</label><input id="childCivilId"></div>
-          <div><label>تاريخ الميلاد</label><input id="dob" type="date"></div>
-          <div><label>الطول (سم)</label><input id="heightCm" type="number" step="0.1" dir="ltr"></div>
-          <div><label>الوزن (كجم)</label><input id="weightKg" type="number" step="0.1" dir="ltr"></div>
-          <div><label>الوحدة المفضلة</label><select id="preferredUnit"><option value="mmol">mmol/L</option><option value="mgdl">mg/dL</option></select></div>
-          <div><label>نوع القياس الافتراضي</label>
-            <select id="defaultMeasurementType">
-              <option value="fingerstick">🩸 فحص إصبع</option>
-              <option value="cgm">📈 CGM</option>
-              <option value="lab">🧪 مختبر</option>
-              <option value="other">✳️ أخرى</option>
-            </select>
-          </div>
-          <div style="grid-column:1/-1"><label>رابط صورة (اختياري)</label><input id="photoUrl" placeholder="https://..."></div>
-          <div style="grid-column:1/-1"><label>ملاحظات</label><input id="notes" placeholder="اختياري"></div>
-        </div>
-        <div class="row" style="margin-top:8px">
-          <button id="btnSaveInfo" class="btn primary">💾 حفظ</button>
-        </div>
+    <!-- بيانات الطفل -->
+    <section class="card" id="sec-info" style="display:none">
+      <h3 style="margin:0 0 10px">🧒 بيانات الطفل</h3>
+      <div class="grid g2">
+        <div><label>الاسم</label><input id="cName"></div>
+        <div><label>النوع</label><select id="cGender"><option>ذكر</option><option>أنثى</option></select></div>
+        <div><label>الرقم المدني</label><input id="cCivilId"></div>
+        <div><label>تاريخ الميلاد</label><input id="cBirth" type="date"></div>
+        <div><label>الوزن (كجم)</label><input id="cWeight" type="number" step="0.1"></div>
+        <div><label>الطول (سم)</label><input id="cHeight" type="number" step="0.1"></div>
       </div>
 
-      <div class="card">
-        <h3>🧪 إعدادات القياس والجرعات <span class="badge">العرض دائمًا mmol/L (1 decimal)</span></h3>
-        <div class="grid g3">
-          <div><label>الهدف</label><input id="target" type="number" step="0.1" dir="ltr"></div>
-          <div><label>حد الهبوط</label><input id="low" type="number" step="0.1" dir="ltr"></div>
-          <div><label>حد الارتفاع</label><input id="high" type="number" step="0.1" dir="ltr"></div>
-          <div><label>ترسيبا (U/Day)</label><input id="tresiba" type="number" step="0.5" dir="ltr"></div>
-          <div><label>TDI (U)</label><input id="tdi" type="number" step="0.5" dir="ltr"></div>
-          <div><label>ISF (mmol/L لكل وحدة)</label><input id="isf" type="number" step="0.1" dir="ltr"></div>
-          <div><label>ICR (جرام/وحدة)</label><input id="icr" type="number" step="0.1" dir="ltr"></div>
-        </div>
-        <div class="row" style="margin-top:8px">
-          <button id="btnSuggest" class="btn gray">💡 احسب من TDI</button>
-          <button id="btnSaveGlucose" class="btn primary">💾 حفظ الإعدادات</button>
-        </div>
-        <div class="note" style="margin-top:6px">اقتراح سريع: ISF≈100/TDI • ICR≈500/TDI</div>
+      <div class="sep"></div>
+
+      <h4>⚙️ إعدادات السكر</h4>
+      <div class="grid g2">
+        <div><label>الوحدة المفضلة</label><select id="cUnit"><option value="mmol/L">mmol/L</option><option value="mg/dL">mg/dL</option></select></div>
+        <div><label>القياس الأمثل</label><input id="cTarget" type="number" step="0.1"></div>
+        <div><label>حد الهبوط</label><input id="cLow" type="number" step="0.1"></div>
+        <div><label>حد الارتفاع</label><input id="cHigh" type="number" step="0.1"></div>
+      </div>
+
+      <div class="sep"></div>
+
+      <h4>💉 جرعات</h4>
+      <div class="grid g3">
+        <div><label>جرعة الترسيبا</label><input id="cTresiba" type="number" step="0.1"></div>
+        <div><label>جرعة الأنسولين اليومية</label><input id="cTotalInsulin" type="number" step="0.1"></div>
+        <div><label>معامل التصحيح</label><input id="cCorrectionFactor" type="number" step="0.1"></div>
+        <div><label>ICR (جم كارب/وحدة)</label><input id="cICR" type="number" step="0.1"></div>
+      </div>
+
+      <div class="sep"></div>
+
+      <h4>📷 صورة الطفل</h4>
+      <div class="row">
+        <input type="file" id="cPhoto" accept="image/*">
+      </div>
+
+      <div class="row" style="justify-content:flex-end;margin-top:10px">
+        <button id="saveInfo" class="btn primary">💾 حفظ البيانات</button>
       </div>
     </section>
 
-    <!-- (2) قياسات السكر -->
-    <section id="sec-measure" class="section">
-      <div class="card">
-        <h3>📝 قياسات السكر <span class="badge">mmol/L — منزلة عشرية واحدة</span></h3>
-        <div class="grid g3">
-          <div><label>التاريخ</label><input type="date" id="dateSel" /></div>
-          <div><label>وقت القياس</label>
-            <select id="slotSel">
-              <option value="">— اختاري الوقت —</option>
-              <option value="uponWake">عند الاستيقاظ</option>
-              <option value="preBreakfast">قبل الإفطار</option>
-              <option value="postBreakfast">بعد الإفطار</option>
-              <option value="preLunch">قبل الغداء</option>
-              <option value="postLunch">بعد الغداء</option>
-              <option value="preDinner">قبل العشاء</option>
-              <option value="postDinner">بعد العشاء</option>
-              <option value="beforeSleep">قبل النوم</option>
-              <option value="duringSleep">أثناء النوم</option>
-              <option value="beforeExercise">قبل التمرين</option>
-              <option value="afterExercise">بعد التمرين</option>
-              <option value="random">قياس عشوائي</option>
-              <option value="other">أخرى</option>
-            </select>
-          </div>
-          <div><label>نوع القياس</label>
-            <select id="mType">
-              <option value="fingerstick">🩸 فحص إصبع</option>
-              <option value="cgm">📈 CGM</option>
-              <option value="lab">🧪 مختبر</option>
-              <option value="other">✳️ أخرى</option>
-            </select>
-          </div>
-        </div>
+    <!-- قياسات السكر -->
+    <section class="card" id="sec-measures" style="display:none">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h3 style="margin:0">🧪 تسجيل القياسات</h3>
+        <span class="badge-soft">الوحدة: <b id="mUnitBadge">mmol/L</b></span>
       </div>
 
-      <div class="card">
-        <h3>إدخال القياس والوجبة</h3>
-        <div class="grid g3">
-          <div><label>القراءة</label><input type="number" id="reading" step="0.1" min="0" dir="ltr"/><div id="statusBadge" class="status ok" style="display:none;"></div></div>
-          <div><label>كارب (جم)</label><input type="number" id="carbs" step="0.1" min="0" dir="ltr"/></div>
-          <div><label>جرعة مقترحة (ICR)</label><input type="number" id="suggestedDose" readonly></div>
-          <div><label>جرعة فعلية</label><input type="number" id="mealDose" step="0.1" dir="ltr"/></div>
-          <div id="correctionSection" style="display:none;"><label>جرعة تصحيحية</label><input type="number" id="correction" step="0.1" dir="ltr"/></div>
-          <div id="raiseSection" style="display:none;"><label>رفع السكر</label><input type="text" id="raise"/></div>
-          <div style="grid-column:1/-1"><label>ملاحظة</label><textarea id="note" rows="2"></textarea></div>
-        </div>
-        <div class="row" style="margin-top:8px">
-          <button class="btn primary" id="saveBtn">💾 حفظ القياس</button>
-          <button class="btn gray" id="reloadDay">🔄 تحديث القراءات</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>قراءات اليوم</h3>
-        <table>
-          <thead><tr><th>الوقت</th><th>القراءة</th><th>الحالة</th><th>جرعة الوجبة</th><th>التصحيح/الرفع</th><th>نوع القياس</th><th>ملاحظة</th></tr></thead>
-          <tbody id="rows"><tr><td colspan="7" class="note">لا توجد قراءات لليوم.</td></tr></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- (3) الوجبات -->
-    <section id="sec-meals" class="section">
-      <section class="card">
-        <div class="row" style="justify-content:space-between;align-items:center">
-          <h3 class="section-title">🍽️ الوجبات</h3>
-          <div class="row">
-            <a href="foods-admin.html" class="btn orange">🗂️ إدارة الأصناف</a>
-          </div>
-        </div>
-
-        <!-- إعداد الوجبة -->
-        <div class="grid g3" style="margin-bottom:10px">
-          <div><label>نوع الوجبة</label>
-            <select id="mealType">
-              <option value="breakfast">فطور</option>
-              <option value="lunch">غداء</option>
-              <option value="dinner">عشاء</option>
-              <option value="snack">سناك</option>
-              <option value="other">أخرى</option>
-            </select>
-          </div>
-          <div><label>وقت الأكل</label><input id="mealTime" type="datetime-local"></div>
-          <div><label>ملاحظة</label><input id="mealNotes" placeholder="اختياري"></div>
-        </div>
-
-        <div class="meals-layout">
-          <!-- التصنيفات -->
-          <div>
-            <div class="row" style="margin-bottom:8px"><input id="foodSearch" placeholder="ابحث عن صنف..." style="width:100%"></div>
-            <div id="catList" class="cats"></div>
-          </div>
-
-          <!-- شبكة الأصناف + السلة -->
-          <div>
-            <div id="foodsGrid" class="foods-grid"><div class="note">جاري التحميل...</div></div>
-
-            <!-- السلة -->
-            <div class="card" style="margin-top:12px">
-              <div class="row" style="justify-content:space-between">
-                <h4 style="margin:0">🧺 سلة الوجبة</h4>
-                <div class="small">ICR الحالي: <b id="icrNow">—</b> g/U</div>
-              </div>
-              <div class="basket" style="margin-top:8px;overflow:auto">
-                <table>
-                  <thead><tr><th>الصنف</th><th>الكمية</th><th>الكارب (جم)</th><th>إجراء</th></tr></thead>
-                  <tbody id="basketBody"><tr><td colspan="4" class="note">لا توجد عناصر بعد.</td></tr></tbody>
-                  <tfoot><tr><td><b>الإجمالي</b></td><td></td><td id="totalCarbsCell">0.0</td><td></td></tr></tfoot>
-                </table>
-              </div>
-
-              <div class="grid g3" style="margin-top:10px">
-                <div><label>الجرعة المقترحة</label><input id="doseSuggestedMeal" readonly></div>
-                <div><label>جرعة فعلية (اختياري)</label><input id="doseGivenMeal" type="number" step="0.1" dir="ltr"></div>
-                <div class="row" style="align-items:flex-end;justify-content:flex-end">
-                  <button id="saveMealBtn" class="btn primary">💾 حفظ الوجبة</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="note" style="margin-top:8px">الحساب: (الجرامات × كارب/100) ÷ 100 • الجرعة المقترحة = إجمالي الكارب ÷ ICR (تقريب 0.1U).</div>
-      </section>
-    </section>
-
-    <!-- (4) التقارير (أسبوعي A4، 7 أيام/صفحة) -->
-    <section id="sec-reports" class="section">
-      <div class="card wk-controls">
-        <h3>📊 تقرير أسبوعي (mmol/L — منزلة عشرية واحدة) — PDF داخل الصفحة</h3>
-        <div class="row no-print" style="gap:8px">
-          <span class="pill">الفترة:</span>
-          <select id="weekPreset">
-            <option value="last7">آخر 7 أيام</option>
-            <option value="thisWeek">الأسبوع الحالي</option>
-            <option value="prevWeek">الأسبوع السابق</option>
-            <option value="custom">مخصص</option>
+      <div class="grid g3" style="margin:10px 0">
+        <div><label>التاريخ</label><input id="mDate" type="date"></div>
+        <div><label>وقت القياس</label>
+          <select id="mSlot">
+            <option value="">— اختاري —</option>
+            <option value="uponWake">الاستيقاظ</option>
+            <option value="preBreakfast">قبل الإفطار</option>
+            <option value="postBreakfast">بعد الإفطار</option>
+            <option value="preLunch">قبل الغداء</option>
+            <option value="postLunch">بعد الغداء</option>
+            <option value="preDinner">قبل العشاء</option>
+            <option value="postDinner">بعد العشاء</option>
+            <option value="beforeSleep">قبل النوم</option>
+            <option value="duringSleep">أثناء النوم</option>
+            <option value="beforeExercise">قبل التمرين</option>
+            <option value="afterExercise">بعد التمرين</option>
+            <option value="random">قياس عشوائي</option>
+            <option value="other">أخرى</option>
           </select>
-          <input id="fromW" type="date">
-          <input id="toW" type="date">
-          <button id="runWeekly" class="btn primary">عرض</button>
-          <button id="printWeekly" class="btn gray">🖨️ طباعة / PDF</button>
-          <button id="printBlank" class="btn gray">📝 ورقة فارغة (7 أيام/صفحة)</button>
         </div>
-        <div id="reportHeader" class="note" style="margin-top:6px"></div>
+        <div><label>القراءة (mmol/L)</label><input id="mValue" type="number" step="0.1" min="0"></div>
+
+        <div><label>كارب (جم)</label><input id="mCarbs" type="number" step="0.1" min="0"></div>
+        <div><label>جرعة مقترحة (ICR)</label><input id="mDoseSuggested" readonly></div>
+        <div><label>جرعة فعلية</label><input id="mDoseGiven" type="number" step="0.1" min="0"></div>
+
+        <div><label>جرعة تصحيحية</label><input id="mCorrection" type="number" step="0.1" min="0"></div>
+        <div><label>رفع السكر (إن لزم)</label><input id="mRaisedWith" placeholder="عصير/تمر..."></div>
+        <div><label>ملاحظة</label><input id="mNote" placeholder="اختياري"></div>
       </div>
 
-      <div id="kpisBox" class="card" style="display:none">
-        <div id="kpis" class="kpis"></div>
+      <div class="row" style="justify-content:flex-end">
+        <button id="mSave" class="btn primary">💾 حفظ القياس</button>
       </div>
 
-      <div id="weeklyBox" class="card" style="display:none">
-        <div id="pagesWrap"></div>
-        <div class="note" style="margin-top:10px">
-          مفتاح الرموز: 🟢 طبيعي • <span class="arrow-up">⬆️</span> مرتفع • <span class="arrow-down">⬇️</span> منخفض
+      <div class="sep"></div>
+
+      <h4 style="margin:0 0 6px">📅 قراءات اليوم</h4>
+      <div class="note">يتم التقريب لأقرب 0.1 (مثال: 7.8)</div>
+      <table class="table">
+        <thead>
+          <tr><th>الوقت</th><th>القراءة</th><th>الحالة</th><th>جرعات</th><th>ملاحظات</th></tr>
+        </thead>
+        <tbody id="mRows"><tr><td colspan="5" class="note center">لا توجد قياسات.</td></tr></tbody>
+      </table>
+    </section>
+
+    <!-- الوجبات -->
+    <section class="card" id="sec-meals" style="display:none">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h3 style="margin:0">🍽️ الوجبات</h3>
+        <span class="badge-soft">ICR الحالي: <b id="icrNow">—</b> g/U</span>
+      </div>
+
+      <div class="grid g3" style="margin:10px 0">
+        <div><label>نوع الوجبة</label>
+          <select id="mealType"><option value="breakfast">فطور</option><option value="lunch">غداء</option><option value="dinner">عشاء</option><option value="snack">سناك</option><option value="other">أخرى</option></select>
+        </div>
+        <div><label>وقت الأكل</label><input id="mealTime" type="datetime-local"></div>
+        <div><label>ملاحظة</label><input id="mealNote" placeholder="اختياري"></div>
+      </div>
+
+      <div class="meals-wrap">
+        <div>
+          <input id="foodSearch" placeholder="ابحث عن صنف..." style="width:100%;margin-bottom:8px">
+          <div id="catList" class="cats"><button class="cat-btn active" data-cat="*">كل الأصناف</button></div>
+        </div>
+
+        <div>
+          <div id="foodsGrid" class="foods-grid"><div class="note">جاري التحميل...</div></div>
+          <div class="card" style="margin-top:12px">
+            <div class="row" style="justify-content:space-between">
+              <h4 style="margin:0">🧺 سلة الوجبة</h4>
+              <div class="badge-soft">إجمالي الكارب: <b id="totalCarbs">0.0</b> جم</div>
+            </div>
+            <div class="basket" style="margin-top:8px;overflow:auto">
+              <table>
+                <thead><tr><th>الصنف</th><th>الوحدة</th><th>الكمية</th><th>الكارب (جم)</th><th>إجراء</th></tr></thead>
+                <tbody id="basketBody"><tr><td colspan="5" class="note">لا توجد عناصر بعد.</td></tr></tbody>
+                <tfoot><tr><td colspan="3"><b>الإجمالي</b></td><td id="totalCarbsCell">0.0</td><td></td></tr></tfoot>
+              </table>
+            </div>
+            <div class="grid g3" style="margin-top:10px">
+              <div><label>الجرعة المقترحة</label><input id="doseSuggestedMeal" readonly></div>
+              <div><label>جرعة فعلية (اختياري)</label><input id="doseGivenMeal" type="number" step="0.1"></div>
+              <div class="row" style="align-items:flex-end;justify-content:flex-end"><button id="saveMealBtn" class="btn primary">💾 حفظ الوجبة</button></div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- (5) الطبيب (ملخّص ورسوم داخل الداش بورد) -->
-    <section id="sec-doctor" class="section">
-      <div class="card">
-        <h3>🧑‍⚕️ ملخص الطبيب</h3>
-        <div class="row no-print" style="gap:8px">
-          <label>من</label><input id="docFrom" type="date">
-          <label>إلى</label><input id="docTo" type="date">
-          <button class="btn primary" id="docRun">عرض</button>
-          <button class="btn gray" id="docPrint">🖨️ طباعة</button>
-          <button class="btn gray" id="docXlsx">📤 Excel</button>
+    <!-- تقرير الطبيب -->
+    <section class="card" id="sec-report" style="display:none">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h3 style="margin:0">📊 تقرير الطبيب</h3>
+        <div><button id="btnReportPDF" class="btn primary">📄 طباعة PDF</button>
+            <button id="btnReportBlank" class="btn gray">📝 تقرير فارغ (7 أيام)</button></div>
+      </div>
+      <div class="report-meta" id="reportMeta">—</div>
+      <table class="table-report" id="reportTable">
+        <thead><tr>
+          <th>التاريخ</th><th>الاستيقاظ</th><th>قبل الإفطار</th><th>بعد الإفطار</th><th>قبل الغداء</th><th>بعد الغداء</th><th>قبل العشاء</th><th>بعد العشاء</th><th>قبل النوم</th><th>أثناء النوم</th>
+        </tr></thead>
+        <tbody id="reportRows"><tr><td colspan="10" class="note">لا توجد بيانات بعد.</td></tr></tbody>
+      </table>
+    </section>
+
+    <!-- الزيارات -->
+    <section class="card" id="sec-visits" style="display:none">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h3 style="margin:0">📅 الزيارات الطبية</h3>
+        <div class="row"><button id="btnVisitNew" class="btn">➕ زيارة جديدة</button></div>
+      </div>
+      <div id="visitFormBox" style="display:none;margin-top:8px">
+        <h4 style="margin:0 0 6px">إضافة / تعديل زيارة</h4>
+        <div class="grid g3">
+          <div><label>تاريخ الزيارة</label><input id="vDate" type="date"></div>
+          <div><label>اسم الطبيب</label><input id="vDoctor"></div>
+          <div><label>العيادة / المستشفى</label><input id="vClinic"></div>
+          <div style="grid-column:1/-1"><label>السبب / الشكوى</label><input id="vReason"></div>
+          <div style="grid-column:1/-1"><label>ملاحظات</label><textarea id="vNotes" rows="2"></textarea></div>
         </div>
-        <div id="docMeta" class="note" style="margin-top:6px"></div>
-      </div>
-
-      <div class="card">
-        <div class="grid g3" style="grid-template-columns:2fr 2fr 1.2fr;align-items:start">
-          <div>
-            <div class="small">متوسط كل وقت (mmol/L)</div>
-            <canvas id="chartSlots" height="180"></canvas>
-          </div>
-          <div>
-            <div class="small">متوسط اليوم (mmol/L)</div>
-            <canvas id="chartTrend" height="180"></canvas>
-          </div>
-          <div id="donutBox">
-            <div class="small">نسب Low/OK/High</div>
-            <canvas id="chartDonut" height="180"></canvas>
-          </div>
+        <div class="row" style="justify-content:flex-end;margin-top:8px">
+          <button id="btnVisitSave" class="btn primary">💾 حفظ الزيارة</button>
+          <button id="btnVisitCancel" class="btn gray">إلغاء</button>
         </div>
       </div>
-
-      <div class="card">
-        <div class="kpis" id="docKPIs"></div>
-      </div>
-
-      <div class="card">
-        <table>
-          <thead><tr>
-            <th>التاريخ</th>
-            <th>قبل الإفطار</th><th>بعد الإفطار</th>
-            <th>قبل الغداء</th><th>بعد الغداء</th>
-            <th>قبل العشاء</th><th>بعد العشاء</th>
-            <th>قبل النوم</th><th>أثناء النوم</th><th>الاستيقاظ</th>
-          </tr></thead>
-          <tbody id="docRows"><tr><td colspan="10" class="note">اختاري فترة لعرض البيانات.</td></tr></tbody>
+      <div style="margin-top:10px">
+        <table class="table"><thead><tr><th>التاريخ</th><th>الطبيب</th><th>العيادة</th><th>السبب</th><th>إجراءات</th></tr></thead>
+          <tbody id="visitsRows"><tr><td colspan="5" class="note">لا توجد زيارات بعد.</td></tr></tbody>
         </table>
       </div>
     </section>
 
-    <!-- (6) الزيارات الطبية -->
-    <section id="sec-visits" class="section"><div class="card"><div class="note">📅 الزيارات الطبية — قريبًا.</div></div></section>
   </main>
 </div>
 
-<!-- Toast -->
-<div id="toast" style="position:fixed;bottom:16px;left:16px;background:#111;color:#fff;padding:10px 14px;border-radius:12px;opacity:0;transform:translateY(6px);transition:.25s"></div>
-
-<!-- مكتبات للطبيب -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<div id="toast" class="toast"></div>
 
 <script type="module">
-/* ===== Imports ===== */
-import { db, auth } from './firebase-init.js';
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import {
-  doc, getDoc, setDoc, collection, getDocs, addDoc, serverTimestamp, query, where, orderBy
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+/* ===== Firebase ===== */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, query, where, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-/* ===== Helpers / UI ===== */
-const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const toast=msg=>{const t=$('#toast');t.textContent=msg;t.style.opacity=1;t.style.transform='translateY(0)';setTimeout(()=>{t.style.opacity=0;t.style.transform='translateY(6px)'},2000)};
-const numOrNull=el=>{const v=typeof el==='string'?el:el.value;if(v===''||v==null)return null;const n=Number(v);return Number.isFinite(n)?n:null};
-const escapeHTML=str=>(str||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const fmtDDMMYYYY=iso=>{if(!iso)return'—';const d=new Date(iso);const p=n=>String(n).padStart(2,'0');return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()}`};
-const fmtISO=d=>{const p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`};
-const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
-const startOfWeek=d=>{const x=new Date(d);const day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);return x};
-const endOfWeek=d=>addDays(startOfWeek(d),6);
-const enumerateDays=(from,to)=>{const res=[];let d=new Date(from+"T00:00:00");const e=new Date(to+"T00:00:00");while(d<=e){res.push(fmtISO(d));d=addDays(d,1)}return res};
-const chunk=(arr,size)=>arr.reduce((a,_,i)=>i%size? a : [...a,arr.slice(i,i+size)],[]);
+const firebaseConfig={apiKey:"AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",authDomain:"child-glucose-tracker.firebaseapp.com",projectId:"child-glucose-tracker",storageBucket:"child-glucose-tracker.firebasestorage.app",messagingSenderId:"294563325904",appId:"1:294563325904:web:39562550bf305fc01abbd5"};
+const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getFirestore(app);
 
-/* ===== Sidebar Nav ===== */
-$$('.sb-btn').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    $$('.sb-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
-    $$('.section').forEach(s=>s.classList.remove('active'));$('#'+btn.dataset.target).classList.add('active');
-  });
-});
+const $=s=>document.querySelector(s);
+const toast=m=>{const t=$("#toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2200);};
 
-/* ===== State ===== */
-let uid=null;
-const params=new URLSearchParams(location.search);
-const childId=params.get('child');
-let lowMmol=null,highMmol=null,targetMmol=null,icr=null,isf=null,tdi=null,tresiba=null;
+let uid=null, childId=null, child=null;
 
-/* ===== Conversions / Status ===== */
-const toMmol=v=>v==null?null:v;               // نخزن/نعرض mmol بالفعل
-const mmol1=v=>v==null?'—':Number(v).toFixed(1); // منزلة واحدة
-const classify=mmol=>(lowMmol!=null&&mmol<lowMmol)?'low':(highMmol!=null&&mmol>highMmol)?'high':'ok';
-const arrow=mmol=>mmol==null?'':(classify(mmol)==='low'?'⬇️':classify(mmol)==='high'?'⬆️':'🟢');
-
-/* ===== Header Avatar ===== */
-const elName=$('#kidName'), img=$('#childPhoto'), fallback=$('#avatarFallback');
-const slugify=s=>(s||'').trim().toLowerCase().replace(/\s+/g,'-').replace(/[^\u0600-\u06FF\w-]/g,'');
-function setAvatarFallback(name,gender){
-  const initials=(name||'').trim().split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
-  fallback.textContent=initials|| (gender==='male'?'👦':'👧'); fallback.style.display='grid'; img.style.display='none';
-}
-function trySetPhoto(child){
-  if(child.photoUrl){ img.src=child.photoUrl; img.onload=()=>{img.style.display='block';fallback.style.display='none'}; img.onerror=()=>setAvatarFallback(child.name,child.gender); return; }
-  const byId=`images/${childId}.jpg`; // فقط childId.jpg
-  img.onload=()=>{img.style.display='block';fallback.style.display='none'};
-  img.onerror=()=>setAvatarFallback(child.name,child.gender);
-  img.src=byId;
-}
-
-/* ===== Auth / Boot ===== */
-onAuthStateChanged(auth, async user=>{
-  if(!user){location.href='index.html';return}
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){ location.href="index.html"; return; }
   uid=user.uid;
-  $('#btnLogout').addEventListener('click',()=>signOut(auth).then(()=>location.href='index.html'));
-  if(!childId){elName.textContent='لم يتم تحديد الطفل';setAvatarFallback('','');return}
-
-  const cSnap=await getDoc(doc(db,'users',uid,'children',childId));
-  if(!cSnap.exists()){elName.textContent='الطفل غير موجود';setAvatarFallback('','');return}
-  const c=cSnap.data();
-  elName.textContent=c.name||'بدون اسم';
-  trySetPhoto(c);
-
-  // Fill info
-  $('#childName').value=c.name||'';
-  (c.gender && $$('input[name="gender"]').forEach(r=>r.checked=(r.value===c.gender)));
-  $('#childCivilId').value=c.childCivilId||''; $('#dob').value=c.dob||'';
-  $('#heightCm').value=c.heightCm ?? c.height ?? ''; $('#weightKg').value=c.weightKg ?? c.weight ?? '';
-  $('#preferredUnit').value=c.preferredUnit||'mmol'; $('#defaultMeasurementType').value=c.defaultMeasurementType||'fingerstick'; $('#notes').value=c.notes||'';
-  $('#photoUrl').value=c.photoUrl||'';
-
-  const gc=c.glucoseConfig||{}; const ds=c.dosing||{};
-  lowMmol=gc.lowThresholdMmol ?? c.lowThreshold ?? null;
-  highMmol=gc.highThresholdMmol ?? c.highThreshold ?? null;
-  targetMmol=gc.targetGlucoseMmol ?? c.targetMmol ?? null;
-  $('#low').value=lowMmol??''; $('#high').value=highMmol??''; $('#target').value=targetMmol??'';
-  tresiba=ds.basalTresibaUnits ?? c.tresiba ?? null;
-  tdi=ds.totalDailyInsulinUnits ?? c.tdi ?? null;
-  isf=ds.isfMmolPerUnit ?? c.correctionFactorMmol ?? null;
-  icr=ds.icrGramsPerUnit ?? c.icr ?? null;
-  $('#tresiba').value=tresiba??''; $('#tdi').value=tdi??''; $('#isf').value=isf??''; $('#icr').value=icr??'';
-
-  bindInfoSavers(); initMeasures(); initMeals(); initWeeklyControls(); runWeeklyReport(); initDoctor();
+  childId = new URLSearchParams(location.search).get('child');
+  if(!childId){ alert("لم يتم تحديد الطفل"); return; }
+  await loadChild();
+  initNav();
+  initInfo();
+  initMeasures();
+  initMeals();
+  initReport();
+  initVisits();
 });
 
-/* ===== Save Info / Glucose ===== */
-function bindInfoSavers(){
-  $('#btnSaveInfo').addEventListener('click',async ()=>{
-    const payload={
-      name:$('#childName').value.trim()||null,
-      gender:($$('input[name="gender"]').find(r=>r.checked)?.value||null),
-      childCivilId:$('#childCivilId').value.trim()||null,
-      dob:$('#dob').value||null,
-      heightCm:numOrNull($('#heightCm')),weightKg:numOrNull($('#weightKg')),
-      preferredUnit:$('#preferredUnit').value, defaultMeasurementType:$('#defaultMeasurementType').value||'fingerstick',
-      notes:$('#notes').value.trim()||null,
-      photoUrl:($('#photoUrl').value||'').trim()||null,
-      lastUpdatedAt:new Date().toISOString()
-    };
-    try{await setDoc(doc(db,'users',uid,'children',childId),payload,{merge:true});toast('✅ تم حفظ بيانات الطفل')}catch(e){console.error(e);toast('❗ خطأ أثناء الحفظ')}
-  });
-
-  $('#btnSuggest').addEventListener('click',()=>{
-    const t=Number($('#tdi').value); if(!t||t<=0){toast('أدخلي TDI أولًا');return}
-    const isfVal=+(100/t).toFixed(2), icrVal=+(500/t).toFixed(1);
-    $('#isf').value=isfVal; $('#icr').value=icrVal; toast('💡 تم اقتراح ISF/ICR');
-  });
-
-  $('#btnSaveGlucose').addEventListener('click',async ()=>{
-    const payload={
-      glucoseConfig:{
-        targetGlucoseMmol:numOrNull($('#target')),
-        lowThresholdMmol:numOrNull($('#low')),
-        highThresholdMmol:numOrNull($('#high'))
-      },
-      dosing:{
-        basalTresibaUnits:numOrNull($('#tresiba')),
-        totalDailyInsulinUnits:numOrNull($('#tdi')),
-        isfMmolPerUnit:numOrNull($('#isf')),
-        icrGramsPerUnit:numOrNull($('#icr'))
-      },
-      lastUpdatedAt:new Date().toISOString()
-    };
-    try{
-      await setDoc(doc(db,'users',uid,'children',childId),payload,{merge:true});
-      lowMmol=payload.glucoseConfig.lowThresholdMmol; highMmol=payload.glucoseConfig.highThresholdMmol; targetMmol=payload.glucoseConfig.targetGlucoseMmol;
-      tresiba=payload.dosing.basalTresibaUnits; tdi=payload.dosing.totalDailyInsulinUnits; isf=payload.dosing.isfMmolPerUnit; icr=payload.dosing.icrGramsPerUnit;
-      $('#icrNow').textContent = icr??'—';
-      toast('✅ تم حفظ الإعدادات');
-    }catch(e){console.error(e);toast('❗ خطأ أثناء الحفظ')}
-  });
+/* ===== Sidebar nav ===== */
+function initNav(){
+  const btns=[...document.querySelectorAll(".navbtn")];
+  btns.forEach(b=>b.addEventListener("click",()=>{
+    btns.forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    const target=b.dataset.target;
+    [...document.querySelectorAll("main .card")].forEach(sec=>sec.style.display="none");
+    $(target).style.display="block";
+    if(target==="#sec-home") $("#sec-home").style.display="flex";
+  }));
+  // افتراضي: الرئيسية ظاهرة
+  $("#sec-home").style.display="flex";
 }
 
-/* ===== Measures ===== */
-function initMeasures(){
-  const today=new Date().toISOString().split('T')[0];
-  $('#dateSel').value=today;
-  $('#reloadDay').addEventListener('click',loadDay);
-  $('#dateSel').addEventListener('change',loadDay);
-  $('#mType').value = $('#defaultMeasurementType').value || 'fingerstick';
+/* ===== Load child ===== */
+async function loadChild(){
+  const snap=await getDoc(doc(db,'users',uid,'children',childId));
+  if(!snap.exists()){ alert("الطفل غير موجود"); return; }
+  child=snap.data();
+  $("#kidName").textContent = child.name || "—";
+  $("#kidMeta").textContent = `${child.gender||''} • ${child.weight||'—'}كجم • ${child.height||'—'}سم`;
+  $("#unitBadge").textContent = `الوحدة: ${child.unit||'mmol/L'}`;
+  if(child.photoURL) $("#kidAvatar").src = child.photoURL;
+}
 
-  $('#carbs').addEventListener('input',()=>{
-    const c=Number($('#carbs').value); if(!icr||icr<=0||!Number.isFinite(c)){ $('#suggestedDose').value=''; return }
-    const d=Math.round((c/icr)*10)/10; $('#suggestedDose').value=d.toFixed(1);
+/* ===== Info section ===== */
+function initInfo(){
+  // تعبئة الحقول
+  $('#cName').value=child.name||''; $('#cGender').value=child.gender||'ذكر';
+  $('#cCivilId').value=child.childCivilId||''; $('#cBirth').value=child.birthDate||'';
+  $('#cWeight').value=child.weight??''; $('#cHeight').value=child.height??'';
+  $('#cUnit').value=child.unit||'mmol/L'; $('#cTarget').value=child.target??'';
+  $('#cLow').value=child.lowThreshold??''; $('#cHigh').value=child.highThreshold??'';
+  $('#cTresiba').value=child.tresibaDose??''; $('#cTotalInsulin').value=child.totalInsulin??'';
+  $('#cCorrectionFactor').value=child.correctionFactor??''; $('#cICR').value=child.icr??'';
+
+  $('#saveInfo').onclick = async ()=>{
+    const data={
+      name:$('#cName').value.trim(),
+      gender:$('#cGender').value,
+      childCivilId:$('#cCivilId').value.trim(),
+      birthDate:$('#cBirth').value||null,
+      weight:num($('#cWeight')), height:num($('#cHeight')),
+      unit:$('#cUnit').value, target:num($('#cTarget')),
+      lowThreshold:num($('#cLow')), highThreshold:num($('#cHigh')),
+      tresibaDose:num($('#cTresiba')), totalInsulin:num($('#cTotalInsulin')),
+      correctionFactor:num($('#cCorrectionFactor')), icr:num($('#cICR'))
+    };
+    await setDoc(doc(db,'users',uid,'children',childId), data, {merge:true});
+    toast("✅ تم حفظ البيانات");
+    await loadChild();
+  };
+
+  // رفع صورة (اختياري): حفظ URL خارجي بسيط عبر FileReader كمعاينة فقط — للرفع الحقيقي نحتاج storage rules مناسبة
+  $('#cPhoto').addEventListener('change', async (e)=>{
+    const f=e.target.files[0]; if(!f) return;
+    const fr=new FileReader(); fr.onload=()=>{$('#kidAvatar').src=fr.result};
+    fr.readAsDataURL(f);
+    // لو لديك تخزين مُفعل وقواعد تسمح، ارفع واحفظ photoURL
   });
-  $('#reading').addEventListener('input',()=>{
-    const val=Number($('#reading').value); if(!Number.isFinite(val)){ $('#statusBadge').style.display='none'; return }
-    const mmol=toMmol(val); const cls=classify(mmol); const sb=$('#statusBadge');
-    sb.className=`status ${cls}`; sb.textContent = cls==='low'?'منخفض':cls==='high'?'مرتفع':'طبيعي'; sb.style.display='inline-block';
-    $('#correctionSection').style.display=(cls==='high')?'block':'none';
-    $('#raiseSection').style.display=(cls==='low')?'block':'none';
+}
+function num(el){const v=el.value; if(v===''||v==null) return null; const n=Number(v); return Number.isFinite(n)?n:null;}
+
+/* ===== Measures section ===== */
+const mLabels = {uponWake:'الاستيقاظ',preBreakfast:'قبل الإفطار',postBreakfast:'بعد الإفطار',preLunch:'قبل الغداء',postLunch:'بعد الغداء',preDinner:'قبل العشاء',postDinner:'بعد العشاء',beforeSleep:'قبل النوم',duringSleep:'أثناء النوم',beforeExercise:'قبل التمرين',afterExercise:'بعد التمرين',random:'قياس عشوائي',other:'أخرى'};
+const mOrder=['uponWake','preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','beforeExercise','afterExercise','random','other'];
+
+function initMeasures(){
+  $("#mUnitBadge").textContent='mmol/L';
+  $("#mDate").value=todayISO();
+  $("#mDate").addEventListener('change', loadDay);
+  $("#mCarbs").addEventListener('input', ()=>{
+    const carbs=Number($("#mCarbs").value)||0; const icr=Number(child?.icr)||0;
+    $("#mDoseSuggested").value = (icr>0 && carbs>0) ? (Math.round((carbs/icr)*10)/10).toFixed(1) : '';
   });
-  $('#saveBtn').addEventListener('click',saveMeasure);
+  $("#mSave").addEventListener('click', saveMeasure);
   loadDay();
 }
 
+function todayISO(){return new Date().toISOString().slice(0,10);}
+function round1(n){return Math.round(Number(n)*10)/10;}
+function stateBy(v,low,high){if(v==null||isNaN(v))return'ok'; if(isFinite(low)&&v<low)return'low'; if(isFinite(high)&&v>high)return'high'; return'ok';}
+
 async function loadDay(){
-  const date=$('#dateSel').value; if(!date) return;
+  const date=$("#mDate").value;
   const ref=doc(db,'users',uid,'children',childId,'measurements',date);
-  const snap=await getDoc(ref); const readings=(snap.data()||{}).readings||{};
-  renderDayRows(readings);
+  const snap=await getDoc(ref);
+  const data=snap.data()||{};
+  const readings=data.readings||{};
+  const low=Number(child?.lowThreshold), high=Number(child?.highThreshold);
+  const tb=$("#mRows"); let html='';
+  mOrder.forEach(k=>{
+    const r=readings[k]; if(!r||r.valueMmol==null) return;
+    const v=round1(Number(r.valueMmol)); const st=stateBy(v,low,high);
+    const doses=[(r.mealDose!=null?`وجبة: ${r.mealDose}U`:''),(r.correctionGiven!=null?`تصحيح: ${r.correctionGiven}U`:'')].filter(Boolean).join(' • ')||'—';
+    const note=r.note||r.raisedWith||'—';
+    html+=`<tr><td><b>${mLabels[k]}</b></td><td>${v.toFixed(1)} mmol/L</td><td><span class="state ${st}">${st==='low'?'منخفض':st==='high'?'مرتفع':'طبيعي'}</span></td><td>${doses}</td><td>${escapeHTML(note)}</td></tr>`;
+  });
+  tb.innerHTML = html || `<tr><td colspan="5" class="note center">لا توجد قياسات.</td></tr>`;
 }
 
-function renderDayRows(readings){
-  const tbody=$('#rows');
-  const labels={
-    uponWake:'عند الاستيقاظ',
-    preBreakfast:'قبل الإفطار', postBreakfast:'بعد الإفطار',
-    preLunch:'قبل الغداء', postLunch:'بعد الغداء',
-    preDinner:'قبل العشاء', postDinner:'بعد العشاء',
-    beforeSleep:'قبل النوم', duringSleep:'أثناء النوم',
-    beforeExercise:'قبل التمرين', afterExercise:'بعد التمرين',
-    random:'قياس عشوائي', other:'أخرى'
-  };
-  const order=['uponWake','preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','beforeExercise','afterExercise','random','other'];
-  const keys=order.filter(k=>readings[k]).concat(Object.keys(readings).filter(k=>!order.includes(k)));
-  if(keys.length===0){tbody.innerHTML='<tr><td colspan="7" class="note">لا توجد قراءات لليوم.</td></tr>';return}
-  tbody.innerHTML='';
-  for(const k of keys){
-    const r=readings[k]; const mmol=r?.valueMmol ?? r?.value ?? null;
-    const disp=mmol1(mmol); const cls=classify(mmol);
-    const status=`<span class="status ${cls}">${cls==='low'?'منخفض':cls==='high'?'مرتفع':'طبيعي'}</span>`;
-    const type=r?.measurementType==='cgm'?'📈 CGM':r?.measurementType==='lab'?'🧪 مختبر':r?.measurementType==='other'?'✳️ أخرى':'🩸 فحص إصبع';
-    const action=(r?.correction!=null)?`تصحيح: ${r.correction}U`:(r?.raise?`رفع: ${escapeHTML(r.raise)}`:(r?.mealDose!=null?`${r.mealDose}U`:'-'));
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${labels[k]||k}</td><td>${disp} mmol/L</td><td>${status}</td><td>${r?.mealDose??'-'}</td><td>${action}</td><td>${type}</td><td>${escapeHTML(r?.note||'-')}</td>`;
-    tbody.appendChild(tr);
-  }
-}
-
+/* ✅ منع تكرار نفس الوقت لنفس اليوم */
 async function saveMeasure(){
-  const date=$('#dateSel').value, slot=$('#slotSel').value, raw=Number($('#reading').value);
-  if(!date||!slot||!Number.isFinite(raw)){toast('أدخلي التاريخ/الوقت/القراءة');return}
+  const date=$("#mDate").value.trim();
+  const slot=$("#mSlot").value;
+  const val=round1(Number($("#mValue").value||0));
+  if(!date||!slot){ alert("اختاري التاريخ ووقت القياس"); return; }
+  if(!(val>0)){ alert("اكتبي قراءة صحيحة"); return; }
+
   const ref=doc(db,'users',uid,'children',childId,'measurements',date);
-  const snap=await getDoc(ref); const base=snap.exists()?snap.data():{date,readings:{}};
-  if(base.readings[slot]?.valueMmol!=null || base.readings[slot]?.value!=null){toast('تم تسجيل هذا الوقت مسبقًا');return}
-  const mmol=toMmol(raw);
-  base.readings[slot]={
-    valueMmol:+Number(mmol).toFixed(2),displayUnit:'mmol',
-    measurementType:$('#mType').value||$('#defaultMeasurementType').value||'fingerstick',
-    note:($('#note').value||'').trim()||null,
-    carbs:numOrNull($('#carbs')),mealDose:numOrNull($('#mealDose')),
-    correction:numOrNull($('#correction')),raise:($('#raise').value||'').trim()||null
+  const snap=await getDoc(ref);
+  const base=snap.data()||{date,readings:{}};
+  if(!base.readings) base.readings={};
+
+  /* 👇 هنا المنع */
+  if(base.readings[slot] && base.readings[slot].valueMmol!=null){
+    alert("هذا الوقت مسجّل بالفعل لهذا اليوم. لا يمكن تكراره.");
+    return;
+  }
+
+  const payload={
+    valueMmol:val,
+    status:stateBy(val, Number(child?.lowThreshold), Number(child?.highThreshold)),
+    carbs: numEl('#mCarbs'), mealDose: numEl('#mDoseGiven'),
+    correctionGiven: numEl('#mCorrection'),
+    raisedWith: textEl('#mRaisedWith'), note: textEl('#mNote')
   };
-  base.date=date;
-  try{await setDoc(ref,base,{merge:true});toast('✅ تم حفظ القياس');await loadDay()}catch(e){console.error(e);toast('❗ تعذر حفظ القياس')}
+  base.readings[slot]=payload;
+  await setDoc(ref, base, {merge:true});
+  toast("✅ تم حفظ القياس");
+  await loadDay();
 }
+function numEl(sel){const v=$(sel).value; if(v===''||v==null) return null; const n=Number(v); return Number.isFinite(n)?n:null;}
+function textEl(sel){const v=$(sel).value?.trim(); return v? v : null;}
+function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
-/* ===== Meals ===== */
-let foods=[], categories=[], activeCat=null, basket=[];
-function initMeals(){
-  $('#icrNow').textContent = icr??'—';
-  $('#foodSearch').addEventListener('input',renderFoods);
-  $('#saveMealBtn').addEventListener('click',saveMeal);
-  // وقت افتراضي الآن
-  const now=new Date(); now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
-  $('#mealTime').value = now.toISOString().slice(0,16);
-  loadFoods();
+/* ===== Meals section (مختصر مع سلة) ===== */
+let foodsAll=[], currentCategory='*', basket=[];
+async function initMeals(){
+  $('#icrNow').textContent = Number(child?.icr)||'—';
+  const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); $('#mealTime').value=d.toISOString().slice(0,16);
+  await loadFoods(); buildCategories(); renderFoods();
+  $('#foodSearch').addEventListener('input', renderFoods);
+  $('#saveMealBtn').addEventListener('click', saveMeal);
 }
-
 async function loadFoods(){
-  const snap=await getDocs(collection(db,'foods'));
-  foods=[]; categories=[];
-  snap.forEach(d=>{
-    const f=d.data(); f.id=d.id;
-    const cats=(f.categories||f.category||'عام'); const arr=Array.isArray(cats)?cats:cats.toString().split(',').map(s=>s.trim()).filter(Boolean);
-    f._cats=arr.length?arr:['عام']; foods.push(f); arr.forEach(c=>{if(!categories.includes(c)) categories.push(c)});
-  });
-  categories.sort();
-  renderCats(); renderFoods();
+  foodsAll=[]; const qs=await getDocs(collection(db,'foods'));
+  qs.forEach(s=>{ const d=s.data(); foodsAll.push({id:s.id,name:d.name||'—',category:d.category||'أخرى',carbsPer100g:Number(d.carbsPer100g)||0,imageUrl:d.imageUrl||'https://cdn-icons-png.flaticon.com/512/1046/1046784.png',servingUnits:Array.isArray(d.servingUnits)&&d.servingUnits.length?d.servingUnits:[{unit:'جرام',grams:100}]}); });
 }
-
-function renderCats(){
-  const wrap=$('#catList'); wrap.innerHTML='';
-  const allBtn=document.createElement('button'); allBtn.className='cat-btn'+(activeCat==null?' active':''); allBtn.textContent='الكل';
-  allBtn.onclick=()=>{activeCat=null; renderCats(); renderFoods()};
-  wrap.appendChild(allBtn);
-  categories.forEach(c=>{
-    const b=document.createElement('button'); b.className='cat-btn'+(activeCat===c?' active':''); b.textContent=c;
-    b.onclick=()=>{activeCat=c; renderCats(); renderFoods()};
-    wrap.appendChild(b);
-  });
+function buildCategories(){
+  const set=new Set(['*']); foodsAll.forEach(f=>set.add(f.category));
+  const box=$("#catList"); box.innerHTML='';
+  [...set].forEach(cat=>{ const b=document.createElement('button'); b.className='cat-btn'+(cat===currentCategory?' active':''); b.dataset.cat=cat; b.textContent=(cat==='*'?'كل الأصناف':cat); b.onclick=()=>{currentCategory=cat;[...box.children].forEach(x=>x.classList.remove('active'));b.classList.add('active');renderFoods();}; box.appendChild(b); });
 }
-
 function renderFoods(){
-  const grid=$('#foodsGrid'); grid.innerHTML='';
-  const q=($('#foodSearch').value||'').trim().toLowerCase();
-  const filtered=foods.filter(f=>{
-    const hitCat = activeCat? f._cats.includes(activeCat) : true;
-    const hitTxt = !q || ( (f.name||'').toLowerCase().includes(q) || (f.keywords||'').toLowerCase().includes(q) );
-    return hitCat && hitTxt;
-  });
-  if(!filtered.length){ grid.innerHTML='<div class="note">لا توجد أصناف مطابقة.</div>'; return; }
-
-  filtered.forEach(f=>{
-    const card=document.createElement('div'); card.className='food-card';
-    card.innerHTML=`
-      <img src="${f.imageUrl||'https://cdn-icons-png.flaticon.com/512/1046/1046784.png'}" alt="">
-      <div class="food-name">${escapeHTML(f.name||'-')}</div>
-      <div class="food-carb">الكارب لكل 100جم: <b>${Number(f.carbsPer100g||0)}</b></div>
-
-      <div class="mode-tabs">
-        <button class="tab-g active">جرامات</button>
-        <button class="tab-h">وحدة منزلية</button>
-      </div>
-
-      <div class="mode grams">
-        <div class="qty-row">
-          <input type="number" min="0" step="0.1" dir="ltr" placeholder="جرامات">
-          <button class="btn primary">➕ أضف</button>
-        </div>
-      </div>
-
-      <div class="mode house" style="display:none">
-        <div class="qty-row">
-          <select class="servSel" style="min-width:110px"></select>
-          <input class="servCnt" type="number" min="0" step="0.1" dir="ltr" value="1" style="width:80px">
-          <button class="btn primary">➕ أضف</button>
-        </div>
-        <div class="small">${escapeHTML(f.servingDescription||'')}</div>
-      </div>
-    `;
-    // تبويب
-    const tg=card.querySelector('.tab-g'), th=card.querySelector('.tab-h');
-    const mg=card.querySelector('.mode.grams'), mh=card.querySelector('.mode.house');
-    tg.onclick=()=>{tg.classList.add('active');th.classList.remove('active');mg.style.display='block';mh.style.display='none'};
-    th.onclick=()=>{th.classList.add('active');tg.classList.remove('active');mg.style.display='none';mh.style.display='block'};
-
-    // جرامات
-    const gInput=card.querySelector('.mode.grams input');
-    const gBtn=card.querySelector('.mode.grams button');
-    gBtn.addEventListener('click',()=>{
-      const g=parseFloat(gInput.value); if(!Number.isFinite(g)||g<=0){toast('🧮 أدخلي كمية صحيحة (جم)');return}
-      const carbs=(g*Number(f.carbsPer100g||0))/100;
-      basket.push({ foodId:f.id, name:f.name, grams:g, carbs:+carbs.toFixed(1), unitLabel:`${g.toFixed(1)} جم` });
+  const grid=$("#foodsGrid"); const q=($('#foodSearch').value||'').toLowerCase();
+  const list=foodsAll.filter(f=>(currentCategory==='*'||f.category===currentCategory)&&(!q||f.name.toLowerCase().includes(q)));
+  if(!list.length){ grid.innerHTML='<div class="note">لا توجد أصناف.</div>'; return; }
+  grid.innerHTML=''; list.forEach(f=>{
+    const card=document.createElement('div'); card.className='food';
+    const unitOpts=f.servingUnits.map(u=>`<option value="${u.grams}">${u.unit} (${u.grams} جم)</option>`).join('');
+    card.innerHTML=`<img src="${f.imageUrl}"><div class="name">${escapeHTML(f.name)}</div><div class="carb">كارب/100جم: <b>${f.carbsPer100g}</b></div>
+      <div class="row" style="justify-content:center;margin-top:6px"><select class="unitSel">${unitOpts}</select><input class="input-mini qty" type="number" min="0.1" step="0.1" value="1"></div>
+      <div class="row" style="justify-content:space-between;margin-top:8px"><button class="btn gray addBtn">➕ أضف</button><span class="badge-soft">${escapeHTML(f.category)}</span></div>`;
+    const unitSel=card.querySelector('.unitSel'); const qty=card.querySelector('.qty');
+    card.querySelector('.addBtn').onclick=()=>{
+      const grams=Number(unitSel.value)||100, qv=Number(qty.value)||0; if(qv<=0) return alert('أدخلي كمية صحيحة');
+      const total = +((grams*qv*f.carbsPer100g)/100).toFixed(1);
+      basket.push({name:f.name,unit:findUnitName(f.servingUnits,grams),gramsPerUnit:grams,qty:qv,carbsPer100g:f.carbsPer100g,totalCarbs:total});
       renderBasket();
-    });
-
-    // وحدات منزلية
-    const sel=card.querySelector('.servSel'); const cnt=card.querySelector('.servCnt'); const btn=card.querySelector('.mode.house button');
-    const servings=Array.isArray(f.servings)?f.servings:[]; sel.innerHTML=servings.length? '' : '<option value="">بدون وحدات</option>';
-    servings.forEach(sv=>{
-      const o=document.createElement('option'); o.value=sv.id; o.textContent=`${sv.label} (${sv.grams} جم)`; o.dataset.grams=sv.grams; sel.appendChild(o);
-    });
-    btn.addEventListener('click',()=>{
-      if(!servings.length){toast('لا توجد وحدات منزلية لهذا الصنف');return}
-      const opt=sel.selectedOptions[0]; const gramsPer=parseFloat(opt?.dataset?.grams||'0'); const c=parseFloat(cnt.value||'0');
-      if(!gramsPer||!c||c<=0){toast('أدخلي عدد وحدات صحيح');return}
-      const g=gramsPer*c; const carbs=(g*Number(f.carbsPer100g||0))/100;
-      basket.push({ foodId:f.id, name:f.name, grams:+g.toFixed(1), carbs:+carbs.toFixed(1), unitLabel:`${c} × ${opt.textContent.split('(')[0].trim()}` });
-      renderBasket();
-    });
-
+    };
     grid.appendChild(card);
   });
 }
-
+function findUnitName(units,grams){const u=(units||[]).find(x=>Number(x.grams)===Number(grams));return u?`${u.unit} (${u.grams}جم)`:`جرام (${grams})`;}
 function renderBasket(){
-  const body=$('#basketBody'); body.innerHTML='';
-  if(!basket.length){ body.innerHTML='<tr><td colspan="4" class="note">لا توجد عناصر بعد.</td></tr>'; $('#totalCarbsCell').textContent='0.0'; $('#doseSuggestedMeal').value=''; return }
-  let total=0;
-  basket.forEach((it,idx)=>{
-    total+=it.carbs;
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td>${escapeHTML(it.name)}</td>
-      <td>${escapeHTML(it.unitLabel||`${it.grams.toFixed(1)} جم`)}</td>
-      <td>${it.carbs.toFixed(1)}</td>
-      <td><button class="btn gray" data-i="${idx}">حذف</button></td>
-    `;
-    body.appendChild(tr);
+  const tb=$("#basketBody"); if(!basket.length){ tb.innerHTML='<tr><td colspan="5" class="note">لا توجد عناصر بعد.</td></tr>'; $('#totalCarbs').textContent='0.0'; $('#totalCarbsCell').textContent='0.0'; $('#doseSuggestedMeal').value=''; return; }
+  tb.innerHTML=''; let total=0;
+  basket.forEach((it,i)=>{ total+=it.totalCarbs; const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${escapeHTML(it.name)}</td><td>${escapeHTML(it.unit)}</td>
+      <td><input class="input-mini q" type="number" min="0.1" step="0.1" value="${it.qty}"></td>
+      <td class="c">${it.totalCarbs.toFixed(1)}</td><td><button class="btn gray">🗑️ حذف</button></td>`;
+    tr.querySelector('.q').oninput=e=>{it.qty=Number(e.target.value)||0; it.totalCarbs=+((it.gramsPerUnit*it.qty*it.carbsPer100g)/100).toFixed(1); tr.querySelector('.c').textContent=it.totalCarbs.toFixed(1); recomputeTotals();};
+    tr.querySelector('button').onclick=()=>{basket.splice(i,1); renderBasket();};
+    tb.appendChild(tr);
   });
-  body.querySelectorAll('button[data-i]').forEach(b=>b.onclick=()=>{basket.splice(Number(b.dataset.i),1);renderBasket()});
-  $('#totalCarbsCell').textContent=total.toFixed(1);
-  if(icr&&icr>0){ $('#doseSuggestedMeal').value=(Math.round((total/icr)*10)/10).toFixed(1) } else { $('#doseSuggestedMeal').value='' }
+  $('#totalCarbs').textContent=total.toFixed(1); $('#totalCarbsCell').textContent=total.toFixed(1);
+  const icr=Number(child?.icr)||0; $('#doseSuggestedMeal').value=(icr>0&&total>0)?(Math.round((total/icr)*10)/10).toFixed(1):'';
 }
-
+function recomputeTotals(){let t=0; basket.forEach(b=>t+=b.totalCarbs); $('#totalCarbs').textContent=t.toFixed(1); $('#totalCarbsCell').textContent=t.toFixed(1); const icr=Number(child?.icr)||0; $('#doseSuggestedMeal').value=(icr>0&&t>0)?(Math.round((t/icr)*10)/10).toFixed(1):'';}
 async function saveMeal(){
-  if(!basket.length){toast('السلة فارغة');return}
-  const eatenAt=$('#mealTime').value; const mealType=$('#mealType').value; if(!eatenAt){toast('حددي وقت الأكل');return}
-  const total=parseFloat($('#totalCarbsCell').textContent)||0;
-  const suggested=numOrNull($('#doseSuggestedMeal')); const given=numOrNull($('#doseGivenMeal'));
-  const note=($('#mealNotes').value||'').trim()||null;
-
-  const payload={
-    childId, mealType, eatenAt: new Date(eatenAt).toISOString(), note,
-    totalCarbs:+total.toFixed(1),
-    bolusUnitsSuggested: suggested, bolusUnitsGiven: given,
-    items: basket.map(x=>({ foodId:x.foodId, name:x.name, qtyGrams:+x.grams.toFixed(1), carbs:+x.carbs.toFixed(1), unitLabel:x.unitLabel||null })),
-    icrUsed: icr??null, createdAt: serverTimestamp()
-  };
-  try{
-    await addDoc(collection(db,'users',uid,'children',childId,'meals'), payload);
-    toast('✅ تم حفظ الوجبة'); basket=[]; renderBasket();
-  }catch(e){console.error(e);toast('❗ تعذر حفظ الوجبة')}
+  if(!basket.length) return alert('السلة فارغة');
+  const time=$('#mealTime').value; if(!time) return alert('اختاري وقت الأكل');
+  const total=basket.reduce((a,b)=>a+b.totalCarbs,0);
+  await addDoc(collection(db,'users',uid,'children',childId,'meals'),{type:$('#mealType').value,time, note:$('#mealNote').value||null, icrUsed:Number(child?.icr)||null,totalCarbs:+total.toFixed(1), items:basket});
+  toast('✅ تم حفظ الوجبة'); basket=[]; renderBasket();
 }
 
-/* ===== Weekly Report (A4, 7 days per page) ===== */
-const wk={
-  preset:$('#weekPreset'), from:$('#fromW'), to:$('#toW'),
-  run:$('#runWeekly'), print:$('#printWeekly'), blank:$('#printBlank'),
-  header:$('#reportHeader'), box:$('#weeklyBox'), pagesWrap:$('#pagesWrap'),
-  kpisBox:$('#kpisBox'), kpis:$('#kpis'),
-  slots:[
-    ['uponWake','الاستيقاظ'],
-    ['preBreakfast','قبل الفطور'],['postBreakfast','بعد الفطور'],
-    ['preLunch','قبل الغداء'],['postLunch','بعد الغداء'],
-    ['preDinner','قبل العشاء'],['postDinner','بعد العشاء'],
-    ['beforeSleep','قبل النوم'],['duringSleep','أثناء النوم'],
-    ['beforeExercise','قبل التمرين'],['afterExercise','بعد التمرين'],
-    ['random','عشوائي'],['other','أخرى']
-  ]
-};
-
-function initWeeklyControls(){
-  const now=new Date(); wk.preset.value='last7';
-  wk.from.value=fmtISO(addDays(now,-6)); wk.to.value=fmtISO(now);
-  wk.from.disabled=true; wk.to.disabled=true;
-
-  wk.preset.addEventListener('change',()=>{
-    const n=new Date();
-    if(wk.preset.value==='custom'){ wk.from.disabled=false; wk.to.disabled=false; return }
-    wk.from.disabled=true; wk.to.disabled=true;
-    if(wk.preset.value==='last7'){ wk.from.value=fmtISO(addDays(n,-6)); wk.to.value=fmtISO(n) }
-    else if(wk.preset.value==='thisWeek'){ wk.from.value=fmtISO(startOfWeek(n)); wk.to.value=fmtISO(endOfWeek(n)) }
-    else if(wk.preset.value==='prevWeek'){ const s=addDays(startOfWeek(n),-7), e=addDays(endOfWeek(n),-7); wk.from.value=fmtISO(s); wk.to.value=fmtISO(e) }
+/* ===== Doctor report (مختصر) ===== */
+function initReport(){
+  $('#btnReportPDF').onclick=()=>window.print();
+  $('#btnReportBlank').onclick=()=>renderBlank7();
+  buildReportRange(todayISO(), todayISO());
+}
+async function buildReportRange(from,to){
+  $('#reportMeta').textContent=`الاسم: ${child?.name||'—'} • الفترة: ${from} → ${to} • الوحدة: mmol/L`;
+  const qy=query(collection(db,'users',uid,'children',childId,'measurements'), where('date','>=',from), where('date','<=',to), orderBy('date','asc'));
+  const qs=await getDocs(qy); const rows=[];
+  qs.forEach(s=>{const d=s.data(); const r=d.readings||{}; const row=[d.date];
+    ['uponWake','preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep'].forEach(k=>{const x=r[k]; if(x&&x.valueMmol!=null){const st=stateBy(x.valueMmol,child?.lowThreshold,child?.highThreshold); const icon=st==='low'?'⬇️':st==='high'?'⬆️':'🟢'; row.push(`${(Math.round(x.valueMmol*10)/10).toFixed(1)} ${icon}`);} else row.push('—');});
+    rows.push(row);
   });
-  wk.run.addEventListener('click',runWeeklyReport);
-  wk.print.addEventListener('click',()=>window.print());
-  wk.blank.addEventListener('click',printWeeklyBlank);
+  const tb=$("#reportRows"); tb.innerHTML = rows.length? rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('') : `<tr><td colspan="10" class="note">لا توجد بيانات.</td></tr>`;
+}
+function renderBlank7(){
+  const t=new Date(); const days=[...Array(7)].map((_,i)=>{const d=new Date(t); d.setDate(t.getDate()+i); return d.toISOString().slice(0,10);});
+  $('#reportRows').innerHTML = days.map(date=>`<tr><td>${date}</td>${'<td>—</td>'.repeat(9)}</tr>`).join('');
 }
 
-function calcAge(dob){ if(!dob)return null; const d=new Date(dob), n=new Date(); let y=n.getFullYear()-d.getFullYear(); const m=n.getMonth()-d.getMonth(); if(m<0||(m===0&&n.getDate()<d.getDate()))y--; return y }
-
-async function runWeeklyReport(){
-  const from=wk.from.value, to=wk.to.value; if(!from||!to){toast('حددي الفترة');return}
-
-  const cSnap=await getDoc(doc(db,'users',uid,'children',childId)); const c=cSnap.data()||{};
-  const age=calcAge(c.dob); const weight=c.weightKg ?? c.weight ?? '—'; const height=c.heightCm ?? c.height ?? '—';
-  wk.header.innerHTML = `
-    <b>الاسم:</b> ${escapeHTML(c.name||'—')}
-    • <b>السن:</b> ${age??'—'}
-    • <b>الرقم المدني:</b> ${escapeHTML(c.childCivilId||'—')}
-    • <b>الوزن:</b> ${weight} كجم
-    • <b>الطول:</b> ${height} سم
-    • <b>ترسيبا:</b> ${tresiba??'—'}U
-    • <b>TDI:</b> ${tdi??'—'}U
-    • <b>حدود (mmol/L):</b> ⬇︎ ${lowMmol!=null?mmol1(lowMmol):'—'} • هدف ${targetMmol!=null?mmol1(targetMmol):'—'} • ⬆︎ ${highMmol!=null?mmol1(highMmol):'—'}
-  `;
-
-  const days=enumerateDays(from,to);
-  const measSnaps=await Promise.all(days.map(d=>getDoc(doc(db,'users',uid,'children',childId,'measurements',d))));
-  const byDate={}; days.forEach((d,i)=> byDate[d]=measSnaps[i].data()||{date:d,readings:{}});
-
-  // Meals binding
-  let mealsByDateSlot={};
-  try{
-    const startIso=new Date(from+"T00:00:00").toISOString();
-    const endIso=new Date(to+"T23:59:59").toISOString();
-    const qMeals=query(collection(db,'users',uid,'children',childId,'meals'), where('eatenAt','>=',startIso), where('eatenAt','<=',endIso), orderBy('eatenAt','asc'));
-    const mSnap=await getDocs(qMeals);
-    mSnap.forEach(ms=>{
-      const m=ms.data(); const d=(m.eatenAt||'').slice(0,10);
-      const slot=(m.mealType==='breakfast')?'postBreakfast':(m.mealType==='lunch')?'postLunch':(m.mealType==='dinner')?'postDinner':'random';
-      mealsByDateSlot[d]=mealsByDateSlot[d]||{}; mealsByDateSlot[d][slot]=mealsByDateSlot[d][slot]||[];
-      mealsByDateSlot[d][slot].push({ totalCarbs:m.totalCarbs??null, bolusSuggested:m.bolusUnitsSuggested??null, bolusGiven:m.bolusUnitsGiven??null });
-    });
-  }catch(e){ console.warn('Meals query skipped',e) }
-
-  // KPIs
-  const all=[]; let low=0,ok=0,high=0; let carbSum=0,sug=0,giv=0;
-
-  // تقسيم 7 أيام/صفحة
-  wk.pagesWrap.innerHTML='';
-  chunk(days,7).forEach((pageDays,pi)=>{
-    const page=document.createElement('div'); page.className='page';
-    page.innerHTML=`<div class="page-title">الأيام ${pi*7+1}–${pi*7+pageDays.length}</div>`;
-    pageDays.forEach(d=>{
-      const card=document.createElement('div'); card.className='day-card';
-      const titleDate=fmtDDMMYYYY(d+'T00:00:00');
-      card.innerHTML=`<div class="day-head"><div class="day-date">${titleDate}</div><div class="legend">الوحدة: mmol/L</div></div>`;
-      const tbl=document.createElement('table'); tbl.className='day-table';
-      const thead=document.createElement('thead'); const trH=document.createElement('tr');
-      trH.appendChild(th('التاريخ')); wk.slots.forEach(([_,name])=>trH.appendChild(th(name))); thead.appendChild(trH); tbl.appendChild(thead);
-      const tbody=document.createElement('tbody'); const tr=document.createElement('tr');
-      tr.appendChild(td(`<b>${titleDate}</b>`));
-
-      const readings=(byDate[d].readings||{});
-      wk.slots.forEach(([key])=>{
-        const r=readings[key]; const mmol=r?.valueMmol ?? r?.value ?? null;
-        if(mmol!=null){ const cls=classify(mmol); if(cls==='low')low++; else if(cls==='high')high++; else ok++; all.push(mmol); }
-        const arrClass = mmol==null?'':(classify(mmol)==='low'?'arrow-down':classify(mmol)==='high'?'arrow-up':'arrow-ok');
-        const v = mmol==null? '—' : `${mmol1(mmol)} mmol/L`;
-        const note = r?.note? `<div class="mnote">ملاحظة: ${escapeHTML(r.note)}</div>` : '';
-        const ms=(mealsByDateSlot[d]||{})[key]||[]; let mealLine='';
-        if(ms.length){
-          const csum=ms.reduce((s,x)=>s+(x.totalCarbs||0),0);
-          const ssum=ms.reduce((s,x)=>s+(x.bolusSuggested||0),0);
-          const gsum=ms.reduce((s,x)=>s+(x.bolusGiven||0),0);
-          carbSum+=csum; sug+=ssum; giv+=gsum;
-          mealLine=`<div class="meal-mini">🍽 ${csum.toFixed(1)}g • ${ssum?ssum.toFixed(1):'—'}U • ${gsum?gsum.toFixed(1):'—'}U</div>`;
-        }
-        tr.appendChild(td(`
-          <div class="val">${v} <span class="${arrClass}">${arrow(mmol)}</span></div>
-          ${note}
-          ${mealLine}
-        `));
-      });
-      tbody.appendChild(tr); tbl.appendChild(tbody); card.appendChild(tbl); page.appendChild(card);
-    });
-    wk.pagesWrap.appendChild(page);
-
-    function th(t){const e=document.createElement('th');e.textContent=t;return e}
-    function td(html){const e=document.createElement('td');e.innerHTML=html;return e}
-  });
-
-  // KPIs
-  const total=low+ok+high; const tir=total?Math.round((ok/total)*100):null;
-  const avg=all.length?(all.reduce((a,b)=>a+b,0)/all.length):null;
-  const min=all.length?Math.min(...all):null; const max=all.length?Math.max(...all):null;
-  wk.kpis.innerHTML='';
-  addChip(`TIR: ${tir!=null?tir+'%':'—'}`); addChip(`متوسط: ${avg!=null?mmol1(avg):'—'}`);
-  addChip(`أدنى: ${min!=null?mmol1(min):'—'}`); addChip(`أعلى: ${max!=null?mmol1(max):'—'}`);
-  addChip(`منخفض: ${low}`); addChip(`طبيعي: ${ok}`); addChip(`مرتفع: ${high}`);
-  addChip(`كارب: ${carbSum.toFixed(1)}g`); addChip(`جرعات: ${sug.toFixed(1)}U • ${giv.toFixed(1)}U`);
-  wk.kpisBox.style.display='block'; wk.box.style.display='block';
-
-  function addChip(t){const el=document.createElement('div');el.className='chip';el.textContent=t;wk.kpis.appendChild(el)}
+/* ===== Visits (بسيط) ===== */
+function initVisits(){
+  $('#btnVisitNew').onclick=()=>{$('#visitFormBox').style.display='block'; $('#vDate').value=todayISO();};
+  $('#btnVisitCancel').onclick=()=>{$('#visitFormBox').style.display='none'};
+  $('#btnVisitSave').onclick=saveVisit;
+  loadVisits();
+}
+async function saveVisit(){
+  const payload={date:$('#vDate').value, doctor:$('#vDoctor').value||null, clinic:$('#vClinic').value||null, reason:$('#vReason').value||null, notes:$('#vNotes').value||null};
+  if(!payload.date) return alert('أدخلي تاريخ الزيارة');
+  await addDoc(collection(db,'users',uid,'children',childId,'visits'), payload);
+  toast('✅ تم حفظ الزيارة'); $('#visitFormBox').style.display='none'; loadVisits();
+}
+async function loadVisits(){
+  const tb=$("#visitsRows"); const qs=await getDocs(query(collection(db,'users',uid,'children',childId,'visits'), orderBy('date','desc')));
+  if(qs.empty){ tb.innerHTML='<tr><td colspan="5" class="note">لا توجد زيارات بعد.</td></tr>'; return; }
+  const rows=[]; qs.forEach(s=>{const v=s.data(); rows.push(`<tr><td><b>${v.date||'—'}</b></td><td>${v.doctor||'—'}</td><td>${v.clinic||'—'}</td><td>${v.reason||'—'}</td><td class="center">—</td></tr>`);});
+  tb.innerHTML=rows.join('');
 }
 
-function printWeeklyBlank(){
-  const from=wk.from.value, to=wk.to.value; if(!from||!to){toast('حددي الفترة');return}
-  const days=enumerateDays(from,to);
-  wk.pagesWrap.innerHTML='';
-  chunk(days,7).forEach((pageDays,pi)=>{
-    const page=document.createElement('div'); page.className='page';
-    page.innerHTML=`<div class="page-title">ورقة فارغة — الأيام ${pi*7+1}–${pi*7+pageDays.length}</div>`;
-    pageDays.forEach(d=>{
-      const card=document.createElement('div'); card.className='day-card';
-      const titleDate=fmtDDMMYYYY(d+'T00:00:00');
-      card.innerHTML=`<div class="day-head"><div class="day-date">${titleDate}</div><div class="legend">الوحدة: mmol/L</div></div>`;
-      const tbl=document.createElement('table'); tbl.className='day-table';
-      const thead=document.createElement('thead'); const trH=document.createElement('tr');
-      trH.appendChild(th('التاريخ')); wk.slots.forEach(([_,name])=>trH.appendChild(th(name))); thead.appendChild(trH); tbl.appendChild(thead);
-      const tbody=document.createElement('tbody'); const tr=document.createElement('tr');
-      tr.appendChild(td(`<b>${titleDate}</b>`));
-      wk.slots.forEach(()=> tr.appendChild(td(`
-        <div class="val">________ mmol/L</div>
-        <div class="mnote">ملاحظة: ___________________</div>
-        <div class="meal-mini">🍽 كارب: ___ g • جرعة: ___ U</div>
-      `)));
-      tbody.appendChild(tr); tbl.appendChild(tbody); card.appendChild(tbl); page.appendChild(card);
-    });
-    wk.pagesWrap.appendChild(page);
-
-    function th(t){const e=document.createElement('th');e.textContent=t;return e}
-    function td(html){const e=document.createElement('td');e.innerHTML=html;return e}
-  });
-  window.print();
-}
-
-/* ===== Doctor (embedded) ===== */
-let chartSlots=null, chartTrend=null, chartDonut=null;
-function initDoctor(){
-  const iso=new Date().toISOString().slice(0,10);
-  $('#docFrom').value=iso; $('#docTo').value=iso;
-  $('#docRun').addEventListener('click',buildDoctor);
-  $('#docPrint').addEventListener('click',()=>window.print());
-  $('#docXlsx').addEventListener('click',exportDoctorXlsx);
-}
-
-async function buildDoctor(){
-  const from=$('#docFrom').value, to=$('#docTo').value;
-  if(!from||!to){toast('حددي الفترة');return}
-
-  const days=enumerateDays(from,to);
-  const measSnaps=await Promise.all(days.map(d=>getDoc(doc(db,'users',uid,'children',childId,'measurements',d))));
-  const byDate={}; days.forEach((d,i)=> byDate[d]=measSnaps[i].data()||{date:d,readings:{}});
-
-  // Meta
-  const cSnap=await getDoc(doc(db,'users',uid,'children',childId)); const c=cSnap.data()||{};
-  $('#docMeta').textContent=`الاسم: ${c.name||'—'} • الفترة: ${from} → ${to} • حدود: ⬇︎ ${lowMmol??'—'} — ⬆︎ ${highMmol??'—'} mmol/L`;
-
-  const labelsMap={
-    preBreakfast:'قبل الإفطار',postBreakfast:'بعد الإفطار',
-    preLunch:'قبل الغداء',postLunch:'بعد الغداء',
-    preDinner:'قبل العشاء',postDinner:'بعد العشاء',
-    beforeSleep:'قبل النوم',duringSleep:'أثناء النوم',uponWake:'عند الاستيقاظ'
-  };
-  const order=['preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','uponWake'];
-
-  // جدول
-  const tbody=$('#docRows'); tbody.innerHTML='';
-  let total=0,cLow=0,cOk=0,cHigh=0,sum=0,all=[];
-  const dailySeries=[];
-  const slotAgg={}; order.forEach(k=>slotAgg[k]={sum:0,count:0});
-
-  days.forEach(d=>{
-    const readings=(byDate[d].readings||{});
-    const tr=document.createElement('tr'); tr.appendChild(td(d));
-    let daySum=0,cnt=0; let any=false;
-    order.forEach(k=>{
-      const r=readings[k]; const tdCell=document.createElement('td');
-      if(!r||r.valueMmol==null){ tdCell.textContent='—'; }
-      else{
-        const mmol=Number(r.valueMmol); const st=classify(mmol);
-        any=true; total++; sum+=mmol; all.push(mmol);
-        if(st==='low')cLow++; else if(st==='high')cHigh++; else cOk++;
-        daySum+=mmol; cnt++; slotAgg[k].sum+=mmol; slotAgg[k].count++;
-
-        const cls=(st==='low')?'low':(st==='high'?'high':'ok');
-        tdCell.innerHTML=`<span class="badge ${cls}">${mmol1(mmol)} mmol/L</span>`;
-      }
-      tr.appendChild(tdCell);
-    });
-    if(cnt) dailySeries.push({date:d,avg:+(daySum/cnt).toFixed(2)});
-    if(!any){ tr.innerHTML=`<td>${d}</td><td colspan="9" class="note">—</td>`; }
-    tbody.appendChild(tr);
-  });
-
-  // KPIs
-  const tir= total? Math.round((cOk/total)*100) : 0;
-  const avg= total? (sum/total).toFixed(1) : '—';
-  const min=all.length?Math.min(...all):null; const max=all.length?Math.max(...all):null;
-  $('#docKPIs').innerHTML='';
-  addChip(`قراءات: ${total}`); addChip(`TIR: ${tir}%`); addChip(`متوسط: ${avg}`); addChip(`أدنى: ${min!=null?mmol1(min):'—'}`); addChip(`أعلى: ${max!=null?mmol1(max):'—'}`);
-
-  // Charts
-  const slotLabels=order.map(k=>labelsMap[k]); const slotMeans=order.map(k=>{const a=slotAgg[k];return a.count?+(a.sum/a.count).toFixed(2):0});
-  if(chartSlots) chartSlots.destroy();
-  chartSlots=new Chart($('#chartSlots'),{type:'bar',data:{labels:slotLabels,datasets:[{label:'متوسط (mmol/L)',data:slotMeans,backgroundColor:'#6ee7b7',borderColor:'#059669'}]},options:{plugins:{legend:{display:true}},scales:{x:{ticks:{autoSkip:false}}}}});
-
-  if(chartTrend) chartTrend.destroy();
-  chartTrend=new Chart($('#chartTrend'),{type:'line',data:{labels:dailySeries.map(x=>x.date),datasets:[{label:'متوسط يومي',data:dailySeries.map(x=>x.avg),borderColor:'#0ea5e9',backgroundColor:'rgba(14,165,233,.15)',tension:.3,spanGaps:true}]},options:{plugins:{legend:{display:true}}}});
-
-  if(chartDonut) chartDonut.destroy();
-  chartDonut=new Chart($('#chartDonut'),{type:'doughnut',data:{labels:['منخفض','طبيعي','مرتفع'],datasets:[{data:[cLow,cOk,cHigh],backgroundColor:['#f59e0b','#22c55e','#ef4444']}]} ,options:{plugins:{legend:{display:true,position:'bottom'}}}});
-
-  function td(html){const e=document.createElement('td');e.innerHTML=html;return e}
-  function addChip(t){const el=document.createElement('div');el.className='chip';el.textContent=t;$('#docKPIs').appendChild(el)}
-}
-
-function exportDoctorXlsx(){
-  const XLSX=window.XLSX; if(!XLSX){ toast('XLSX غير متاح'); return; }
-  const table=document.querySelector('#sec-doctor table');
-  const wb=XLSX.utils.book_new();
-  const ws=XLSX.utils.table_to_sheet(table);
-  XLSX.utils.book_append_sheet(wb,ws,'Readings');
-  XLSX.writeFile(wb,'doctor_report.xlsx');
-}
-
-/* ===== utils for charts (global td func used above) ===== */
+/* ===== Logout ===== */
+$("#btnLogout").onclick=()=>signOut(auth).then(()=>location.href='index.html');
 </script>
 </body>
 </html>
