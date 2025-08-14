@@ -4,156 +4,144 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>لوحة الطفل — متابعة سكر الأطفال</title>
+
   <style>
-    /*  ===== أنماط لوحة التحكم الأصلية كاملة ===== */
-    :root{--brand:#0ea5e9;--brand2:#6ee7b7;--line:#e5e7eb;--ink:#0f172a;--muted:#6b7280;
-      --bg:#f6fbff;--card:#fff;--ok:#10b981;--warn:#f59e0b;--bad:#ef4444;
-      --chip:#eef6ff;--hi:#f97316;}
+    :root{
+      --brand:#0ea5e9; --brand2:#6ee7b7; --line:#e5e7eb;
+      --ink:#0f172a; --muted:#6b7280; --bg:#f6fbff; --card:#fff;
+      --ok:#10b981; --warn:#f59e0b; --bad:#ef4444; --chip:#eef6ff;
+      --hi:#f97316;
+    }
     *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "Tajawal",system-ui,sans-serif;
-      display:flex;min-height:100vh}
-    .sidebar{width:260px;flex:0 0 260px;background:linear-gradient(180deg,var(--brand),var(--brand2));
-      color:#fff;padding:16px;position:sticky;top:0;height:100vh;overflow:auto}
-    .sb-title{font-weight:800;font-size:18px;margin-bottom:12px}
-    .sb-btn{display:block;width:100%;text-align:right;background:transparent;border:none;color:#fff;
-      padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700;margin:4px 0}
-    .sb-btn:hover,.sb-btn.active{background:rgba(255,255,255,.18)}
+    body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "Tajawal",system-ui,sans-serif; display:flex; min-height:100vh}
+
+    /* Sidebar */
+    .sidebar{
+      width:260px; flex:0 0 260px; background:linear-gradient(180deg,var(--brand),var(--brand2));
+      color:#fff; padding:16px; position:sticky; top:0; height:100vh; overflow:auto
+    }
+    .sb-title{font-weight:800; font-size:18px; margin-bottom:12px}
+    .sb-btn{display:block; width:100%; text-align:right; background:transparent; border:none; color:#fff;
+      padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:700; margin:4px 0}
+    .sb-btn:hover, .sb-btn.active{background:rgba(255,255,255,.18)}
     .spacer{height:6px}
-    .main{flex:1;min-width:0}
-    header{position:sticky;top:0;z-index:10;background:linear-gradient(90deg,var(--brand),var(--brand2));
-      color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
-    .head-left{display:flex;align-items:center;gap:12px}
-    .kid-photo{width:56px;height:56px;border-radius:16px;overflow:hidden;
-      border:2px solid rgba(255,255,255,.75);background:#fff;display:grid;place-items:center}
-    .kid-photo img{width:100%;height:100%;object-fit:cover;display:block}
-    .avatar-fallback{width:100%;height:100%;display:none;place-items:center;background:#e0f7fa;
-      color:#0f172a;font-weight:800;font-size:18px}
-    .title-wrap{display:flex;flex-direction:column}
-    .hello{font-size:14px;opacity:.9}
-    .kid-name{font-size:18px;font-weight:800}
-    .head-actions{display:flex;gap:8px;flex-wrap:wrap}
-    .btn{border:none;border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer}
+
+    /* Main + header */
+    .main{flex:1; min-width:0}
+    header{
+      position:sticky; top:0; z-index:10; background:linear-gradient(90deg,var(--brand),var(--brand2));
+      color:#fff; padding:12px 16px; display:flex; align-items:center; justify-content:space-between;
+    }
+    .head-left{display:flex; align-items:center; gap:12px}
+    .kid-photo{ width:56px; height:56px; border-radius:16px; overflow:hidden; border:2px solid rgba(255,255,255,.75); background:#fff; display:grid; place-items:center }
+    .kid-photo img{width:100%; height:100%; object-fit:cover; display:block}
+    .avatar-fallback{ width:100%; height:100%; display:none; place-items:center; background:#e0f7fa; color:#0f172a; font-weight:800; font-size:18px }
+    .title-wrap{display:flex; flex-direction:column}
+    .hello{font-size:14px; opacity:.9}
+    .kid-name{font-size:18px; font-weight:800}
+    .head-actions{display:flex; gap:8px; flex-wrap:wrap}
+    .btn{border:none; border-radius:10px; padding:8px 12px; font-weight:800; cursor:pointer}
     .btn.gray{background:#eef2f7}
-    .btn.dark{background:#0f172a;color:#fff}
-    .btn.primary{background:var(--brand);color:#fff}
-    .btn.orange{background:var(--hi);color:#fff}
-    main{max-width:1200px;margin:auto;padding:16px}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
-      padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.05);margin-bottom:14px}
-    .note{color:var(--muted);font-size:14px}
-    .badge{display:inline-block;padding:2px 8px;border-radius:999px;background:var(--chip);
-      color:#0f172a;font-size:12px;margin-inline-start:6px}
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .grid{display:grid;gap:12px}
+    .btn.dark{background:#0f172a; color:#fff}
+    .btn.primary{background:var(--brand); color:#fff}
+    .btn.orange{background:var(--hi); color:#fff}
+
+    main{max-width:1200px; margin:auto; padding:16px}
+    .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; box-shadow:0 2px 10px rgba(0,0,0,.05); margin-bottom:14px}
+    .note{color:var(--muted); font-size:14px}
+    .badge{display:inline-block; padding:2px 8px; border-radius:999px; background:var(--chip); color:#0f172a; font-size:12px; margin-inline-start:6px}
+    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+
+    /* Grids */
+    .grid{display:grid; gap:12px}
     .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
     .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
-    @media(max-width:900px){.g3{grid-template-columns:1fr 1fr}}
-    @media(max-width:680px){.g2,.g3{grid-template-columns:1fr}}
-    label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
-    input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);
-      border-radius:10px;background:#fff}
-    textarea{min-height:90px;resize:vertical}
-    table{width:100%;border-collapse:collapse}
-    th,td{border:1px solid var(--line);padding:8px;text-align:center}
+    @media (max-width: 900px){ .g3{grid-template-columns:1fr 1fr} }
+    @media (max-width: 680px){ .g2,.g3{grid-template-columns:1fr} }
+
+    label{display:block; color:var(--muted); font-size:13px; margin-bottom:6px}
+    input,select,textarea{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#fff}
+    textarea{min-height:90px; resize:vertical}
+
+    /* Measurements table */
+    table{width:100%; border-collapse:collapse}
+    th,td{border:1px solid var(--line); padding:8px; text-align:center}
     th{background:#f0f9ff}
-    .status{display:inline-block;padding:6px 10px;border-radius:999px;font-size:12px}
-    .ok{background:#ecfdf5;color:var(--ok)}
-    .high{background:#fee2e2;color:#ef4444}
-    .low{background:#fff7ed;color:#b45309}
-    .meals-layout{display:grid;grid-template-columns:220px 1fr;gap:12px}
-    .cats{display:flex;flex-direction:column;gap:8px}
-    .cat-btn{border:1px solid var(--line);background:#fff;color:var(--ink);
-      border-radius:10px;padding:8px 10px;cursor:pointer;text-align:right;font-weight:700}
-    .cat-btn.active,.cat-btn:hover{background:#e6f7ff;border-color:#cfefff}
-    .foods-grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
-    .food-card{border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px;
-      box-shadow:0 2px 8px rgba(0,0,0,0.04)}
-    .food-card img{width:80px;height:80px;object-fit:contain;display:block;margin:0 auto 6px}
-    .food-name{font-weight:800;text-align:center}
-    .food-sub{font-size:12px;color:var(--muted);text-align:center;margin-bottom:8px}
-    .toggle{display:flex;gap:6px;justify-content:center;margin:6px 0}
-    .toggle button{flex:1;border:1px solid var(--line);background:#fff;padding:6px 8px;
-      border-radius:8px;cursor:pointer;font-weight:700}
-    .toggle button.active{background:#eef6ff;border-color:#cfefff}
-    .food-actions{display:flex;gap:6px;align-items:center;justify-content:center}
-    .small{font-size:12px;color:var(--muted)}
-    .basket{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+    .status{display:inline-block; padding:6px 10px; border-radius:999px; font-size:12px}
+    .ok{background:#ecfdf5; color:var(--ok)}
+    .high{background:#fee2e2; color:#ef4444}
+    .low{background:#fff7ed; color:#b45309}
+
+    /* Meals UI */
+    .meals-layout{display:grid; grid-template-columns:220px 1fr; gap:12px}
+    .cats{display:flex; flex-direction:column; gap:8px}
+    .cat-btn{border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:10px; padding:8px 10px; cursor:pointer; text-align:right; font-weight:700}
+    .cat-btn.active, .cat-btn:hover{background:#e6f7ff; border-color:#cfefff}
+    .foods-grid{display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(180px,1fr))}
+    .food-card{border:1px solid var(--line); background:#fff; border-radius:14px; padding:12px; box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+    .food-card img{width:80px; height:80px; object-fit:contain; display:block; margin:0 auto 6px}
+    .food-name{font-weight:800; text-align:center}
+    .food-sub{font-size:12px; color:var(--muted); text-align:center; margin-bottom:8px}
+    .toggle{display:flex; gap:6px; justify-content:center; margin:6px 0}
+    .toggle button{flex:1; border:1px solid var(--line); background:#fff; padding:6px 8px; border-radius:8px; cursor:pointer; font-weight:700}
+    .toggle button.active{background:#eef6ff; border-color:#cfefff}
+    .food-actions{display:flex; gap:6px; align-items:center; justify-content:center}
+    .small{font-size:12px; color:var(--muted)}
+    .basket{border:1px solid var(--line); border-radius:12px; overflow:hidden}
     .basket th{background:#fff}
     .basket tfoot td{font-weight:800}
-    .pill{display:inline-block;background:#f1f5f9;border-radius:999px;padding:3px 8px;font-size:12px}
-    .toast{position:fixed;bottom:16px;left:16px;background:#111;color:#fff;padding:10px 14px;border-radius:12px;opacity:0;transform:translateY(6px);transition:.25s}
-    .toast.show{opacity:1;transform:none}
+
+    .pill{display:inline-block; background:#f1f5f9; border-radius:999px; padding:3px 8px; font-size:12px}
+
+    /* Toast */
+    .toast{position:fixed; bottom:16px; left:16px; background:#111; color:#fff; padding:10px 14px; border-radius:12px; opacity:0; transform:translateY(6px); transition:.25s}
+    .toast.show{opacity:1; transform:none}
+
     .section{display:none}
     .section.active{display:block}
-
-    /*  ===== أنماط صفحة التقارير ===== */
-    .controls-rep {
-      background: var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;
-    }
-    .controls-rep .grid {
-      display:grid;gap:10px;grid-template-columns:repeat(4,minmax(0,1fr));
-    }
-    @media(max-width:900px){.controls-rep .grid{grid-template-columns:1fr 1fr}}
-    .table-rep {width:100%;border-collapse:separate;border-spacing:0}
-    .table-rep th, .table-rep td {border:1px solid var(--line);padding:8px;vertical-align:top;text-align:right}
-    .table-rep thead th {background:#f8fafc;font-weight:800;text-align:right}
-    .table-rep td.date {background:#fbfdff;white-space:nowrap;font-weight:800}
-    .cell {display:flex;flex-direction:column;gap:3px}
-    .line {font-size:12px}
-    .state {padding:2px 8px;border-radius:999px;width:max-content;margin:0}
-    .state.ok {color:var(--ok);background:var(--card)}
-    .state.low {color:var(--warn);background:#fff7ed}
-    .state.high {color:var(--bad);background:#fee2e2}
-    @media print {
-      @page {size:A4 landscape;margin:8mm}
-      body {font-size:11px;background:#fff}
-      header, .controls-rep {display:none!important}
-      .card, .section {border:0;box-shadow:none;padding:0;margin:0}
-      .table-rep th, .table-rep td {padding:4px}
-      .line {font-size:10px}
-    }
   </style>
 </head>
 <body>
 
-<aside class="sidebar">
-  <div class="sb-title">👧 لوحة الطفل</div>
-  <button class="sb-btn active" data-target="sec-home">🏠 الرئيسية</button>
-  <div class="spacer"></div>
-  <button class="sb-btn" data-target="sec-info">⚙️ بيانات الطفل</button>
-  <button class="sb-btn" data-target="sec-measure">📝 قياسات السكر</button>
-  <button class="sb-btn" data-target="sec-meals">🍽️ الوجبات</button>
-  <button class="sb-btn" data-target="sec-reports">📊 التقارير</button>
-  <button class="sb-btn" data-target="sec-doctor">🧑‍⚕️ الطبيب</button>
-  <button class="sb-btn" data-target="sec-visits">📅 الزيارات الطبية</button>
-</aside>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sb-title">👧 لوحة الطفل</div>
+    <button class="sb-btn active" data-target="sec-home">🏠 الرئيسية</button>
+    <div class="spacer"></div>
+    <button class="sb-btn" data-target="sec-info">⚙️ بيانات الطفل</button>
+    <button class="sb-btn" data-target="sec-measure">📝 قياسات السكر</button>
+    <button class="sb-btn" data-target="sec-meals">🍽️ الوجبات</button>
+    <button class="sb-btn" data-target="sec-reports">📊 التقارير</button>
+    <button class="sb-btn" data-target="sec-doctor">🧑‍⚕️ الطبيب</button>
+    <button class="sb-btn" data-target="sec-visits">📅 الزيارات الطبية</button>
+  </aside>
 
-<div class="main">
-  <header>
-    <div class="head-left">
-      <div class="kid-photo">
-        <img id="childPhoto" alt="صورة الطفل">
-        <div id="avatarFallback" class="avatar-fallback">👧</div>
+  <div class="main">
+    <!-- Header -->
+    <header>
+      <div class="head-left">
+        <div class="kid-photo">
+          <img id="childPhoto" alt="صورة الطفل">
+          <div id="avatarFallback" class="avatar-fallback">👧</div>
+        </div>
+        <div class="title-wrap">
+          <div class="hello">مرحبًا 👋</div>
+          <div id="kidName" class="kid-name">جاري تحميل الاسم...</div>
+        </div>
       </div>
-      <div class="title-wrap">
-        <div class="hello">مرحبًا 👋</div>
-        <div id="kidName" class="kid-name">جاري تحميل الاسم...</div>
+      <div class="head-actions">
+        <a class="btn gray" href="dashboard.html">لوحة وليّ الأمر</a>
+        <button id="btnLogout" class="btn dark">خروج</button>
       </div>
-    </div>
-    <div class="head-actions">
-      <a class="btn gray" href="dashboard.html">لوحة وليّ الأمر</a>
-      <button id="btnLogout" class="btn dark">خروج</button>
-    </div>
-  </header>
+    </header>
 
-  <main>
-    <!-- 1: الرئيسية -->
-    <section id="sec-home" class="section active">
-      <div class="card"><div class="note">اختاري من القائمة اليمنى القسم المطلوب.</div></div>
-    </section>
+    <main>
+      <!-- Home -->
+      <section id="sec-home" class="section active">
+        <div class="card"><div class="note">اختاري من القائمة اليمنى القسم المطلوب.</div></div>
+      </section>
 
-  
-   <!-- (2) بيانات الطفل + الإعدادات -->
+      <!-- (1) بيانات الطفل + الإعدادات -->
       <section id="sec-info" class="section">
         <section class="card" id="childInfoSection">
           <h3 class="section-title">⚙️ بيانات الطفل</h3>
@@ -209,9 +197,8 @@
         </section>
       </section>
 
-
-    <!-- 3: قياسات السكر -->
-   <section id="sec-measure" class="section">
+      <!-- (2) قياسات السكر -->
+      <section id="sec-measure" class="section">
         <section class="card">
           <h3 class="section-title">📝 قياسات السكر <span id="mUnitBadge" class="badge">الوحدة المعروضة: mmol/L</span></h3>
           <div class="grid g3">
@@ -336,225 +323,557 @@
         </section>
       </section>
 
-    </section>
-
-    <!-- 4: الوجبات -->
-    <section id="sec-meals" class="section">
-      ... <!-- انسخ الكود الأصلي الخاص بالوجبات هنا -->
-    </section>
-
-    <!-- 5: التقارير -->
-    <section id="sec-reports" class="section">
-      <section class="controls-rep card">
-        <div class="grid">
-          <div><label>الطفل</label><select id="childSelRep"><option value="">— اختاري الطفل —</option></select></div>
-          <div><label>من تاريخ</label><input type="date" id="fromRep"></div>
-          <div><label>إلى تاريخ</label><input type="date" id="toRep"></div>
-          <div style="display:flex;align-items:end">
-            <button id="runRep" class="btn primary">عرض التقرير</button>
-          </div>
-        </div>
-        <div id="childMetaRep" class="note" style="margin-top:10px;"></div>
-        <div id="blankHeaderRep" class="blank-header" style="display:none;margin-top:10px;"></div>
+      <!-- باقي الأقسام مجرد Placeholders -->
+      <section id="sec-reports" class="section">
+        <div class="card"><div class="note">📊 التقارير — قريبًا.</div></div>
       </section>
-      <section id="reportBoxRep" class="card" style="display:none;">
-        <button id="btnBlankRep" class="btn gray" style="margin-bottom:10px;">طباعة ورقة فارغة</button>
-        <button id="btnPrintRep" class="btn primary" style="margin-bottom:10px;">طباعة التقرير</button>
-        <table id="repTable" class="table-rep"></table>
+      <section id="sec-doctor" class="section">
+        <div class="card"><div class="note">🧑‍⚕️ الطبيب — قريبًا.</div></div>
       </section>
-    </section>
+      <section id="sec-visits" class="section">
+        <div class="card"><div class="note">📅 الزيارات الطبية — قريبًا.</div></div>
+      </section>
+    </main>
+  </div>
 
-    <!-- 6: الطبيب -->
-    <section id="sec-doctor" class="section">
-      <div class="card"><div class="note">🧑‍⚕️ الطبيب — قريبًا.</div></div>
-    </section>
+  <div id="toast" class="toast"></div>
 
-    <!-- 7: الزيارات الطبية -->
-    <section id="sec-visits" class="section">
-      <div class="card"><div class="note">📅 الزيارات الطبية — قريبًا.</div></div>
-    </section>
-  </main>
-</div>
+  <script type="module">
+    import { db, auth } from './firebase-init.js';
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    import {
+      doc, getDoc, setDoc,
+      collection, getDocs, addDoc, query, orderBy, where, limit, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-<div id="toast" class="toast"></div>
+    // ===== Helpers & DOM =====
+    const $  = s => document.querySelector(s);
+    const $$ = s => [...document.querySelectorAll(s)];
+    const toastEl = $('#toast');
+    const showToast = (m)=>{ toastEl.textContent=m; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'),2200); };
+    const escapeHtml = s => (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+    const slugify = s => (s||'').trim().toLowerCase().replace(/\s+/g,'-').replace(/[^\u0600-\u06FF\w-]/g,'');
 
-<script type="module">
-  import { db, auth } from './firebase-init.js';
-  import {
-    onAuthStateChanged, signOut
-  } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-  import {
-    doc, getDoc, setDoc,
-    collection, getDocs, addDoc, query, orderBy, limit, serverTimestamp
-  } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-
-  const $ = s => document.querySelector(s);
-  const $$ = s => [...document.querySelectorAll(s)];
-  const toastEl = $('#toast');
-  const showToast = (m) => {
-    toastEl.textContent = m;
-    toastEl.classList.add('show');
-    setTimeout(() => toastEl.classList.remove('show'), 2200);
-  };
-  const escapeHtml = s => (s || '').replace(/[&<>"']/g, m =>
-    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
-
-  /** لوحة التحكم — التنقل */
-  $$('.sb-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      $$('.sb-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      $$('.section').forEach(s => s.classList.remove('active'));
-      document.getElementById(btn.dataset.target).classList.add('active');
-    });
-  });
-
-  /*** تقارير — الوظائف ***/
-  function enumerateDates(from, to) {
-    const res = [], d = new Date(from), end = new Date(to);
-    while (d <= end) {
-      res.push(d.toISOString().slice(0, 10));
-      d.setDate(d.getDate() + 1);
-    }
-    return res;
-  }
-  function stateLabel(s) {
-    return s === 'low' ? '⬇︎ منخفض' :
-           s === 'high' ? '⬆︎ مرتفع' :
-           '✔️ طبيعي';
-  }
-
-  auth.onAuthStateChanged(async user => {
-    if (!user) { location.href = 'index.html'; return; }
-
-    // — تسجيل الخروج
-    $('#btnLogout').addEventListener('click', () => signOut(auth).then(() => location.href = 'index.html'));
-
-    // — ل تشغيل أقسام البيانات والوجبات والقياس، ضعي كودك الأصلي هناك.
-    // — هنا فقط تكميل وظائف التقارير:
-    await loadChildrenRep(user.uid);
-    setDefaultsRep();
-    $('#runRep').addEventListener('click', () => buildReportRep(user.uid));
-    $('#btnBlankRep').addEventListener('click', () => printBlankRep());
-    $('#btnPrintRep').addEventListener('click', () => window.print());
-  });
-
-  async function loadChildrenRep(uid) {
-    const sel = $('#childSelRep');
-    sel.innerHTML = '<option>— تحميل —</option>';
-    const snap = await getDocs(collection(db, 'users', uid, 'children'));
-    sel.innerHTML = '<option value="">— اختاري الطفل —</option>';
-    snap.forEach(s => {
-      const o = document.createElement('option');
-      o.value = s.id;
-      o.textContent = s.data().name || 'بدون اسم';
-      sel.appendChild(o);
-    });
-  }
-
-  function setDefaultsRep() {
-    const iso = new Date().toISOString().slice(0, 10);
-    $('#fromRep').value = iso;
-    $('#toRep').value = iso;
-  }
-
-  async function buildReportRep(uid) {
-    const childId = $('#childSelRep').value, from = $('#fromRep').value, to = $('#toRep').value;
-    if (!childId || !from || !to) return alert('اختاري الطفل وحددي الفترة');
-    $('#blankHeaderRep').style.display = 'none';
-    const cSnap = await getDoc(doc(db, 'users', uid, 'children', childId));
-    const c = cSnap.data() || {};
-    $('#childMetaRep').innerHTML = `<b>الطفل:</b> ${c.name || '—'} • <b>الوزن:</b> ${c.weight || '—'} كجم • <b>الطول:</b> ${c.height || '—'} سم`;
-
-    const dates = enumerateDates(from, to);
-    const snaps = await Promise.all(dates.map(d =>
-      getDoc(doc(db, 'users', uid, 'children', childId, 'measurements', d))
-    ));
-    const byDate = {};
-    snaps.forEach((snap, i) => byDate[dates[i]] = snap.data() || { readings: {} });
-
-    const tbl = $('#repTable');
-    tbl.innerHTML = '';
-    const thead = document.createElement('thead');
-    const htr = document.createElement('tr');
-    htr.innerHTML = `<th>التاريخ</th>${['قبل الإفطار','بعد الإفطار','قبل الغداء','بعد الغداء','قبل العشاء','بعد العشاء',
-      'قبل النوم','أثناء النوم','عند الاستيقاظ'].map(t => `<th>${t}</th>`).join('')}`;
-    thead.appendChild(htr);
-    tbl.appendChild(thead);
-
-    const tbody = document.createElement('tbody');
-    dates.forEach(d => {
-      const readings = byDate[d].readings || {};
-      const tr = document.createElement('tr');
-      let rowHtml = `<td class="date">${d}</td>`;
-      ['preBreakfast','postBreakfast','preLunch','postLunch',
-       'preDinner','postDinner','beforeSleep','duringSleep','uponWake']
-      .forEach(slot => {
-        const r = readings[slot];
-        if (!r || (r.valueMmol == null && r.value == null)) {
-          rowHtml += '<td>—</td>';
-        } else {
-          const val = r.value ?? r.valueMmol;
-          const st = r.status || 'ok';
-          rowHtml += `<td><div class="cell">
-                        <div class="line"><b>القياس:</b> ${val}</div>
-                        ${r.mealDose != null ? `<div class="line">جرعة: ${r.mealDose}U</div>` : ''}
-                        ${r.correction != null ? `<div class="line">تصحيحي: ${r.correction}U</div>` : ''}
-                        ${r.note ? `<div class="line note">ملاحظة: ${escapeHtml(r.note)}</div>` : ''}
-                        <div class="line state ${st}">${stateLabel(st)}</div>
-                      </div></td>`;
-        }
+    // Sidebar nav
+    $$('.sb-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        $$('.sb-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        $$('.section').forEach(s=>s.classList.remove('active'));
+        document.getElementById(btn.dataset.target).classList.add('active');
       });
-      tr.innerHTML = rowHtml;
-      tbody.appendChild(tr);
     });
-    tbl.appendChild(tbody);
-    $('#reportBoxRep').style.display = 'block';
-  }
 
-  function printBlankRep() {
-    const childId = $('#childSelRep').value;
-    if (!childId) return alert('اختاري الطفل أولاً');
+    // Header bits
+    const elName   = $('#kidName');
+    const img      = $('#childPhoto');
+    const fallback = $('#avatarFallback');
 
-    $('#childMetaRep').innerHTML = '';
-    $('#blankHeaderRep').style.display = 'flex';
-    $('#blankHeaderRep').innerHTML = `
-      <span class="bh-item">الاسم:<span class="line"></span></span>
-      <span class="bh-item">الوزن:<span class="line"></span></span>
-      <span class="bh-item">الطول:<span class="line"></span></span>`;
+    const params  = new URLSearchParams(location.search);
+    const childId = params.get('child');
 
-    const tbl = $('#repTable');
-    tbl.innerHTML = '';
-    const thead = document.createElement('thead');
-    const htr = document.createElement('tr');
-    htr.innerHTML = `<th>التاريخ</th>${['قبل الإفطار','بعد الإفطار','قبل الغداء','بعد الغداء',
-      'قبل العشاء','بعد العشاء','قبل النوم','أثناء النوم','عند الاستيقاظ']
-      .map(t => `<th>${t}</th>`).join('')}`;
-    thead.appendChild(htr);
-    tbl.appendChild(thead);
+    const input   = id => document.getElementById(id);
+    const genderRadios = () => [...document.querySelectorAll('input[name="gender"]')];
+    const setGenderUI = (value) => genderRadios().forEach(r => r.checked = (r.value === value));
+    const getGenderUI = () => (genderRadios().find(r => r.checked)?.value || null);
+    const numOrNull = (el) => { const v = el.value; if (v === '' || v == null) return null; const n = Number(v); return Number.isFinite(n) ? n : null; };
 
-    const tbody = document.createElement('tbody');
-    for (let i = 0; i < 7; i++) {
-      const tr = document.createElement('tr');
-      let rowHtml = `<td class="date">&nbsp;</td>`;
-      for (let j = 0; j < 9; j++) {
-        rowHtml += `<td>
-                      <div class="cell">
-                        <div class="line">القياس: ________</div>
-                        <div class="line">جرعة: ________</div>
-                        <div class="line">ملاحظة: _______________</div>
-                        <div class="line">الحالة: ________</div>
-                      </div>
-                    </td>`;
-      }
-      tr.innerHTML = rowHtml;
-      tbody.appendChild(tr);
+    const setAvatarFallback = (name, gender) => {
+      const initials = (name||'').trim().split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+      fallback.textContent = initials || (gender==='male' ? '👦' : '👧');
+      fallback.style.display = 'grid';
+    };
+    const trySetPhoto = (child) => {
+      const byId = `/images/${childId}.jpg`, byName = `/images/${slugify(child.name||'')}.jpg`;
+      const test = (srcs,i=0)=>{ if(i>=srcs.length){ img.style.display='none'; setAvatarFallback(child.name, child.gender); return; }
+        img.onload=()=>{ img.style.display='block'; fallback.style.display='none'; };
+        img.onerror=()=>test(srcs,i+1); img.src=srcs[i];
+      }; test([byId,byName]);
+    };
+
+    // Units & thresholds
+    let preferredUnit = 'mmol'; // "mmol" | "mgdl"
+    let targetMmol=null, lowMmol=null, highMmol=null;
+    let icr = null; // g/U
+
+    const toMmol  = (v) => (v==null?null : (preferredUnit==='mgdl' ? v*0.0555 : v));
+    const fromMmolNumber = (v) => (preferredUnit==='mgdl' ? (v/0.0555) : v);
+    const displayValue = (mmol) => (preferredUnit==='mgdl' ? String(Math.round(mmol/0.0555)) : Number(mmol).toFixed(1));
+    const classify = (mmol)=> (lowMmol!=null && mmol<lowMmol)?'low': (highMmol!=null && mmol>highMmol)?'high':'ok';
+
+    // ===== Auth & initial load =====
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { location.href='index.html'; return; }
+      $('#btnLogout').addEventListener('click', ()=> signOut(auth).then(()=>location.href='index.html'));
+      if (!childId){ elName.textContent='لم يتم تمرير رقم الطفل في الرابط.'; setAvatarFallback('',''); return; }
+
+      const childRef = doc(db, 'users', user.uid, 'children', childId);
+      const snap = await getDoc(childRef);
+      if (!snap.exists()){ elName.textContent='الطفل غير موجود ❗'; setAvatarFallback('',''); return; }
+
+      const c = snap.data();
+      elName.textContent = c.name || 'بدون اسم';
+      trySetPhoto(c);
+
+      // Fill child info
+      input('childName').value     = c.name || '';
+      setGenderUI(c.gender || '');
+      input('childCivilId').value  = c.childCivilId || '';
+      input('dob').value           = c.dob || '';
+      input('heightCm').value      = c.heightCm ?? '';
+      input('weightKg').value      = c.weightKg ?? '';
+      preferredUnit                = c.preferredUnit || 'mmol';
+      input('preferredUnit').value = preferredUnit;
+      input('defaultMeasurementType').value = c.defaultMeasurementType || 'fingerstick';
+      input('notes').value         = c.notes || '';
+
+      // Glucose config & dosing
+      $('#unitBadge').textContent = `الوحدة المعروضة: ${preferredUnit==='mgdl'?'mg/dL':'mmol/L'}`;
+      $('#mUnitBadge').textContent= `الوحدة المعروضة: ${preferredUnit==='mgdl'?'mg/dL':'mmol/L'}`;
+      $('#isfUnitLabel').textContent = preferredUnit==='mgdl' ? 'mg/dL لكل 1U' : 'mmol/L لكل 1U';
+
+      const gc = (c.glucoseConfig||{});
+      const dos= (c.dosing||{});
+      targetMmol = gc.targetGlucoseMmol ?? null;
+      lowMmol    = gc.lowThresholdMmol ?? null;
+      highMmol   = gc.highThresholdMmol ?? null;
+
+      input('target').value = targetMmol==null ? '' : (preferredUnit==='mgdl'? Math.round(targetMmol/0.0555) : (+targetMmol).toFixed(1));
+      input('low').value    = lowMmol==null ? ''    : (preferredUnit==='mgdl'? Math.round(lowMmol/0.0555)    : (+lowMmol).toFixed(1));
+      input('high').value   = highMmol==null ? ''   : (preferredUnit==='mgdl'? Math.round(highMmol/0.0555)   : (+highMmol).toFixed(1));
+
+      input('tresiba').value = dos.basalTresibaUnits ?? '';
+      input('tdi').value     = dos.totalDailyInsulinUnits ?? '';
+      const isfMmol = dos.isfMmolPerUnit ?? null;
+      input('isf').value = preferredUnit==='mgdl'
+        ? (isfMmol==null ? '' : Math.round(isfMmol/0.0555))
+        : (isfMmol==null ? '' : (+isfMmol).toFixed(1));
+      input('icr').value = dos.icrGramsPerUnit ?? '';
+      icr = dos.icrGramsPerUnit ?? null;
+      $('#icrNow').textContent = icr ?? '—';
+
+      // Measurements defaults
+      const today = new Date().toISOString().split('T')[0];
+      input('dateSel').value = today;
+      input('mType').value = c.defaultMeasurementType || 'fingerstick';
+
+      bindInfoSavers(user.uid);
+      bindMeasurementHandlers(user.uid);
+
+      // Meals init
+      setDefaultDateTimeNow(input('mealTime'));
+      await mealsInit(user.uid);
+    });
+
+    // ===== Save Info & Glucose config =====
+    function bindInfoSavers(uid){
+      $('#btnSaveInfo').addEventListener('click', async ()=>{
+        const payload = {
+          name: input('childName').value.trim() || null,
+          gender: getGenderUI(),
+          childCivilId: input('childCivilId').value.trim() || null,
+          dob: input('dob').value || null,
+          heightCm: numOrNull(input('heightCm')),
+          weightKg: numOrNull(input('weightKg')),
+          preferredUnit: input('preferredUnit').value,
+          defaultMeasurementType: input('defaultMeasurementType').value || 'fingerstick',
+          notes: input('notes').value.trim() || null,
+          storageUnit: "mmol",
+          lastUpdatedAt: new Date().toISOString()
+        };
+        try{
+          await setDoc(doc(db,'users',auth.currentUser.uid,'children',childId), payload, {merge:true});
+          preferredUnit = payload.preferredUnit;
+          $('#unitBadge').textContent = `الوحدة المعروضة: ${preferredUnit==='mgdl'?'mg/dL':'mmol/L'}`;
+          $('#mUnitBadge').textContent= `الوحدة المعروضة: ${preferredUnit==='mgdl'?'mg/dL':'mmol/L'}`;
+          $('#isfUnitLabel').textContent = preferredUnit==='mgdl'?'mg/dL لكل 1U':'mmol/L لكل 1U';
+          elName.textContent = payload.name || elName.textContent;
+          showToast('✅ تم حفظ بيانات الطفل');
+        }catch(e){ console.error(e); showToast('❗ حدث خطأ أثناء الحفظ'); }
+      });
+
+      $('#btnSuggest').addEventListener('click', ()=>{
+        const tdi = Number(input('tdi').value);
+        if (!tdi || tdi <= 0) { showToast('أدخلي إجمالي اليوم أولًا'); return; }
+        const isfMmol = +(100/tdi).toFixed(2);
+        const icrVal  = +(500/tdi).toFixed(1);
+        input('isf').value = (preferredUnit==='mgdl') ? Math.round(isfMmol/0.0555) : isfMmol;
+        input('icr').value = icrVal;
+        icr = icrVal;
+        $('#icrNow').textContent = icr ?? '—';
+        showToast('💡 تم اقتراح ISF و ICR');
+      });
+
+      $('#btnSaveGlucose').addEventListener('click', async ()=>{
+        const tDisp = numOrNull(input('target'));
+        const lDisp = numOrNull(input('low'));
+        const hDisp = numOrNull(input('high'));
+        const target = toMmol(tDisp);
+        const low    = toMmol(lDisp);
+        const high   = toMmol(hDisp);
+
+        if (target!=null && low!=null && low >= target) { showToast('⚠️ حد الهبوط أقل من الهدف'); return; }
+        if (target!=null && high!=null && high <= target){ showToast('⚠️ حد الارتفاع أكبر من الهدف'); return; }
+
+        const isfDisp = numOrNull(input('isf'));
+        const isfMmol = (preferredUnit==='mgdl')
+          ? (isfDisp==null ? null : +(isfDisp*0.0555).toFixed(2))
+          : (isfDisp==null ? null : +(+isfDisp).toFixed(2));
+
+        const payload = {
+          glucoseConfig: { targetGlucoseMmol: target, lowThresholdMmol: low, highThresholdMmol: high },
+          dosing: {
+            basalTresibaUnits      : numOrNull(input('tresiba')),
+            totalDailyInsulinUnits : numOrNull(input('tdi')),
+            isfMmolPerUnit         : isfMmol,
+            icrGramsPerUnit        : numOrNull(input('icr'))
+          },
+          lastUpdatedAt: new Date().toISOString()
+        };
+        try{
+          await setDoc(doc(db,'users',auth.currentUser.uid,'children',childId), payload, {merge:true});
+          icr = payload.dosing.icrGramsPerUnit ?? icr;
+          $('#icrNow').textContent = icr ?? '—';
+          showToast('✅ تم حفظ الإعدادات');
+        }catch(e){ console.error(e); showToast('❗ حدث خطأ أثناء الحفظ'); }
+      });
     }
-    tbl.appendChild(tbody);
-    $('#reportBoxRep').style.display = 'block';
-    setTimeout(() => window.print(), 50);
-  }
-</script>
 
+    // ===== Measurements (per day doc + slots) =====
+    function bindMeasurementHandlers(uid){
+      input('dateSel').addEventListener('change', ()=> loadDay(uid));
+      $('#reloadDay').addEventListener('click', ()=> loadDay(uid));
+      input('carbs').addEventListener('input', ()=>{
+        const carbs = Number(input('carbs').value);
+        input('suggestedDose').value = (!icr || icr<=0 || !Number.isFinite(carbs)) ? '' : +(carbs/icr).toFixed(1);
+      });
+      input('reading').addEventListener('input', onReadingChange);
+      $('#saveBtn').addEventListener('click', ()=> onSaveMeasurement(uid));
+    }
+
+    function onReadingChange(){
+      const valDisp = Number(input('reading').value);
+      $('#correctionSection').style.display = 'none';
+      $('#raiseSection').style.display      = 'none';
+      $('#statusBadge').style.display       = 'none';
+      if (!valDisp && valDisp !== 0) return;
+      const mmol = toMmol(valDisp);
+      const cls = classify(mmol);
+      const sb = $('#statusBadge');
+      sb.className = `status ${cls}`;
+      sb.style.display = 'inline-block';
+      sb.textContent = (cls==='low'?'منخفض':cls==='high'?'مرتفع':'طبيعي');
+      if (cls==='high') $('#correctionSection').style.display = 'block';
+      if (cls==='low')  $('#raiseSection').style.display = 'block';
+    }
+
+    async function loadDay(uid){
+      const date = input('dateSel').value;
+      if (!date) return;
+      const ref = doc(db,'users',uid,'children',childId,'measurements',date);
+      const snap = await getDoc(ref);
+      const readings = (snap.data()||{}).readings || {};
+      renderRows(readings);
+    }
+
+    function renderRows(readings){
+      const tbody = $('#rows');
+      const keys = Object.keys(readings);
+      if (keys.length===0){ tbody.innerHTML = '<tr><td colspan="7" class="note">لا توجد قراءات لليوم.</td></tr>'; return; }
+      const labelSlot = { preBreakfast:'قبل الإفطار', postBreakfast:'بعد الإفطار', preLunch:'قبل الغداء', postLunch:'بعد الغداء', preDinner:'قبل العشاء', postDinner:'بعد العشاء', bedtime:'قبل النوم', exercise:'بعد التمرين', other:'أخرى' };
+      tbody.innerHTML = '';
+      for (const slot of keys){
+        const r = readings[slot];
+        const mmol = r?.valueMmol ?? (r?.value ?? null);
+        const disp = displayValue(mmol);
+        const cls = classify(mmol);
+        const statusHtml = `<span class="status ${cls}">${cls==='low'?'منخفض':cls==='high'?'مرتفع':'طبيعي'}</span>`;
+        const typeLabel = r?.measurementType==='cgm'?'📈 CGM': r?.measurementType==='lab'?'🧪 مختبر': r?.measurementType==='other'?'✳️ أخرى':'🩸 فحص إصبع';
+        const actionText = (r?.correction!=null) ? `تصحيح: ${r.correction}U` : (r?.raise ? `رفع: ${r.raise}` : (r?.mealDose!=null? `${r.mealDose}U`:'-'));
+        const note = r?.note || '-';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${labelSlot[slot]||slot}</td>
+          <td>${disp} ${preferredUnit==='mgdl'?'mg/dL':'mmol/L'}</td>
+          <td>${statusHtml}</td>
+          <td>${r?.mealDose!=null ? r.mealDose : '-'}</td>
+          <td>${actionText}</td>
+          <td>${typeLabel}</td>
+          <td>${escapeHtml(note)}</td>`;
+        tbody.appendChild(tr);
+      }
+    }
+
+    async function onSaveMeasurement(uid){
+      const date = input('dateSel').value;
+      const slot = input('slotSel').value;
+      const rawDisp = Number(input('reading').value);
+      if (!date || !slot || !rawDisp) { showToast('يرجى إدخال التاريخ والوقت والقيمة'); return; }
+      const ref = doc(db,'users',uid,'children',childId,'measurements',date);
+      const snap = await getDoc(ref);
+      const base = snap.exists()? snap.data() : { readings:{} };
+      if (base.readings[slot]?.valueMmol!=null || base.readings[slot]?.value!=null){ showToast('تم تسجيل هذا الوقت مسبقاً'); return; }
+      const mmol = toMmol(rawDisp);
+      const payload = {
+        valueMmol: +(+mmol).toFixed(2),
+        displayUnit: preferredUnit,
+        measurementType: input('mType').value || 'fingerstick',
+        note: (input('note').value||'').trim() || null,
+        carbs: numOrNull(input('carbs')),
+        mealDose: numOrNull(input('mealDose')),
+        correction: numOrNull(input('correction')),
+        raise: (input('raise').value||'').trim() || null
+      };
+      base.readings[slot] = payload;
+      try{
+        await setDoc(ref, base, {merge:true});
+        showToast('✅ تم حفظ القياس');
+        await loadDay(uid);
+      }catch(e){ console.error(e); showToast('❗ تعذر حفظ القياس'); }
+    }
+
+    // ===== Meals section =====
+    // State
+    let foods = [];           // جميع الأصناف
+    let catSet = [];          // تصنيفات فريدة
+    let activeCategory = 'الكل';
+    let basket = [];          // عناصر السلة {foodId, name, category, grams, servingLabel, servingCount, carbsPer100g, carbs}
+    const DEFAULT_IMG = 'https://cdn-icons-png.flaticon.com/512/1046/1046784.png';
+
+    async function mealsInit(uid){
+      // حمل foods (approved + visible) — مبدئيًا نجيب الكل ونفلتر محليًا لتبسيط البداية
+      const qFoods = query(collection(db,'foods'), orderBy('category'), orderBy('name'), limit(500));
+      const snap = await getDocs(qFoods);
+      foods = [];
+      snap.forEach(d => foods.push({id:d.id, ...d.data()}));
+
+      // تصنيفات ديناميكية
+      const set = new Set();
+      foods.forEach(f => { if (f.visible!==false && (f.status||'approved')==='approved' && f.category) set.add(f.category); });
+      catSet = ['الكل', ...[...set].sort((a,b)=>a.localeCompare(b,'ar'))];
+      renderCategories();
+      renderFoods();
+
+      // بحث
+      $('#foodSearch').addEventListener('input', ()=> renderFoods());
+
+      // إظهار ICR
+      $('#icrNow').textContent = icr ?? '—';
+
+      // حساب الجرعة المقترحة من السلة
+      updateBasketUI();
+
+      // وقت افتراضي الآن
+      setDefaultDateTimeNow(input('mealTime'));
+    }
+
+    function renderCategories(){
+      const catList = $('#catList'); catList.innerHTML='';
+      catSet.forEach(cat=>{
+        const b = document.createElement('button');
+        b.className = 'cat-btn' + (cat===activeCategory?' active':'');
+        b.textContent = cat;
+        b.addEventListener('click', ()=>{ activeCategory = cat; renderCategories(); renderFoods(); });
+        catList.appendChild(b);
+      });
+    }
+
+    function renderFoods(){
+      const grid = $('#foodsGrid'); grid.innerHTML='';
+      const term = ($('#foodSearch').value||'').trim().toLowerCase();
+      const filtered = foods.filter(f=>{
+        if (f.visible===false || (f.status||'approved')!=='approved') return false;
+        if (activeCategory!=='الكل' && f.category!==activeCategory) return false;
+        if (!term) return true;
+        const tags = (f.tags||[]).join(' ');
+        return (f.name||'').toLowerCase().includes(term) || tags.toLowerCase().includes(term);
+      });
+
+      if (filtered.length===0){ grid.innerHTML='<div class="note">لا توجد أصناف.</div>'; return; }
+
+      filtered.forEach(food=>{
+        const card = document.createElement('div');
+        card.className='food-card';
+        const img = food.imageUrl || DEFAULT_IMG;
+        const carbs = food.carbsPer100g ?? null;
+        const servings = Array.isArray(food.servings) ? food.servings : [];
+        const hasServings = servings.length>0;
+
+        card.innerHTML = `
+          <img src="${img}" alt="${escapeHtml(food.name)}">
+          <div class="food-name">${escapeHtml(food.name||'—')}</div>
+          <div class="food-sub">كارب/100جم: <b>${carbs!=null? carbs: '—'}</b></div>
+
+          <div class="toggle">
+            <button class="tg-gram active">جرامات</button>
+            <button class="tg-serv" ${hasServings?'':'disabled'}>مقياس</button>
+          </div>
+
+          <div class="mode-grams">
+            <div class="row" style="justify-content:center">
+              <input class="inp-grams" type="number" step="1" min="1" placeholder="جم" style="width:90px">
+            </div>
+          </div>
+
+          <div class="mode-serv" style="display:none">
+            <div class="row" style="justify-content:center">
+              <select class="sel-serv" style="min-width:140px"></select>
+              <input class="inp-count" type="number" step="0.5" value="1" style="width:80px">
+            </div>
+          </div>
+
+          <div class="small" style="text-align:center; margin:6px 0"><span class="live-carb pill">—</span></div>
+
+          <div class="food-actions">
+            <button class="btn primary btn-add">➕ أضف</button>
+          </div>
+        `;
+
+        // populate servings
+        const sel = card.querySelector('.sel-serv');
+        if (hasServings){
+          servings.forEach((s,i)=>{
+            const opt=document.createElement('option');
+            opt.value=String(i);
+            opt.textContent = `${s.label} — ${s.grams}جم`;
+            sel.appendChild(opt);
+          });
+        }else{
+          const opt=document.createElement('option'); opt.value=''; opt.textContent='—';
+          sel?.appendChild(opt);
+        }
+
+        // toggle
+        const tgG = card.querySelector('.tg-gram');
+        const tgS = card.querySelector('.tg-serv');
+        const gBlock = card.querySelector('.mode-grams');
+        const sBlock = card.querySelector('.mode-serv');
+        tgG.addEventListener('click', ()=>{ tgG.classList.add('active'); tgS.classList.remove('active'); gBlock.style.display='block'; sBlock.style.display='none'; updateLive(); });
+        tgS.addEventListener('click', ()=>{ if(!hasServings) return; tgS.classList.add('active'); tgG.classList.remove('active'); gBlock.style.display='none'; sBlock.style.display='block'; updateLive(); });
+
+        const inpGrams = card.querySelector('.inp-grams');
+        const inpCount = card.querySelector('.inp-count');
+        sel?.addEventListener('change', updateLive);
+        inpGrams?.addEventListener('input', updateLive);
+        inpCount?.addEventListener('input', updateLive);
+
+        function currentGrams(){
+          if (tgG.classList.contains('active')){ // grams mode
+            const g = Number(inpGrams.value);
+            return Number.isFinite(g) && g>0 ? g : 0;
+          }else{ // serving mode
+            const ix = Number(sel.value);
+            const cnt = Number(inpCount.value)||0;
+            const s = servings[ix];
+            if (!s || !Number.isFinite(cnt)) return 0;
+            return s.grams * cnt;
+          }
+        }
+
+        function updateLive(){
+          const grams = currentGrams();
+          const carb = grams && carbs!=null ? (grams*carbs/100) : 0;
+          card.querySelector('.live-carb').textContent = carb? `${carb.toFixed(1)} جم` : '—';
+        }
+        updateLive();
+
+        // add to basket
+        card.querySelector('.btn-add').addEventListener('click', ()=>{
+          const grams = currentGrams();
+          if (!grams || grams<=0){ showToast('أدخلي كمية صحيحة'); return; }
+          const item = {
+            foodId: food.id,
+            name: food.name,
+            category: food.category || '',
+            grams: Math.round(grams),
+            servingLabel: (!tgG.classList.contains('active') && hasServings) ? (servings[Number(sel.value)]?.label || null) : null,
+            servingCount: (!tgG.classList.contains('active') && hasServings) ? (Number(inpCount.value)||1) : null,
+            carbsPer100g: carbs ?? null,
+            carbs: carbs!=null ? +(grams*carbs/100).toFixed(1) : null
+          };
+          basket.push(item);
+          updateBasketUI();
+          showToast('✅ تمت الإضافة إلى السلة');
+          // reset grams field lightly
+          if (inpGrams) inpGrams.value='';
+          if (inpCount) inpCount.value='1';
+          updateLive();
+        });
+
+        grid.appendChild(card);
+      });
+    }
+
+    function updateBasketUI(){
+      const body = $('#basketBody');
+      if (!basket.length){ body.innerHTML = '<tr><td colspan="4" class="note">لا توجد عناصر بعد.</td></tr>'; $('#totalCarbsCell').textContent='0.0'; $('#doseSuggestedMeal').value=''; return; }
+      body.innerHTML='';
+      let totalCarbs=0;
+      basket.forEach((it,idx)=>{
+        totalCarbs += it.carbs||0;
+        const tr=document.createElement('tr');
+        const qty = it.servingLabel ? `${it.servingCount} × ${it.servingLabel} (${it.grams}جم)` : `${it.grams} جم`;
+        tr.innerHTML = `
+          <td>${escapeHtml(it.name)}</td>
+          <td>${qty}</td>
+          <td>${(it.carbs??0).toFixed(1)}</td>
+          <td><button class="btn gray btn-del" data-i="${idx}">حذف</button></td>`;
+        body.appendChild(tr);
+      });
+      body.querySelectorAll('.btn-del').forEach(b=>{
+        b.addEventListener('click', ()=>{
+          const i = Number(b.dataset.i);
+          basket.splice(i,1);
+          updateBasketUI();
+        });
+      });
+      $('#totalCarbsCell').textContent = totalCarbs.toFixed(1);
+
+      // جرعة مقترحة (تقريب 0.1U)
+      if (icr && icr>0){
+        const dose = totalCarbs / icr;
+        const rounded = Math.round(dose*10)/10;
+        $('#doseSuggestedMeal').value = rounded.toFixed(1);
+      }else{
+        $('#doseSuggestedMeal').value = '';
+      }
+    }
+
+    function setDefaultDateTimeNow(el){
+      const d = new Date();
+      const pad = n=> String(n).padStart(2,'0');
+      const local = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      el.value = local;
+    }
+
+    // Save meal
+    $('#saveMealBtn')?.addEventListener('click', async ()=>{
+      const user = auth.currentUser; if (!user){ showToast('يجب تسجيل الدخول'); return; }
+      if (!basket.length){ showToast('السلة فارغة'); return; }
+      const eatenAtLocal = input('mealTime').value;
+      if (!eatenAtLocal){ showToast('اختاري وقت الأكل'); return; }
+      const eatenAt = new Date(eatenAtLocal).toISOString();
+      const totalCarbs = basket.reduce((s,it)=> s+(it.carbs||0), 0);
+      const bolusSuggested = (icr && icr>0) ? Math.round((totalCarbs/icr)*10)/10 : null;
+
+      try{
+        await addDoc(collection(db,'users', user.uid,'children',childId,'meals'), {
+          mealType: input('mealType').value || 'other',
+          eatenAt,
+          notes: input('mealNotes').value.trim() || null,
+          totalCarbs: +totalCarbs.toFixed(1),
+          bolusUnitsSuggested: bolusSuggested,
+          bolusUnitsGiven: numOrNull(input('doseGivenMeal')),
+          items: basket,
+          computed: { icrGramsPerUnit: icr ?? null, preferredUnit: preferredUnit },
+          createdAt: serverTimestamp()
+        });
+        showToast('✅ تم حفظ الوجبة');
+        // تفريغ السلة
+        basket = [];
+        updateBasketUI();
+      }catch(e){ console.error(e); showToast('❗ تعذر حفظ الوجبة'); }
+    });
+  </script>
 </body>
 </html>
