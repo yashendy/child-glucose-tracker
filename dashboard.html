@@ -14,7 +14,6 @@
       --muted: #6b7280;
       --bg: #f6fbff;
       --card: #fff;
-      --chip: #eef6ff
     }
 
     body {
@@ -50,10 +49,7 @@
     }
 
     .btn.gray { background: #ccc; }
-    .btn.green { background: #10b981; color: white; }
     .btn.blue { background: #3b82f6; color: white; }
-    .btn.orange { background: #f97316; color: white; }
-    .btn.purple { background: #8b5cf6; color: white; }
 
     .card {
       background: var(--card);
@@ -75,13 +71,6 @@
       border-radius: 12px;
       padding: 16px;
       margin-bottom: 16px;
-    }
-
-    .kid-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 10px;
     }
 
     input {
@@ -107,6 +96,10 @@
     .toast.show {
       opacity: 1;
     }
+
+    .kid-actions {
+      margin-top: 12px;
+    }
   </style>
 </head>
 
@@ -128,7 +121,7 @@
     <input id="civilId" placeholder="🆔 الرقم المدني">
     <input id="phone" placeholder="📱 رقم الهاتف">
     <input id="email" disabled placeholder="📧 البريد الإلكتروني (للقراءة فقط)">
-    <button id="saveParent" class="btn green">💾 حفظ التعديلات</button>
+    <button id="saveParent" class="btn blue">💾 حفظ التعديلات</button>
   </section>
 
   <section class="card">
@@ -193,7 +186,7 @@
       container.innerHTML = `
         <div class="note">لا يوجد أطفال بعد — اضغط على “إضافة طفل” لبدء المتابعة.</div>
         <div style="text-align:center; margin-top:12px;">
-          <a href="child.html" class="btn orange">➕ إضافة طفل</a>
+          <a href="child.html" class="btn blue">➕ إضافة طفل</a>
         </div>`;
       return;
     }
@@ -201,7 +194,6 @@
     query.forEach(docSnap => {
       const c = docSnap.data();
       const id = docSnap.id;
-      const unit = c.preferredUnit === "mgdl" ? "mg/dL" : "mmol/L";
 
       const card = document.createElement("div");
       card.className = "kid-card";
@@ -209,18 +201,12 @@
       card.innerHTML = `
         <h3>👧 ${c.name || "بدون اسم"}</h3>
         <div>
-          📏 الطول: ${c.height ?? "—"} سم<br>
-          ⚖️ الوزن: ${c.weight ?? "—"} كجم<br>
-          💉 تريسيبا: ${c.tresiba ?? "—"} - نوفو: ${c.novo ?? "—"}<br>
           🧾 الرقم المدني: ${c.childCivilId ?? "—"}<br>
-          💡 الوحدة: ${unit} — منخفض &lt; ${c.lowThreshold ?? "—"} • مرتفع &gt; ${c.highThreshold ?? "—"}
+          ⚖️ الوزن: ${c.weight ?? "—"} كجم<br>
+          📏 الطول: ${c.height ?? "—"} سم
         </div>
         <div class="kid-actions">
-          <button class="btn green" onclick="location.href='measure.html?child=${id}'">📝 تسجيل قياسات</button>
-          <button class="btn blue" onclick="location.href='report.html?child=${id}'">📊 عرض التقارير</button>
-          <button class="btn gray" onclick="location.href='doctor.html?child=${id}'">🧑‍⚕️ متابعة الطبيب</button>
-          <button class="btn orange" onclick="location.href='child.html?child=${id}'">🛠️ تعديل بيانات الطفل</button>
-          <button class="btn purple" onclick="goToMealPlanner('${id}')">🍔 اختيار وجبة</button>
+          <a href="child-dashboard.html?child=${id}" class="btn blue">📋 دخول للبيانات</a>
         </div>
       `;
 
@@ -228,13 +214,6 @@
     });
   }
 
-  // ربط اختيار وجبة
-  window.goToMealPlanner = function(childId) {
-    localStorage.setItem("selectedChildId", childId);
-    window.location.href = "meal-planner.html";
-  };
-
-  // حفظ بيانات ولي الأمر
   $("#saveParent").addEventListener("click", async () => {
     const ref = doc(db, "users", uid);
 
@@ -253,7 +232,6 @@
     toast("✅ تم حفظ التعديلات بنجاح");
   });
 
-  // تسجيل الخروج
   $("#btnLogout").addEventListener("click", () => {
     signOut(auth).then(() => location.href = "index.html");
   });
