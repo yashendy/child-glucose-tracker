@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>إدارة الأصناف — متابعة سكر الأطفال</title>
+<style>
+  :root{
+    --brand:#0ea5e9; --brand2:#6ee7b7; --line:#e5e7eb; --ink:#0f172a;
+    --muted:#64748b; --bg:#f0fafd; --card:#fff; --ok:#10b981; --warn:#f59e0b; --bad:#ef4444;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "Tajawal",system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+
+  header{
+    position:sticky; top:0; z-index:10;
+    background:linear-gradient(90deg,var(--brand),var(--brand2));
+    color:#fff; padding:12px 16px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .btn{border:none;border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer}
+  .btn.gray{background:#eef2f7}
+  .btn.primary{background:var(--brand);color:#fff}
+  .btn.ok{background:var(--ok);color:#fff}
+  .btn.warn{background:var(--warn);color:#fff}
+  .btn.bad{background:var(--bad);color:#fff}
+  .btn.ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5)}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#eef6ff;color:#0f172a;font-size:12px}
+
+  .layout{display:grid; grid-template-columns: 300px 1fr 340px; gap:14px; padding:14px; max-width:1400px; margin:auto; width:100%}
+  @media (max-width:1100px){ .layout{grid-template-columns:1fr} }
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+  .title{margin:0 0 10px;font-size:18px}
+  label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
+  input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+  textarea{min-height:90px;resize:vertical}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .grid{display:grid;gap:10px}
+  .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .list{max-height:calc(100vh - 190px);overflow:auto}
+  .list-item{padding:10px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:#fff;cursor:pointer;display:flex;justify-content:space-between;gap:8px}
+  .list-item:hover{background:#f7fbff}
+  .active{outline:2px solid var(--brand)}
+  .muted{color:var(--muted)}
+  .danger{color:var(--bad)}
+  .note{color:var(--muted);font-size:13px}
+  .banner{padding:10px;border-radius:12px;margin-bottom:10px}
+  .banner.warn{background:#fff7ed;border:1px solid #fed7aa}
+  .banner.ok{background:#ecfdf5;border:1px solid #bbf7d0}
+  .divider{height:1px;background:var(--line);margin:10px 0}
+
+  .serving-row{display:grid;grid-template-columns: 1fr 120px 40px; gap:8px; align-items:center}
+  .serving-row .del{background:#eef2f7;border:none;border-radius:10px;height:40px;cursor:pointer}
+
+  .preview-card{text-align:center}
+  .preview-img{width:120px;height:120px;object-fit:contain;border-radius:12px;background:#f8fafc;margin:auto}
+  .preview-name{font-weight:800;margin:8px 0 2px}
+  .chip{display:inline-block;background:#f1f5f9;color:#0f172a;border-radius:999px;padding:4px 8px;font-size:12px}
+
+  .toast{position:fixed;bottom:16px;left:16px;background:#111;color:#fff;padding:10px 14px;border-radius:12px;opacity:0;transform:translateY(6px);transition:.25s}
+  .toast.show{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="row">
+    <div style="font-weight:800">🗂️ إدارة الأصناف</div>
+    <span class="pill" id="userHint">وضع المستخدم</span>
+  </div>
+  <div class="row">
+    <a href="child-dashboard.html" class="btn ghost">لوحة الطفل</a>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- العمود 1: بحث + تصنيفات + قائمة أصناف -->
+  <aside class="card">
+    <h3 class="title">بحث وتصنيفات</h3>
+    <div class="row">
+      <input id="search" placeholder="ابحث بالاسم أو الوسم...">
+      <button id="btnNew" class="btn primary">➕ صنف جديد</button>
+    </div>
+    <div class="divider"></div>
+
+    <div class="row" id="cats" style="flex-wrap:wrap; gap:6px"></div>
+
+    <div class="divider"></div>
+    <div class="list" id="foodsList">
+      <div class="note">جاري التحميل...</div>
+    </div>
+  </aside>
+
+  <!-- العمود 2: نموذج الصنف -->
+  <section class="card">
+    <h3 class="title">نموذج الصنف</h3>
+
+    <div id="legacyBanner" class="banner warn" style="display:none">
+      <div><strong>⚠️ هذا الصنف بصيغة قديمة</strong> — يمكنك تحويله لصيغة المقاييس المنزلية الجديدة.</div>
+      <div class="note">لو كان <code>gramsPerServing</code> نسبة من 100جم (مثلاً 0.3 ⇒ 30جم) سيتم حسابها تلقائيًا.</div>
+      <div class="row" style="margin-top:6px">
+        <button id="btnConvertLegacy" class="btn warn">حوّل الآن</button>
+      </div>
+    </div>
+
+    <div class="grid g2">
+      <div>
+        <label>اسم الصنف</label>
+        <input id="fName" placeholder="مثال: الأرز الأبيض (مطبوخ)">
+      </div>
+      <div>
+        <label>التصنيف</label>
+        <input id="fCategory" placeholder="مثال: الحبوب والنشويات">
+      </div>
+      <div>
+        <label>كارب لكل 100 جم</label>
+        <input id="fCarbs100" type="number" step="0.1" placeholder="مثال: 30">
+      </div>
+      <div>
+        <label>رابط صورة (اختياري)</label>
+        <input id="fImage" placeholder="https://...">
+      </div>
+      <div style="grid-column:1/-1">
+        <label>وسوم (افصل بينها بمسافة)</label>
+        <input id="fTags" placeholder="أرز غداء نشاء">
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <h4 style="margin:6px 0">المقاييس المنزلية (servings)</h4>
+    <div id="servingsWrap"></div>
+    <div class="row" style="margin-top:8px">
+      <button id="btnAddServing" class="btn gray">➕ إضافة مقياس</button>
+    </div>
+
+    <div class="divider"></div>
+    <div class="grid g2">
+      <div>
+        <label>الحالة</label>
+        <select id="fStatus">
+          <option value="approved">Approved (ظاهر للجميع)</option>
+          <option value="pending">Pending (مراجعة)</option>
+        </select>
+      </div>
+      <div>
+        <label>الظهور</label>
+        <select id="fVisible">
+          <option value="true">ظاهر</option>
+          <option value="false">مخفي</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <button id="btnSave" class="btn ok">💾 حفظ</button>
+      <button id="btnClone" class="btn gray">🧬 استنساخ</button>
+      <button id="btnDelete" class="btn bad">🗑️ حذف</button>
+      <span id="docMeta" class="note" style="margin-inline-start:auto"></span>
+    </div>
+  </section>
+
+  <!-- العمود 3: المعاينة والآلة الحاسبة -->
+  <aside class="card">
+    <h3 class="title">معاينة + اختبار الكارب</h3>
+
+    <div class="preview-card">
+      <img id="prevImg" class="preview-img" alt="">
+      <div id="prevName" class="preview-name">—</div>
+      <div id="prevCat" class="note">—</div>
+      <div style="margin-top:6px">
+        <span id="prevChip" class="chip">كارب/100جم: —</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <h4 style="margin:6px 0">اختبار سريع</h4>
+    <div class="grid">
+      <div>
+        <label>وضع الإدخال</label>
+        <select id="calcMode">
+          <option value="grams">جرامات</option>
+          <option value="serving">مقياس منزلي</option>
+        </select>
+      </div>
+      <div id="calcGramsBlock">
+        <label>كمية (جم)</label>
+        <input id="calcGrams" type="number" step="1" placeholder="مثال: 150">
+      </div>
+      <div id="calcServingBlock" style="display:none">
+        <label>اختر المقياس</label>
+        <select id="calcServing"></select>
+        <label style="margin-top:6px">عدد الحصص</label>
+        <input id="calcCount" type="number" step="0.5" value="1">
+      </div>
+      <div>
+        <label>الكارب المحسوب</label>
+        <input id="calcCarbs" readonly>
+      </div>
+    </div>
+    <div class="note" style="margin-top:8px">الحساب: (الجرامات × كارب/100) ÷ 100</div>
+  </aside>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script type="module">
+  import { db, auth } from './firebase-init.js';
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+  import {
+    collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc,
+    serverTimestamp, query, orderBy, where, limit, startAfter
+  } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+  // ======== DOM helpers ========
+  const $  = (s)=>document.querySelector(s);
+  const $$ = (s)=>[...document.querySelectorAll(s)];
+  const toastEl = $('#toast');
+  const showToast = (m)=>{ toastEl.textContent=m; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'),2000); };
+
+  const foodsList = $('#foodsList');
+  const catsWrap  = $('#cats');
+  const searchIn  = $('#search');
+  const userHint  = $('#userHint');
+
+  // Form els
+  const fName  = $('#fName'), fCategory=$('#fCategory'), fCarbs100=$('#fCarbs100'), fImage=$('#fImage'), fTags=$('#fTags');
+  const fStatus= $('#fStatus'), fVisible=$('#fVisible'), servingsWrap = $('#servingsWrap');
+  const legacyBanner = $('#legacyBanner'), btnConvertLegacy = $('#btnConvertLegacy');
+
+  // Preview/Calc
+  const prevImg = $('#prevImg'), prevName=$('#prevName'), prevCat=$('#prevCat'), prevChip=$('#prevChip');
+  const calcMode=$('#calcMode'), calcGramsBlock=$('#calcGramsBlock'), calcServingBlock=$('#calcServingBlock');
+  const calcGrams=$('#calcGrams'), calcServing=$('#calcServing'), calcCount=$('#calcCount'), calcCarbs=$('#calcCarbs');
+
+  const btnNew   = $('#btnNew');
+  const btnSave  = $('#btnSave');
+  const btnDelete= $('#btnDelete');
+  const btnClone = $('#btnClone');
+  const docMeta  = $('#docMeta');
+
+  // ======== State ========
+  let uid = null;
+  let items = [];          // loaded foods
+  let filtered = [];       // filtered list
+  let activeId = null;     // current editing doc id (null = new)
+  let activeDoc = null;    // last loaded doc data (for legacy conv)
+
+  // ======== Auth check ========
+  onAuthStateChanged(auth, async (user)=>{
+    if(!user){ location.href='index.html'; return; }
+    uid = user.uid;
+    userHint.textContent = 'وضع المستخدم (مؤقتًا)';
+    await loadFoods();
+  });
+
+  // ======== Load foods & build dynamic categories ========
+  async function loadFoods(){
+    foodsList.innerHTML = '<div class="note">جاري التحميل...</div>';
+    items = [];
+    // مبدئياً نحمل أول 500 صنف مرتبين بالتصنيف ثم الاسم
+    const q1 = query(collection(db,'foods'), orderBy('category'), orderBy('name'), limit(500));
+    const snap = await getDocs(q1);
+    snap.forEach(d => items.push({id:d.id, ...d.data()}));
+    buildCats();
+    renderList();
+  }
+
+  function buildCats(){
+    const set = new Set();
+    items.forEach(x=>{ if(x.category) set.add(x.category) });
+    const cats = ['الكل', ...[...set].sort((a,b)=>a.localeCompare(b,'ar'))];
+    catsWrap.innerHTML = '';
+    cats.forEach(c=>{
+      const b = document.createElement('button');
+      b.className = 'btn gray';
+      b.textContent = c;
+      b.dataset.cat = c;
+      b.addEventListener('click', ()=>{
+        $$('#cats .btn').forEach(x=>x.classList.remove('primary'));
+        b.classList.add('primary');
+        renderList();
+      });
+      if(c==='الكل') b.classList.add('primary');
+      catsWrap.appendChild(b);
+    });
+  }
+
+  searchIn.addEventListener('input', renderList);
+
+  function renderList(){
+    const activeCatBtn = $('#cats .btn.primary');
+    const cat = activeCatBtn ? activeCatBtn.dataset.cat : 'الكل';
+    const q = (searchIn.value||'').trim().toLowerCase();
+
+    filtered = items.filter(x=>{
+      const byCat = (cat==='الكل' || x.category===cat);
+      if(!byCat) return false;
+      if(!q) return true;
+      const tags = (x.tags||[]).join(' ');
+      return (x.name||'').toLowerCase().includes(q) || tags.toLowerCase().includes(q);
+    });
+
+    foodsList.innerHTML = '';
+    if(filtered.length===0){
+      foodsList.innerHTML = '<div class="note">لا نتائج.</div>';
+      return;
+    }
+
+    filtered.forEach(x=>{
+      const it = document.createElement('div');
+      it.className = 'list-item';
+      it.dataset.id = x.id;
+      it.innerHTML = `
+        <div>
+          <div style="font-weight:800">${escapeHtml(x.name||'بدون اسم')}</div>
+          <div class="muted">${escapeHtml(x.category||'—')}</div>
+        </div>
+        <div class="muted">${x.carbsPer100g!=null? `${x.carbsPer100g}g/100g` : '—'}</div>
+      `;
+      it.addEventListener('click', ()=> selectItem(x.id));
+      foodsList.appendChild(it);
+    });
+  }
+
+  function markActive(id){
+    $$('#foodsList .list-item').forEach(el=> el.classList.toggle('active', el.dataset.id===id));
+  }
+
+  // ======== Select / New ========
+  btnNew.addEventListener('click', ()=>{
+    activeId = null; activeDoc = null;
+    markActive(null);
+    formFill({
+      name:'', category:'', carbsPer100g:null, imageUrl:'', tags:[],
+      servings:[], status:'approved', visible:true, createdAt:null, updatedAt:null
+    });
+    legacyBanner.style.display = 'none';
+    docMeta.textContent = '';
+  });
+
+  async function selectItem(id){
+    try{
+      const snap = await getDoc(doc(db,'foods',id));
+      if(!snap.exists()){ showToast('الصنف غير موجود'); return; }
+      activeId = id; activeDoc = {id, ...snap.data()};
+      markActive(id);
+      formFill(activeDoc);
+      // Legacy banner
+      const hasLegacy = (!activeDoc.servings || activeDoc.servings.length===0)
+                        && (activeDoc.gramsPerServing!=null || activeDoc.servingDescription);
+      legacyBanner.style.display = hasLegacy ? 'block' : 'none';
+      docMeta.textContent = metaText(activeDoc);
+    }catch(e){ console.error(e); showToast('تعذر تحميل الصنف') }
+  }
+
+  function metaText(d){
+    const c = d.createdAt?.toDate ? d.createdAt.toDate() : null;
+    const u = d.updatedAt?.toDate ? d.updatedAt.toDate() : null;
+    const fmt = (x)=> x? new Date(x).toLocaleString('ar-EG') : '—';
+    return `أُنشئ: ${fmt(c)} — آخر تحديث: ${fmt(u)}`;
+  }
+
+  // ======== Form helpers ========
+  function formFill(d){
+    fName.value = d.name || '';
+    fCategory.value = d.category || '';
+    fCarbs100.value = (d.carbsPer100g!=null? d.carbsPer100g : '');
+    fImage.value = d.imageUrl || '';
+    fTags.value  = (d.tags||[]).join(' ');
+    fStatus.value= d.status || 'approved';
+    fVisible.value = (d.visible===false? 'false':'true');
+
+    renderServings(d.servings||[]);
+    previewUpdate();
+    calcUpdate();
+  }
+
+  function renderServings(arr){
+    servingsWrap.innerHTML = '';
+    if(!arr || arr.length===0){
+      addServingRow({label:'كوب', grams:150});
+      return;
+    }
+    arr.forEach(s=> addServingRow(s));
+  }
+
+  function addServingRow(s){
+    const row = document.createElement('div');
+    row.className = 'serving-row';
+    row.innerHTML = `
+      <input class="sv-label" placeholder="مثال: كوب" value="${escapeAttr(s.label||'')}">
+      <input class="sv-grams" type="number" step="1" placeholder="جم" value="${s.grams!=null? s.grams : ''}">
+      <button class="del">✖</button>
+    `;
+    row.querySelector('.del').addEventListener('click', ()=> row.remove());
+    servingsWrap.appendChild(row);
+    refreshCalcServingOptions();
+  }
+
+  $('#btnAddServing').addEventListener('click', ()=> addServingRow({label:'', grams:null}));
+
+  function currentServings(){
+    const rows = [...servingsWrap.querySelectorAll('.serving-row')];
+    return rows.map(r=>{
+      const label = r.querySelector('.sv-label').value.trim();
+      const grams = Number(r.querySelector('.sv-grams').value);
+      return (!label || !Number.isFinite(grams) || grams<=0) ? null : {label, grams: Math.round(grams)};
+    }).filter(Boolean);
+  }
+
+  // ======== Legacy convert ========
+  btnConvertLegacy.addEventListener('click', async ()=>{
+    if(!activeDoc){ return; }
+    const sd  = (activeDoc.servingDescription || 'حصة').toString();
+    const gps = Number(activeDoc.gramsPerServing);
+    let grams = null;
+    if(Number.isFinite(gps)){
+      grams = (gps <= 3) ? Math.round(gps*100) : Math.round(gps);
+    }else{
+      grams = 100; // fallback
+    }
+    const newServings = [{label: sd || 'حصة', grams}];
+    try{
+      await updateDoc(doc(db,'foods',activeDoc.id), { servings: newServings, updatedAt: serverTimestamp() });
+      activeDoc.servings = newServings;
+      legacyBanner.style.display = 'none';
+      renderServings(newServings);
+      showToast('✅ تم التحويل إلى المقاييس المنزلية');
+    }catch(e){ console.error(e); showToast('❗ فشل التحويل') }
+  });
+
+  // ======== Save / Delete / Clone ========
+  btnSave.addEventListener('click', async ()=>{
+    const name = fName.value.trim();
+    const category = fCategory.value.trim();
+    const carbs = Number(fCarbs100.value);
+    if(!name){ showToast('أدخلي اسم الصنف'); return; }
+    if(!category){ showToast('أدخلي التصنيف'); return; }
+    if(!Number.isFinite(carbs) || carbs<0 || carbs>100){ showToast('كارب/100جم يجب أن يكون بين 0 و 100'); return; }
+
+    const servings = currentServings();
+    if(servings.length===0){ showToast('أضيفي مقياسًا منزليًا واحدًا على الأقل'); return; }
+
+    const payload = {
+      name, category,
+      carbsPer100g: +(+carbs).toFixed(1),
+      imageUrl: fImage.value.trim() || '',
+      tags: (fTags.value||'').split(/\s+/).filter(Boolean),
+      servings,
+      status: fStatus.value || 'approved',
+      visible: (fVisible.value==='true'),
+      updatedAt: serverTimestamp()
+    };
+    if(!activeId){
+      payload.createdAt = serverTimestamp();
+      try{
+        const ref = await addDoc(collection(db,'foods'), payload);
+        activeId = ref.id;
+        items.unshift({id: ref.id, ...payload});
+        showToast('✅ تم إضافة الصنف');
+        await selectItem(ref.id);
+        renderList();
+      }catch(e){ console.error(e); showToast('❗ فشل الإضافة') }
+    }else{
+      try{
+        await setDoc(doc(db,'foods',activeId), payload, {merge:true});
+        const ix = items.findIndex(x=>x.id===activeId);
+        if(ix>-1) items[ix] = {...items[ix], ...payload};
+        showToast('✅ تم حفظ التعديلات');
+        docMeta.textContent = '— تم التحديث الآن';
+        renderList();
+      }catch(e){ console.error(e); showToast('❗ فشل الحفظ') }
+    }
+  });
+
+  btnDelete.addEventListener('click', async ()=>{
+    if(!activeId){ showToast('لا يوجد صنف محدد'); return; }
+    if(!confirm('هل أنت متأكد من حذف هذا الصنف؟')) return;
+    try{
+      await deleteDoc(doc(db,'foods',activeId));
+      items = items.filter(x=>x.id!==activeId);
+      activeId=null; activeDoc=null;
+      formFill({name:'',category:'',carbsPer100g:null,imageUrl:'',tags:[],servings:[],status:'approved',visible:true});
+      renderList();
+      showToast('🗑️ تم الحذف');
+    }catch(e){ console.error(e); showToast('❗ فشل الحذف') }
+  });
+
+  btnClone.addEventListener('click', ()=>{
+    if(!activeId){ showToast('افتح صنفًا أولاً'); return; }
+    const s = currentServings();
+    formFill({
+      name: (fName.value||'') + ' (نسخة)',
+      category: fCategory.value, carbsPer100g: Number(fCarbs100.value)||null,
+      imageUrl: fImage.value, tags: (fTags.value||'').split(/\s+/).filter(Boolean),
+      servings: s, status:'approved', visible:true
+    });
+    activeId = null; activeDoc=null;
+    markActive(null);
+    docMeta.textContent = '— صنف جديد (منسوخ)';
+    showToast('🧬 تم إنشاء نسخة — احفظيها كصنف جديد');
+  });
+
+  // ======== Preview & Calc ========
+  function previewUpdate(){
+    const name = fName.value.trim() || '—';
+    const category = fCategory.value.trim() || '—';
+    const carbs = Number(fCarbs100.value)||0;
+    const img = fImage.value.trim();
+    prevName.textContent = name;
+    prevCat.textContent = category;
+    prevChip.textContent = `كارب/100جم: ${carbs||'—'}`;
+    if(img){ prevImg.src = img; prevImg.alt = name; } else { prevImg.removeAttribute('src'); prevImg.alt=''; }
+  }
+  [fName,fCategory,fCarbs100,fImage].forEach(el => el.addEventListener('input', ()=>{ previewUpdate(); calcUpdate(); }));
+
+  function refreshCalcServingOptions(){
+    const ss = currentServings();
+    calcServing.innerHTML = '';
+    ss.forEach((s,i)=>{
+      const opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = `${s.label} — ${s.grams}جم`;
+      calcServing.appendChild(opt);
+    });
+    if(ss.length===0){
+      const opt = document.createElement('option'); opt.textContent='—'; opt.value='';
+      calcServing.appendChild(opt);
+    }
+  }
+
+  calcMode.addEventListener('change', ()=>{
+    const mode = calcMode.value;
+    calcGramsBlock.style.display   = (mode==='grams')?'block':'none';
+    calcServingBlock.style.display = (mode==='serving')?'block':'none';
+    calcUpdate();
+  });
+  [calcGrams, calcServing, calcCount].forEach(el=> el.addEventListener('input', calcUpdate));
+
+  function calcUpdate(){
+    const carbs100 = Number(fCarbs100.value)||0;
+    let grams = 0;
+    if(calcMode.value==='grams'){
+      grams = Number(calcGrams.value)||0;
+    }else{
+      const ss = currentServings();
+      const ix = Number(calcServing.value);
+      const cnt = Number(calcCount.value)||0;
+      if(Number.isFinite(ix) && ss[ix]) grams = ss[ix].grams * cnt;
+    }
+    const carbs = (grams * carbs100) / 100;
+    calcCarbs.value = carbs ? carbs.toFixed(1) : '';
+  }
+
+  // ======== Utils ========
+  function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
+  function escapeAttr(s){ return escapeHtml(s||''); }
+</script>
+</body>
+</html>
