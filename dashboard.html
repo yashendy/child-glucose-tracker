@@ -6,7 +6,6 @@
   <title>لوحة التحكم — متابعة سكر الأطفال</title>
 
   <style>
-  /* رقم 1: ألوان وأساسيات */
   :root {
     --brand: #0ea5e9;
     --brand2: #6ee7b7;
@@ -18,12 +17,11 @@
     --chip: #eef6ff
   }
 
-  * { box-sizing: border-box }
   body {
     margin: 0;
-    font: 15px/1.6 system-ui, "Tajawal", "Noto Sans Arabic", sans-serif;
+    font-family: 'Tajawal', sans-serif;
     background: var(--bg);
-    color: var(--ink)
+    color: var(--ink);
   }
 
   header {
@@ -33,240 +31,118 @@
     color: #fff;
     padding: 14px 18px;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: space-between
-  }
-
-  header .title {
-    font-weight: 800
   }
 
   main {
-    max-width: 1200px;
+    max-width: 1100px;
     margin: auto;
-    padding: 18px
-  }
-
-  /* رقم 2: البطاقات */
-  .card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 16px;
-    box-shadow: 0 1px 8px rgba(0, 0, 0, .05);
-    margin-bottom: 14px
-  }
-
-  h2 { margin: 0 0 10px }
-
-  label {
-    display: block;
-    color: var(--muted);
-    font-size: 13px;
-    margin-bottom: 6px
-  }
-
-  input {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    background: #fff
-  }
-
-  .grid {
-    display: grid;
-    gap: 12px
-  }
-
-  .grid.cols-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr))
-  }
-
-  .grid.cols-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr))
-  }
-
-  @media (max-width: 1000px) {
-    .grid.cols-3 { grid-template-columns: 1fr 1fr }
-  }
-
-  @media (max-width: 720px) {
-    .grid.cols-2, .grid.cols-3 { grid-template-columns: 1fr }
-  }
-
-  .row {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: center
+    padding: 20px;
   }
 
   .btn {
     border: none;
-    border-radius: 10px;
+    border-radius: 8px;
     padding: 10px 14px;
-    font-weight: 700;
+    font-weight: bold;
     cursor: pointer;
-    text-decoration: none;
-    display: inline-block
   }
 
-  .btn.primary { background: var(--brand); color: #fff }
-  .btn.secondary { background: #10b981; color: #fff }
-  .btn.gray { background: #eef2f7 }
-  .btn.purple { background: #7c3aed; color: #fff }
+  .btn.gray { background: #ccc; }
+  .btn.green { background: #10b981; color: white; }
+  .btn.blue { background: #3b82f6; color: white; }
+  .btn.orange { background: #f97316; color: white; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    padding: 20px;
+    border-radius: 14px;
+    margin-bottom: 18px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+  }
 
   .note {
+    font-size: 14px;
     color: var(--muted);
-    font-size: 13px
+    text-align: center;
   }
 
-  .toast {
-    position: fixed;
-    bottom: 16px;
-    left: 16px;
-    background: #111;
-    color: #fff;
-    padding: 10px 14px;
-    border-radius: 12px;
-    opacity: 0;
-    transform: translateY(8px);
-    transition: .3s
-  }
-
-  .toast.show {
-    opacity: 1;
-    transform: none
-  }
-
-  /* رقم 3: كروت الأطفال الجديدة */
   .kid-card {
     background: #e0f7fa;
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 18px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08)
-  }
-
-  .kid-card h3 {
-    font-size: 24px;
-    color: #0f172a;
-    margin: 0 0 10px
-  }
-
-  .kid-info {
-    color: #374151;
-    font-size: 15px;
-    margin-bottom: 12px
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
   }
 
   .kid-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-    margin-top: 12px
+    margin-top: 10px;
   }
 
-  .kid-actions button {
+  input {
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    width: 100%;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    background: #333;
+    color: #fff;
     padding: 10px 14px;
-    border: none;
-    border-radius: 12px;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 6px
+    border-radius: 8px;
+    opacity: 0;
+    transition: 0.3s ease;
   }
 
-  .btn-blue    { background-color: #3b82f6 }
-  .btn-green   { background-color: #10b981 }
-  .btn-purple  { background-color: #8b5cf6 }
-  .btn-orange  { background-color: #f97316 }
-  .btn-gray    { background-color: #6b7280 }
-
+  .toast.show {
+    opacity: 1;
+  }
   </style>
 </head>
 
-<!-- // الجزء الثاني -->
 <body>
-  <!-- ✅ رأس الصفحة -->
-  <header>
-    <div class="title">لوحة التحكم</div>
-    <div class="row">
-      <a class="btn gray" href="index.html">الصفحة الرئيسية</a>
-      <button id="btnLogout" class="btn gray">خروج</button>
-    </div>
-  </header>
-
-  <!-- ✅ محتوى الصفحة الرئيسي -->
-  <main>
-
-    <!-- ✅ بطاقة وليّ الأمر (مُنسقة بالكامل) -->
-    <section class="card-parent">
-      <h2>👨‍👩‍👧 بيانات وليّ الأمر</h2>
-      <div id="hello" class="note" style="text-align:center; margin-bottom: 10px;">تحميل...</div>
-      <div class="parent-fields">
-        <div>
-          <label for="guardianName">👤 اسم وليّ الأمر</label>
-          <input id="guardianName" placeholder="مثال: ياسر حمدي">
-        </div>
-        <div>
-          <label for="fullName">👨‍💼 الاسم (اختياري)</label>
-          <input id="fullName" placeholder="الاسم الكامل">
-        </div>
-        <div>
-          <label for="civilId">🆔 الرقم المدني</label>
-          <input id="civilId" placeholder="مثال: 281042603532">
-        </div>
-        <div>
-          <label for="phone">📱 رقم الهاتف</label>
-          <input id="phone" placeholder="مثال: 50534441">
-        </div>
-        <div>
-          <label for="email">📧 البريد الإلكتروني</label>
-          <input id="email" disabled>
-        </div>
-      </div>
-      <button id="saveParent" class="save-btn">💾 حفظ التعديلات</button>
-    </section>
-
-  <!-- // الجزء الثالث -->
-<!-- ✅ كروت الأطفال -->
-<section>
-  <h2 style="text-align:center; color:#0ea5e9; font-size:26px; margin-bottom: 16px;">🧒 أطفالي</h2>
-  <div id="kids">
-    <div class="note" style="text-align:center;">تحميل الأطفال...</div>
+<header>
+  <div class="title">لوحة التحكم</div>
+  <div>
+    <a class="btn gray" href="index.html">الرئيسية</a>
+    <button id="btnLogout" class="btn gray">خروج</button>
   </div>
-</section>
+</header>
 
+<main>
+  <section class="card">
+    <h2>👨‍👩‍👧 بيانات ولي الأمر</h2>
+    <div id="hello" class="note">جاري التحميل...</div>
+    <input id="guardianName" placeholder="👤 اسم ولي الأمر">
+    <input id="fullName" placeholder="👨‍💼 الاسم الكامل (اختياري)">
+    <input id="civilId" placeholder="🆔 الرقم المدني">
+    <input id="phone" placeholder="📱 رقم الهاتف">
+    <input id="email" disabled placeholder="📧 البريد الإلكتروني (للقراءة فقط)">
+    <button id="saveParent" class="btn green">💾 حفظ التعديلات</button>
+  </section>
+
+  <section class="card">
+    <h2>🧒 أطفالي</h2>
+    <div id="kids" class="note">جاري التحميل...</div>
+  </section>
 </main>
 
-<!-- ✅ إشعار مؤقت -->
 <div id="toast" class="toast"></div>
-
- <!-- // الجزء الرابع -->
+<!-- 🧩 المرحلة 2: تحميل بيانات ولي الأمر -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+  import { db, auth } from './firebase-init.js';
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+  import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
-  // ✅ إعداد Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
-    authDomain: "child-glucose-tracker.firebaseapp.com",
-    projectId: "child-glucose-tracker",
-    storageBucket: "child-glucose-tracker.firebasestorage.app",
-    messagingSenderId: "294563325904",
-    appId: "1:294563325904:web:39562550bf305fc01abbd5"
-  };
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  // ✅ مساعدين
   const $ = selector => document.querySelector(selector);
   const toast = (msg) => {
     const t = $("#toast");
@@ -277,7 +153,6 @@
 
   let uid = null;
 
-  // ✅ عند الدخول
   onAuthStateChanged(auth, async (user) => {
     if (!user) return location.href = "index.html";
     uid = user.uid;
@@ -286,42 +161,29 @@
     await loadKids();
   });
 
-  // ✅ تحميل بيانات ولي الأمر
   async function loadParent() {
     const ref = doc(db, "users", uid);
     const snap = await getDoc(ref);
     const data = (snap.data() || {}).parentInfo || {};
+
     $("#guardianName").value = data.guardianName || "";
     $("#fullName").value = data.name || "";
     $("#civilId").value = data.civilId || "";
     $("#phone").value = data.phone || "";
     $("#email").value = data.email || "";
   }
-
-  // ✅ حفظ التعديلات
-  $("#saveParent").addEventListener("click", async () => {
-    const ref = doc(db, "users", uid);
-    const snap = await getDoc(ref);
-    const root = snap.data() || {};
-    root.parentInfo = {
-      guardianName: $("#guardianName").value.trim(),
-      name: $("#fullName").value.trim(),
-      civilId: $("#civilId").value.trim(),
-      phone: $("#phone").value.trim(),
-      email: $("#email").value.trim()
-    };
-    await updateDoc(ref, root);
-    toast("✅ تم حفظ التعديلات");
-  });
-
-  // ✅ تحميل الأطفال (منسق بالكامل)
+  // ✅ تحميل الأطفال
   async function loadKids() {
     const container = $("#kids");
     container.innerHTML = "";
     const query = await getDocs(collection(db, "users", uid, "children"));
 
     if (query.empty) {
-      container.innerHTML = '<div class="note" style="text-align:center;">لا يوجد أطفال بعد — اضغطي “👧 إدارة الأطفال”.</div>';
+      container.innerHTML = `
+        <div class="note">لا يوجد أطفال بعد — اضغط على “إضافة طفل” لبدء المتابعة.</div>
+        <div style="text-align:center; margin-top:12px;">
+          <a href="child.html" class="btn orange">➕ إضافة طفل</a>
+        </div>`;
       return;
     }
 
@@ -335,7 +197,7 @@
 
       card.innerHTML = `
         <h3>👧 ${c.name || "بدون اسم"}</h3>
-        <div class="kid-info">
+        <div>
           📏 الطول: ${c.height ?? "—"} سم<br>
           ⚖️ الوزن: ${c.weight ?? "—"} كجم<br>
           💉 تريسيبا: ${c.tresiba ?? "—"} - نوفو: ${c.novo ?? "—"}<br>
@@ -343,11 +205,11 @@
           💡 الوحدة: ${unit} — منخفض &lt; ${c.lowThreshold ?? "—"} • مرتفع &gt; ${c.highThreshold ?? "—"}
         </div>
         <div class="kid-actions">
-          <button class="btn-green" onclick="location.href='measure.html?child=${id}'">📝 تسجيل قياسات</button>
-          <button class="btn-blue" onclick="location.href='report.html?child=${id}'">📊 عرض التقارير</button>
-          <button class="btn-purple" onclick="location.href='doctor.html?child=${id}'">🧑‍⚕️ متابعة الطبيب</button>
-          <button class="btn-gray" onclick="location.href='child.html?child=${id}'">🛠️ تعديل بيانات الطفل</button>
-          <button class="btn-orange" onclick="goToMealPlanner('${id}')">🍔 اختيار وجبة</button>
+          <button class="btn green" onclick="location.href='measure.html?child=${id}'">📝 تسجيل قياسات</button>
+          <button class="btn blue" onclick="location.href='report.html?child=${id}'">📊 عرض التقارير</button>
+          <button class="btn gray" onclick="location.href='doctor.html?child=${id}'">🧑‍⚕️ متابعة الطبيب</button>
+          <button class="btn orange" onclick="location.href='child.html?child=${id}'">🛠️ تعديل بيانات الطفل</button>
+          <button class="btn purple" onclick="goToMealPlanner('${id}')">🍔 اختيار وجبة</button>
         </div>
       `;
 
@@ -359,13 +221,31 @@
   window.goToMealPlanner = function(childId) {
     localStorage.setItem("selectedChildId", childId);
     window.location.href = "meal-planner.html";
-  }
+  };
+  // ✅ حفظ بيانات ولي الأمر
+  $("#saveParent").addEventListener("click", async () => {
+    const ref = doc(db, "users", uid);
 
-  // ✅ تسجيل الخروج
+    const updatedInfo = {
+      guardianName: $("#guardianName").value.trim(),
+      name: $("#fullName").value.trim(),
+      civilId: $("#civilId").value.trim(),
+      phone: $("#phone").value.trim(),
+      email: $("#email").value.trim()
+    };
+
+    // دمج البيانات بدل الكتابة الكاملة
+    await updateDoc(ref, {
+      parentInfo: updatedInfo
+    });
+
+    toast("✅ تم حفظ التعديلات بنجاح");
+  });
+
+  // ✅ زر تسجيل الخروج
   $("#btnLogout").addEventListener("click", () => {
     signOut(auth).then(() => location.href = "index.html");
   });
 </script>
 </body>
 </html>
-
