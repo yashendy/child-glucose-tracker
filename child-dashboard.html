@@ -68,7 +68,7 @@
     th,td{border:1px solid var(--line); padding:8px; text-align:center}
     th{background:#f0f9ff}
     .status{display:inline-block; padding:6px 10px; border-radius:999px; font-size:12px}
-    .ok{background:#ecfdf5; color:var(--ok)}
+    .ok{background:#ecfdf5; color:#10b981}
     .high{background:#fee2e2; color:#ef4444}
     .low{background:#fff7ed; color:#b45309}
 
@@ -99,6 +99,33 @@
 
     .section{display:none}
     .section.active{display:block}
+
+    /* ===== Reports Weekly ===== */
+    .kpis{display:flex; flex-wrap:wrap; gap:8px}
+    .chip{background:#f1f5f9;border-radius:999px;padding:6px 10px;font-size:12px}
+    .weekly-layout{display:grid; grid-template-columns:1fr 300px; gap:12px}
+    .day-card{border:1px solid var(--line); border-radius:12px; padding:10px; background:#fff}
+    .day-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px}
+    .day-title{font-weight:800}
+    .day-main{font-size:14px}
+    .day-notes{font-size:12px; color:var(--muted)}
+    .slots{border:1px dashed var(--line); border-radius:12px; padding:10px; background:#fff}
+    .slot{display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed #eef2f7}
+    .slot:last-child{border-bottom:none}
+    .slot-name{color:#334155}
+    .slot-val{font-weight:800}
+    .meal-mini{font-size:12px; color:#7c2d12; background:#fff7ef; border:1px solid #ffd1b2; border-radius:8px; padding:2px 6px; margin-top:4px; width:max-content}
+    .arrow-up{color:#ef4444} .arrow-down{color:#b45309} .arrow-ok{color:#10b981}
+
+    /* Print */
+    @media print{
+      @page{ size: A4 portrait; margin: 10mm }
+      header,.controls,.no-print{display:none!important}
+      body{background:#fff;font-size:12px}
+      .card{border:0;box-shadow:none;padding:0;margin:0}
+      .weekly-layout{grid-template-columns:1fr 280px}
+      .day-card{page-break-inside:avoid}
+    }
   </style>
 </head>
 <body>
@@ -206,14 +233,25 @@
             <div><label>وقت القياس</label>
               <select id="slotSel">
                 <option value="">— اختاري الوقت —</option>
+
+                <option value="uponWake">عند الاستيقاظ</option>
+
                 <option value="preBreakfast">قبل الإفطار</option>
                 <option value="postBreakfast">بعد الإفطار</option>
+
                 <option value="preLunch">قبل الغداء</option>
                 <option value="postLunch">بعد الغداء</option>
+
                 <option value="preDinner">قبل العشاء</option>
                 <option value="postDinner">بعد العشاء</option>
-                <option value="bedtime">قبل النوم</option>
-                <option value="exercise">بعد التمرين</option>
+
+                <option value="beforeSleep">قبل النوم</option>
+                <option value="duringSleep">أثناء النوم</option>
+
+                <option value="beforeExercise">قبل التمرين</option>
+                <option value="afterExercise">بعد التمرين</option>
+
+                <option value="random">قياس عشوائي</option>
                 <option value="other">أخرى...</option>
               </select>
             </div>
@@ -254,7 +292,7 @@
         </section>
       </section>
 
-      <!-- (3) الوجبات — جديد -->
+      <!-- (3) الوجبات -->
       <section id="sec-meals" class="section">
         <section class="card">
           <div class="row" style="justify-content:space-between; align-items:center">
@@ -323,10 +361,57 @@
         </section>
       </section>
 
-      <!-- باقي الأقسام مجرد Placeholders -->
+      <!-- (4) التقارير داخل الداش بورد -->
       <section id="sec-reports" class="section">
-        <div class="card"><div class="note">📊 التقارير — قريبًا.</div></div>
+        <section class="card controls">
+          <h3 class="section-title">📊 تقرير أسبوعي (mmol/L — منزلة عشرية واحدة)</h3>
+          <div class="row">
+            <label>الفترة:</label>
+            <select id="weekPreset" class="no-print">
+              <option value="last7">آخر 7 أيام</option>
+              <option value="thisWeek">الأسبوع الحالي</option>
+              <option value="prevWeek">الأسبوع السابق</option>
+              <option value="custom">مخصص</option>
+            </select>
+            <input id="fromW" type="date" class="no-print">
+            <input id="toW" type="date" class="no-print">
+            <button id="runWeekly" class="btn primary no-print">عرض</button>
+            <button id="printWeekly" class="btn gray">🖨️ طباعة PDF</button>
+            <button id="printBlank" class="btn gray">📝 ورقة فارغة</button>
+          </div>
+          <div id="reportHeader" class="note" style="margin-top:6px"></div>
+        </section>
+
+        <section id="kpisBox" class="card" style="display:none">
+          <div id="kpis" class="kpis"></div>
+        </section>
+
+        <section id="weeklyBox" class="card" style="display:none">
+          <div class="weekly-layout">
+            <div id="daysColumn"></div>
+            <div>
+              <div class="slots">
+                <div class="slot"><div class="slot-name">عند الاستيقاظ</div><div class="slot-val">uponWake</div></div>
+                <div class="slot"><div class="slot-name">قبل الإفطار</div><div class="slot-val">preBreakfast</div></div>
+                <div class="slot"><div class="slot-name">بعد الإفطار</div><div class="slot-val">postBreakfast</div></div>
+                <div class="slot"><div class="slot-name">قبل الغداء</div><div class="slot-val">preLunch</div></div>
+                <div class="slot"><div class="slot-name">بعد الغداء</div><div class="slot-val">postLunch</div></div>
+                <div class="slot"><div class="slot-name">قبل العشاء</div><div class="slot-val">preDinner</div></div>
+                <div class="slot"><div class="slot-name">بعد العشاء</div><div class="slot-val">postDinner</div></div>
+                <div class="slot"><div class="slot-name">قبل النوم</div><div class="slot-val">beforeSleep</div></div>
+                <div class="slot"><div class="slot-name">أثناء النوم</div><div class="slot-val">duringSleep</div></div>
+                <div class="slot"><div class="slot-name">قبل التمرين</div><div class="slot-val">beforeExercise</div></div>
+                <div class="slot"><div class="slot-name">بعد التمرين</div><div class="slot-val">afterExercise</div></div>
+                <div class="slot"><div class="slot-name">قياس عشوائي</div><div class="slot-val">random</div></div>
+                <div class="slot"><div class="slot-name">أخرى</div><div class="slot-val">other</div></div>
+              </div>
+              <div class="note" style="margin-top:8px">العمود الأيسر يوضح توقيتات اليوم (يُستخدم كمرجع عند الطباعة/التعبئة).</div>
+            </div>
+          </div>
+        </section>
       </section>
+
+      <!-- باقي الأقسام -->
       <section id="sec-doctor" class="section">
         <div class="card"><div class="note">🧑‍⚕️ الطبيب — قريبًا.</div></div>
       </section>
@@ -391,15 +476,16 @@
       }; test([byId,byName]);
     };
 
-    // Units & thresholds
-    let preferredUnit = 'mmol'; // "mmol" | "mgdl"
+    // Units & thresholds (نعرض دائمًا mmol 1 decimal حسب طلب الكويت)
+    let preferredUnit = 'mmol'; // للمدخلات القديمة فقط، العرض ثابت mmol
     let targetMmol=null, lowMmol=null, highMmol=null;
     let icr = null; // g/U
+    let basal = null, tdi = null; // للتقرير
 
     const toMmol  = (v) => (v==null?null : (preferredUnit==='mgdl' ? v*0.0555 : v));
-    const fromMmolNumber = (v) => (preferredUnit==='mgdl' ? (v/0.0555) : v);
-    const displayValue = (mmol) => (preferredUnit==='mgdl' ? String(Math.round(mmol/0.0555)) : Number(mmol).toFixed(1));
+    const mmolDisp = (mmol) => (mmol==null? '—' : Number(mmol).toFixed(1)); // الكويت: منزلة واحدة دائمًا
     const classify = (mmol)=> (lowMmol!=null && mmol<lowMmol)?'low': (highMmol!=null && mmol>highMmol)?'high':'ok';
+    const arrow = (mmol)=> (mmol==null?'': classify(mmol)==='low'?'⬇︎': classify(mmol)==='high'?'⬆︎':'✔️');
 
     // ===== Auth & initial load =====
     onAuthStateChanged(auth, async (user) => {
@@ -420,17 +506,17 @@
       setGenderUI(c.gender || '');
       input('childCivilId').value  = c.childCivilId || '';
       input('dob').value           = c.dob || '';
-      input('heightCm').value      = c.heightCm ?? '';
-      input('weightKg').value      = c.weightKg ?? '';
+      input('heightCm').value      = c.heightCm ?? c.height ?? '';
+      input('weightKg').value      = c.weightKg ?? c.weight ?? '';
       preferredUnit                = c.preferredUnit || 'mmol';
       input('preferredUnit').value = preferredUnit;
       input('defaultMeasurementType').value = c.defaultMeasurementType || 'fingerstick';
       input('notes').value         = c.notes || '';
 
       // Glucose config & dosing
-      $('#unitBadge').textContent = `الوحدة المعروضة: ${preferredUnit==='mgdl'?'mg/dL':'mmol/L'}`;
-      $('#mUnitBadge').textContent= `الوحدة المعروضة: ${preferredUnit==='mgdl'?'mg/dL':'mmol/L'}`;
-      $('#isfUnitLabel').textContent = preferredUnit==='mgdl' ? 'mg/dL لكل 1U' : 'mmol/L لكل 1U';
+      $('#unitBadge').textContent = `الوحدة المعروضة: mmol/L`;
+      $('#mUnitBadge').textContent= `الوحدة المعروضة: mmol/L`;
+      $('#isfUnitLabel').textContent = 'mmol/L لكل 1U';
 
       const gc = (c.glucoseConfig||{});
       const dos= (c.dosing||{});
@@ -438,16 +524,16 @@
       lowMmol    = gc.lowThresholdMmol ?? null;
       highMmol   = gc.highThresholdMmol ?? null;
 
-      input('target').value = targetMmol==null ? '' : (preferredUnit==='mgdl'? Math.round(targetMmol/0.0555) : (+targetMmol).toFixed(1));
-      input('low').value    = lowMmol==null ? ''    : (preferredUnit==='mgdl'? Math.round(lowMmol/0.0555)    : (+lowMmol).toFixed(1));
-      input('high').value   = highMmol==null ? ''   : (preferredUnit==='mgdl'? Math.round(highMmol/0.0555)   : (+highMmol).toFixed(1));
+      input('target').value = targetMmol==null ? '' : Number(targetMmol).toFixed(1);
+      input('low').value    = lowMmol==null ? ''    : Number(lowMmol).toFixed(1);
+      input('high').value   = highMmol==null ? ''   : Number(highMmol).toFixed(1);
 
-      input('tresiba').value = dos.basalTresibaUnits ?? '';
-      input('tdi').value     = dos.totalDailyInsulinUnits ?? '';
+      basal = dos.basalTresibaUnits ?? null;
+      tdi   = dos.totalDailyInsulinUnits ?? null;
+      input('tresiba').value = basal ?? '';
+      input('tdi').value     = tdi ?? '';
       const isfMmol = dos.isfMmolPerUnit ?? null;
-      input('isf').value = preferredUnit==='mgdl'
-        ? (isfMmol==null ? '' : Math.round(isfMmol/0.0555))
-        : (isfMmol==null ? '' : (+isfMmol).toFixed(1));
+      input('isf').value = isfMmol==null ? '' : Number(isfMmol).toFixed(2);
       input('icr').value = dos.icrGramsPerUnit ?? '';
       icr = dos.icrGramsPerUnit ?? null;
       $('#icrNow').textContent = icr ?? '—';
@@ -463,6 +549,10 @@
       // Meals init
       setDefaultDateTimeNow(input('mealTime'));
       await mealsInit(user.uid);
+
+      // Reports init
+      initWeeklyControls();
+      await runWeeklyReport(user.uid);
     });
 
     // ===== Save Info & Glucose config =====
@@ -475,7 +565,7 @@
           dob: input('dob').value || null,
           heightCm: numOrNull(input('heightCm')),
           weightKg: numOrNull(input('weightKg')),
-          preferredUnit: input('preferredUnit').value,
+          preferredUnit: input('preferredUnit').value, // للمرجعية فقط
           defaultMeasurementType: input('defaultMeasurementType').value || 'fingerstick',
           notes: input('notes').value.trim() || null,
           storageUnit: "mmol",
@@ -483,21 +573,17 @@
         };
         try{
           await setDoc(doc(db,'users',auth.currentUser.uid,'children',childId), payload, {merge:true});
-          preferredUnit = payload.preferredUnit;
-          $('#unitBadge').textContent = `الوحدة المعروضة: ${preferredUnit==='mgdl'?'mg/dL':'mmol/L'}`;
-          $('#mUnitBadge').textContent= `الوحدة المعروضة: ${preferredUnit==='mgdl'?'mg/dL':'mmol/L'}`;
-          $('#isfUnitLabel').textContent = preferredUnit==='mgdl'?'mg/dL لكل 1U':'mmol/L لكل 1U';
           elName.textContent = payload.name || elName.textContent;
           showToast('✅ تم حفظ بيانات الطفل');
         }catch(e){ console.error(e); showToast('❗ حدث خطأ أثناء الحفظ'); }
       });
 
       $('#btnSuggest').addEventListener('click', ()=>{
-        const tdi = Number(input('tdi').value);
-        if (!tdi || tdi <= 0) { showToast('أدخلي إجمالي اليوم أولًا'); return; }
-        const isfMmol = +(100/tdi).toFixed(2);
-        const icrVal  = +(500/tdi).toFixed(1);
-        input('isf').value = (preferredUnit==='mgdl') ? Math.round(isfMmol/0.0555) : isfMmol;
+        const tdiVal = Number(input('tdi').value);
+        if (!tdiVal || tdiVal <= 0) { showToast('أدخلي إجمالي اليوم أولًا'); return; }
+        const isfMmol = +(100/tdiVal).toFixed(2);
+        const icrVal  = +(500/tdiVal).toFixed(1);
+        input('isf').value = isfMmol;
         input('icr').value = icrVal;
         icr = icrVal;
         $('#icrNow').textContent = icr ?? '—';
@@ -505,50 +591,44 @@
       });
 
       $('#btnSaveGlucose').addEventListener('click', async ()=>{
-        const tDisp = numOrNull(input('target'));
-        const lDisp = numOrNull(input('low'));
-        const hDisp = numOrNull(input('high'));
-        const target = toMmol(tDisp);
-        const low    = toMmol(lDisp);
-        const high   = toMmol(hDisp);
-
+        const target = numOrNull(input('target'));
+        const low    = numOrNull(input('low'));
+        const high   = numOrNull(input('high'));
         if (target!=null && low!=null && low >= target) { showToast('⚠️ حد الهبوط أقل من الهدف'); return; }
         if (target!=null && high!=null && high <= target){ showToast('⚠️ حد الارتفاع أكبر من الهدف'); return; }
-
-        const isfDisp = numOrNull(input('isf'));
-        const isfMmol = (preferredUnit==='mgdl')
-          ? (isfDisp==null ? null : +(isfDisp*0.0555).toFixed(2))
-          : (isfDisp==null ? null : +(+isfDisp).toFixed(2));
 
         const payload = {
           glucoseConfig: { targetGlucoseMmol: target, lowThresholdMmol: low, highThresholdMmol: high },
           dosing: {
             basalTresibaUnits      : numOrNull(input('tresiba')),
             totalDailyInsulinUnits : numOrNull(input('tdi')),
-            isfMmolPerUnit         : isfMmol,
+            isfMmolPerUnit         : numOrNull(input('isf')),
             icrGramsPerUnit        : numOrNull(input('icr'))
           },
           lastUpdatedAt: new Date().toISOString()
         };
         try{
           await setDoc(doc(db,'users',auth.currentUser.uid,'children',childId), payload, {merge:true});
-          icr = payload.dosing.icrGramsPerUnit ?? icr;
+          icr   = payload.dosing.icrGramsPerUnit ?? icr;
+          basal = payload.dosing.basalTresibaUnits ?? basal;
+          tdi   = payload.dosing.totalDailyInsulinUnits ?? tdi;
           $('#icrNow').textContent = icr ?? '—';
           showToast('✅ تم حفظ الإعدادات');
         }catch(e){ console.error(e); showToast('❗ حدث خطأ أثناء الحفظ'); }
       });
     }
 
-    // ===== Measurements (per day doc + slots) =====
+    // ===== Measurements =====
     function bindMeasurementHandlers(uid){
       input('dateSel').addEventListener('change', ()=> loadDay(uid));
       $('#reloadDay').addEventListener('click', ()=> loadDay(uid));
       input('carbs').addEventListener('input', ()=>{
         const carbs = Number(input('carbs').value);
-        input('suggestedDose').value = (!icr || icr<=0 || !Number.isFinite(carbs)) ? '' : +(carbs/icr).toFixed(1);
+        input('suggestedDose').value = (!icr || icr<=0 || !Number.isFinite(carbs)) ? '' : +(Math.round((carbs/icr)*10)/10).toFixed(1);
       });
       input('reading').addEventListener('input', onReadingChange);
       $('#saveBtn').addEventListener('click', ()=> onSaveMeasurement(uid));
+      loadDay(uid);
     }
 
     function onReadingChange(){
@@ -556,8 +636,8 @@
       $('#correctionSection').style.display = 'none';
       $('#raiseSection').style.display      = 'none';
       $('#statusBadge').style.display       = 'none';
-      if (!valDisp && valDisp !== 0) return;
-      const mmol = toMmol(valDisp);
+      if (!Number.isFinite(valDisp)) return;
+      const mmol = toMmol(valDisp); // لو كانت mgdl في المدخلات القديمة
       const cls = classify(mmol);
       const sb = $('#statusBadge');
       sb.className = `status ${cls}`;
@@ -578,23 +658,35 @@
 
     function renderRows(readings){
       const tbody = $('#rows');
-      const keys = Object.keys(readings);
+      const labelSlot = {
+        uponWake:'عند الاستيقاظ',
+        preBreakfast:'قبل الإفطار', postBreakfast:'بعد الإفطار',
+        preLunch:'قبل الغداء', postLunch:'بعد الغداء',
+        preDinner:'قبل العشاء', postDinner:'بعد العشاء',
+        beforeSleep:'قبل النوم', duringSleep:'أثناء النوم',
+        beforeExercise:'قبل التمرين', afterExercise:'بعد التمرين',
+        random:'قياس عشوائي', other:'أخرى'
+      };
+      const slotsOrder = ['uponWake','preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','beforeExercise','afterExercise','random','other'];
+
+      const keys = slotsOrder.filter(k => readings[k]) // مرتبة
+                      .concat(Object.keys(readings).filter(k=>!slotsOrder.includes(k)));
+
       if (keys.length===0){ tbody.innerHTML = '<tr><td colspan="7" class="note">لا توجد قراءات لليوم.</td></tr>'; return; }
-      const labelSlot = { preBreakfast:'قبل الإفطار', postBreakfast:'بعد الإفطار', preLunch:'قبل الغداء', postLunch:'بعد الغداء', preDinner:'قبل العشاء', postDinner:'بعد العشاء', bedtime:'قبل النوم', exercise:'بعد التمرين', other:'أخرى' };
       tbody.innerHTML = '';
       for (const slot of keys){
         const r = readings[slot];
         const mmol = r?.valueMmol ?? (r?.value ?? null);
-        const disp = displayValue(mmol);
+        const disp = mmolDisp(mmol);
         const cls = classify(mmol);
         const statusHtml = `<span class="status ${cls}">${cls==='low'?'منخفض':cls==='high'?'مرتفع':'طبيعي'}</span>`;
         const typeLabel = r?.measurementType==='cgm'?'📈 CGM': r?.measurementType==='lab'?'🧪 مختبر': r?.measurementType==='other'?'✳️ أخرى':'🩸 فحص إصبع';
-        const actionText = (r?.correction!=null) ? `تصحيح: ${r.correction}U` : (r?.raise ? `رفع: ${r.raise}` : (r?.mealDose!=null? `${r.mealDose}U`:'-'));
+        const actionText = (r?.correction!=null) ? `تصحيح: ${r.correction}U` : (r?.raise ? `رفع: ${escapeHtml(r.raise)}` : (r?.mealDose!=null? `${r.mealDose}U`:'-'));
         const note = r?.note || '-';
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${labelSlot[slot]||slot}</td>
-          <td>${disp} ${preferredUnit==='mgdl'?'mg/dL':'mmol/L'}</td>
+          <td>${disp} mmol/L</td>
           <td>${statusHtml}</td>
           <td>${r?.mealDose!=null ? r.mealDose : '-'}</td>
           <td>${actionText}</td>
@@ -607,16 +699,16 @@
     async function onSaveMeasurement(uid){
       const date = input('dateSel').value;
       const slot = input('slotSel').value;
-      const rawDisp = Number(input('reading').value);
-      if (!date || !slot || !rawDisp) { showToast('يرجى إدخال التاريخ والوقت والقيمة'); return; }
+      const raw = Number(input('reading').value);
+      if (!date || !slot || !Number.isFinite(raw)) { showToast('يرجى إدخال التاريخ والوقت والقيمة'); return; }
       const ref = doc(db,'users',uid,'children',childId,'measurements',date);
       const snap = await getDoc(ref);
       const base = snap.exists()? snap.data() : { readings:{} };
       if (base.readings[slot]?.valueMmol!=null || base.readings[slot]?.value!=null){ showToast('تم تسجيل هذا الوقت مسبقاً'); return; }
-      const mmol = toMmol(rawDisp);
+      const mmol = toMmol(raw) ?? raw;
       const payload = {
-        valueMmol: +(+mmol).toFixed(2),
-        displayUnit: preferredUnit,
+        valueMmol: +Number(mmol).toFixed(2),
+        displayUnit: 'mmol',
         measurementType: input('mType').value || 'fingerstick',
         note: (input('note').value||'').trim() || null,
         carbs: numOrNull(input('carbs')),
@@ -633,37 +725,27 @@
     }
 
     // ===== Meals section =====
-    // State
     let foods = [];           // جميع الأصناف
     let catSet = [];          // تصنيفات فريدة
     let activeCategory = 'الكل';
-    let basket = [];          // عناصر السلة {foodId, name, category, grams, servingLabel, servingCount, carbsPer100g, carbs}
+    let basket = [];          // عناصر السلة
     const DEFAULT_IMG = 'https://cdn-icons-png.flaticon.com/512/1046/1046784.png';
 
     async function mealsInit(uid){
-      // حمل foods (approved + visible) — مبدئيًا نجيب الكل ونفلتر محليًا لتبسيط البداية
       const qFoods = query(collection(db,'foods'), orderBy('category'), orderBy('name'), limit(500));
       const snap = await getDocs(qFoods);
       foods = [];
       snap.forEach(d => foods.push({id:d.id, ...d.data()}));
 
-      // تصنيفات ديناميكية
       const set = new Set();
       foods.forEach(f => { if (f.visible!==false && (f.status||'approved')==='approved' && f.category) set.add(f.category); });
       catSet = ['الكل', ...[...set].sort((a,b)=>a.localeCompare(b,'ar'))];
       renderCategories();
       renderFoods();
 
-      // بحث
       $('#foodSearch').addEventListener('input', ()=> renderFoods());
-
-      // إظهار ICR
       $('#icrNow').textContent = icr ?? '—';
-
-      // حساب الجرعة المقترحة من السلة
       updateBasketUI();
-
-      // وقت افتراضي الآن
       setDefaultDateTimeNow(input('mealTime'));
     }
 
@@ -685,7 +767,7 @@
         if (f.visible===false || (f.status||'approved')!=='approved') return false;
         if (activeCategory!=='الكل' && f.category!==activeCategory) return false;
         if (!term) return true;
-        const tags = (f.tags||[]).join(' ');
+        const tags = Array.isArray(f.tags) ? f.tags.join(' ') : (f.tags||'');
         return (f.name||'').toLowerCase().includes(term) || tags.toLowerCase().includes(term);
       });
 
@@ -729,7 +811,6 @@
           </div>
         `;
 
-        // populate servings
         const sel = card.querySelector('.sel-serv');
         if (hasServings){
           servings.forEach((s,i)=>{
@@ -743,7 +824,6 @@
           sel?.appendChild(opt);
         }
 
-        // toggle
         const tgG = card.querySelector('.tg-gram');
         const tgS = card.querySelector('.tg-serv');
         const gBlock = card.querySelector('.mode-grams');
@@ -758,10 +838,10 @@
         inpCount?.addEventListener('input', updateLive);
 
         function currentGrams(){
-          if (tgG.classList.contains('active')){ // grams mode
+          if (tgG.classList.contains('active')){
             const g = Number(inpGrams.value);
             return Number.isFinite(g) && g>0 ? g : 0;
-          }else{ // serving mode
+          }else{
             const ix = Number(sel.value);
             const cnt = Number(inpCount.value)||0;
             const s = servings[ix];
@@ -777,7 +857,6 @@
         }
         updateLive();
 
-        // add to basket
         card.querySelector('.btn-add').addEventListener('click', ()=>{
           const grams = currentGrams();
           if (!grams || grams<=0){ showToast('أدخلي كمية صحيحة'); return; }
@@ -794,7 +873,6 @@
           basket.push(item);
           updateBasketUI();
           showToast('✅ تمت الإضافة إلى السلة');
-          // reset grams field lightly
           if (inpGrams) inpGrams.value='';
           if (inpCount) inpCount.value='1';
           updateLive();
@@ -829,7 +907,6 @@
       });
       $('#totalCarbsCell').textContent = totalCarbs.toFixed(1);
 
-      // جرعة مقترحة (تقريب 0.1U)
       if (icr && icr>0){
         const dose = totalCarbs / icr;
         const rounded = Math.round(dose*10)/10;
@@ -846,7 +923,6 @@
       el.value = local;
     }
 
-    // Save meal
     $('#saveMealBtn')?.addEventListener('click', async ()=>{
       const user = auth.currentUser; if (!user){ showToast('يجب تسجيل الدخول'); return; }
       if (!basket.length){ showToast('السلة فارغة'); return; }
@@ -857,7 +933,7 @@
       const bolusSuggested = (icr && icr>0) ? Math.round((totalCarbs/icr)*10)/10 : null;
 
       try{
-        await addDoc(collection(db,'users', user.uid,'children',childId,'meals'), {
+        await addDoc(collection(db,'users', auth.currentUser.uid,'children',childId,'meals'), {
           mealType: input('mealType').value || 'other',
           eatenAt,
           notes: input('mealNotes').value.trim() || null,
@@ -865,15 +941,298 @@
           bolusUnitsSuggested: bolusSuggested,
           bolusUnitsGiven: numOrNull(input('doseGivenMeal')),
           items: basket,
-          computed: { icrGramsPerUnit: icr ?? null, preferredUnit: preferredUnit },
+          computed: { icrGramsPerUnit: icr ?? null, preferredUnit: 'mmol' },
           createdAt: serverTimestamp()
         });
         showToast('✅ تم حفظ الوجبة');
-        // تفريغ السلة
         basket = [];
         updateBasketUI();
       }catch(e){ console.error(e); showToast('❗ تعذر حفظ الوجبة'); }
     });
+
+    // ===== Weekly Report inside dashboard =====
+    const wk = {
+      preset: $('#weekPreset'),
+      from:   $('#fromW'),
+      to:     $('#toW'),
+      run:    $('#runWeekly'),
+      print:  $('#printWeekly'),
+      blank:  $('#printBlank'),
+      header: $('#reportHeader'),
+      kpisBox:$('#kpisBox'), kpis: $('#kpis'),
+      box:    $('#weeklyBox'), daysCol: $('#daysColumn'),
+      slotsMap: [
+        ['uponWake','عند الاستيقاظ'],
+        ['preBreakfast','قبل الإفطار'], ['postBreakfast','بعد الإفطار'],
+        ['preLunch','قبل الغداء'],     ['postLunch','بعد الغداء'],
+        ['preDinner','قبل العشاء'],     ['postDinner','بعد العشاء'],
+        ['beforeSleep','قبل النوم'],    ['duringSleep','أثناء النوم'],
+        ['beforeExercise','قبل التمرين'], ['afterExercise','بعد التمرين'],
+        ['random','قياس عشوائي'], ['other','أخرى']
+      ]
+    };
+
+    function initWeeklyControls(){
+      // default last 7 days
+      const today = new Date();
+      const to = fmtDate(today);
+      const from = fmtDate(addDays(today, -6));
+      wk.from.value = from; wk.to.value = to;
+      wk.preset.value = 'last7';
+
+      wk.preset.addEventListener('change', ()=>{
+        if (wk.preset.value==='custom'){ wk.from.disabled=false; wk.to.disabled=false; return; }
+        wk.from.disabled=true; wk.to.disabled=true;
+        const now = new Date();
+        if (wk.preset.value==='last7'){
+          wk.from.value = fmtDate(addDays(now,-6));
+          wk.to.value   = fmtDate(now);
+        }else if (wk.preset.value==='thisWeek'){
+          const s = startOfWeek(now); const e = endOfWeek(now);
+          wk.from.value = fmtDate(s); wk.to.value = fmtDate(e);
+        }else if (wk.preset.value==='prevWeek'){
+          const s = addDays(startOfWeek(now), -7); const e = addDays(endOfWeek(now), -7);
+          wk.from.value = fmtDate(s); wk.to.value = fmtDate(e);
+        }
+      });
+      wk.run.addEventListener('click', ()=> runWeeklyReport(auth.currentUser.uid));
+      wk.print.addEventListener('click', ()=> window.print());
+      wk.blank.addEventListener('click', ()=> printWeeklyBlank());
+    }
+
+    function fmtDate(d){ const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
+    function addDays(d, n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+    function startOfWeek(d){ const x=new Date(d); const day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); return x; } // Monday
+    function endOfWeek(d){ const s=startOfWeek(d); return addDays(s,6); }
+
+    async function runWeeklyReport(uid){
+      const from = wk.from.value, to = wk.to.value;
+      if (!from || !to) { showToast('حددي الفترة'); return; }
+
+      // Header: بيانات الطفل + الجرعات
+      const childSnap = await getDoc(doc(db,'users',uid,'children',childId));
+      const c = childSnap.data()||{};
+      const age = calcAge(c.dob);
+      const weight = (c.weightKg ?? c.weight ?? '—');
+      const height = (c.heightCm ?? c.height ?? '—');
+      wk.header.innerHTML = `
+        <b>الاسم:</b> ${escapeHtml(c.name||'—')}
+        • <b>السن:</b> ${age ?? '—'}
+        • <b>الرقم المدني:</b> ${escapeHtml(c.childCivilId||'—')}
+        • <b>الوزن:</b> ${weight} كجم
+        • <b>الطول:</b> ${height} سم
+        • <b>ترسيبا:</b> ${basal??'—'}U
+        • <b>TDI:</b> ${tdi??'—'}U
+        • <b>الحدود (mmol/L):</b> ⬇︎ ${lowMmol!=null? mmolDisp(lowMmol):'—'} • هدف ${targetMmol!=null? mmolDisp(targetMmol):'—'} • ⬆︎ ${highMmol!=null? mmolDisp(highMmol):'—'}
+      `;
+
+      const days = enumerateDays(from, to); // max 7 لمنطق الأسبوع
+
+      // Measurements docs
+      const measSnaps = await Promise.all(days.map(d => getDoc(doc(db,'users',uid,'children',childId,'measurements',d))));
+      const byDate = {}; days.forEach((d,i)=> byDate[d] = measSnaps[i].data() || { date:d, readings:{} });
+
+      // Meals for the window
+      let mealsByDateSlot = {};
+      try{
+        const startIso = new Date(from+"T00:00:00").toISOString();
+        const endIso   = new Date(to  +"T23:59:59").toISOString();
+        const qMeals = query(
+          collection(db,'users',uid,'children',childId,'meals'),
+          where('eatenAt','>=', startIso),
+          where('eatenAt','<=', endIso),
+          orderBy('eatenAt','asc')
+        );
+        const mSnap = await getDocs(qMeals);
+        mSnap.forEach(ms=>{
+          const m=ms.data();
+          const d = (m.eatenAt||'').slice(0,10);
+          const slot = mealTypeToSlot(m.mealType||'other');
+          mealsByDateSlot[d] = mealsByDateSlot[d] || {};
+          mealsByDateSlot[d][slot] = mealsByDateSlot[d][slot] || [];
+          mealsByDateSlot[d][slot].push({
+            totalCarbs: m.totalCarbs ?? null,
+            bolusSuggested: m.bolusUnitsSuggested ?? null,
+            bolusGiven: m.bolusUnitsGiven ?? null,
+            note: m.notes || null
+          });
+        });
+      }catch(e){ console.warn('Meals query needs index or failed, continuing without meals', e); }
+
+      // KPIs
+      const allMMOL = [];
+      let cntLow=0, cntOk=0, cntHigh=0;
+      let mealsCarb=0, bolusSug=0, bolusGiven=0;
+
+      // Render days
+      wk.daysCol.innerHTML='';
+      days.forEach(d=>{
+        const dayBox = document.createElement('div');
+        dayBox.className = 'day-card';
+        const readings = (byDate[d].readings||{});
+
+        // “ملف اليوم” يمين: التاريخ + أبرز قراءة + ملاحظات مختصرة
+        const main = bestDailyReading(readings);
+        if (main.mmol!=null){
+          allMMOL.push(main.mmol);
+          const cls = classify(main.mmol);
+          if (cls==='low') cntLow++; else if (cls==='high') cntHigh++; else cntOk++;
+        }
+        const mealsBrief = summarizeMeals(mealsByDateSlot[d]);
+
+        dayBox.innerHTML = `
+          <div class="day-head">
+            <div class="day-title">${d}</div>
+            <div class="day-arrow ${main.cls==='low'?'arrow-down':main.cls==='high'?'arrow-up':'arrow-ok'}">${arrow(main.mmol)}</div>
+          </div>
+          <div class="day-main">
+            <b>القياس:</b> ${main.mmol!=null? mmolDisp(main.mmol)+' mmol/L' : '—'}
+            ${mealsBrief? `<div class="meal-mini">🍽 ${mealsBrief}</div>`:''}
+          </div>
+          <div class="day-notes">${escapeHtml(main.note||'')}</div>
+        `;
+
+        // “سلم التوقيتات” داخل نفس الكارت (تحت الملف)
+        const slotsWrap = document.createElement('div');
+        slotsWrap.className = 'slots';
+        wk.slotsMap.forEach(([key,name])=>{
+          const r = readings[key];
+          const mmol = (r?.valueMmol ?? r?.value ?? null);
+          const val = mmol!=null ? `${arrow(mmol)} ${mmolDisp(mmol)} mmol/L` : '—';
+          const line = document.createElement('div');
+          line.className = 'slot';
+          line.innerHTML = `<div class="slot-name">${name}</div><div class="slot-val">${val}</div>`;
+          // attach meal line if exist
+          const ms = (mealsByDateSlot[d]||{})[key] || [];
+          if (ms.length){
+            const csum = ms.reduce((s,x)=> s+(x.totalCarbs||0), 0);
+            const ssum = ms.reduce((s,x)=> s+(x.bolusSuggested||0), 0);
+            const gsum = ms.reduce((s,x)=> s+(x.bolusGiven||0), 0);
+            mealsCarb += csum; bolusSug += ssum; bolusGiven += gsum;
+            const mdiv = document.createElement('div');
+            mdiv.className = 'meal-mini';
+            mdiv.textContent = `🍽 ${csum.toFixed(1)}g • مقترح ${ssum? ssum.toFixed(1):'—'}U • فعلي ${gsum? gsum.toFixed(1):'—'}U`;
+            line.appendChild(mdiv);
+          }
+          slotsWrap.appendChild(line);
+        });
+        dayBox.appendChild(slotsWrap);
+        wk.daysCol.appendChild(dayBox);
+      });
+
+      // KPIs render
+      const total = cntLow+cntOk+cntHigh;
+      const tir = total? Math.round((cntOk/total)*100) : null;
+      const avg = allMMOL.length ? (allMMOL.reduce((a,b)=>a+b,0)/allMMOL.length) : null;
+      const min = allMMOL.length ? Math.min(...allMMOL) : null;
+      const max = allMMOL.length ? Math.max(...allMMOL) : null;
+
+      wk.kpis.innerHTML='';
+      addChip(`TIR: ${tir!=null? tir+'%':'—'}`);
+      addChip(`متوسط: ${avg!=null? mmolDisp(avg):'—'} mmol/L`);
+      addChip(`أدنى: ${min!=null? mmolDisp(min):'—'} mmol/L`);
+      addChip(`أعلى: ${max!=null? mmolDisp(max):'—'} mmol/L`);
+      addChip(`منخفض: ${cntLow}`);
+      addChip(`طبيعي: ${cntOk}`);
+      addChip(`مرتفع: ${cntHigh}`);
+      addChip(`كارب الوجبات: ${mealsCarb.toFixed(1)} g`);
+      addChip(`جرعات: مقترح ${bolusSug.toFixed(1)}U • فعلي ${bolusGiven.toFixed(1)}U`);
+      wk.kpisBox.style.display='block';
+      wk.box.style.display='block';
+
+      function addChip(text){ const el=document.createElement('div'); el.className='chip'; el.textContent=text; wk.kpis.appendChild(el); }
+    }
+
+    function enumerateDays(from,to){
+      const res=[]; let d=new Date(from+"T00:00:00"); const end=new Date(to+"T00:00:00");
+      // نقتصر على 7 أيام لعرض أسبوع
+      for(let i=0;i<7 && d<=end;i++){ res.push(fmtDate(d)); d = addDays(d,1); }
+      return res;
+    }
+
+    function calcAge(dob){
+      if (!dob) return null;
+      const d=new Date(dob); const n=new Date();
+      let y=n.getFullYear()-d.getFullYear();
+      const m=n.getMonth()-d.getMonth();
+      if (m<0 || (m===0 && n.getDate()<d.getDate())) y--;
+      return y;
+    }
+
+    function bestDailyReading(readings){
+      // اختيار أبزر قراءة (تفضيل: uponWake -> preBreakfast -> beforeSleep -> غير ذلك، وإلا أول قراءة)
+      const order = ['uponWake','preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','beforeExercise','afterExercise','random','other'];
+      for (const k of order){
+        if (readings[k] && (readings[k].valueMmol!=null || readings[k].value!=null)){
+          const r = readings[k]; const mmol = r.valueMmol ?? r.value;
+          return { mmol, cls: classify(mmol), note: r.note||r.raise||'' };
+        }
+      }
+      // fallback
+      const keys = Object.keys(readings);
+      if (keys.length){
+        const r = readings[keys[0]];
+        const mmol = r?.valueMmol ?? r?.value ?? null;
+        return { mmol, cls: classify(mmol), note: r?.note||'' };
+      }
+      return { mmol:null, cls:'ok', note:'' };
+    }
+
+    function mealTypeToSlot(mealType){
+      switch(mealType){
+        case 'breakfast': return 'postBreakfast';
+        case 'lunch':     return 'postLunch';
+        case 'dinner':    return 'postDinner';
+        case 'snack':     return 'random';
+        default:          return 'random';
+      }
+    }
+
+    function summarizeMeals(bySlot){
+      if (!bySlot) return '';
+      // نجمع أهم ما في اليوم
+      let carbs=0, sug=0, giv=0;
+      Object.values(bySlot).forEach(arr=>{
+        (arr||[]).forEach(m=>{ carbs += (m.totalCarbs||0); sug += (m.bolusSuggested||0); giv += (m.bolusGiven||0); });
+      });
+      if (!carbs) return '';
+      return `${carbs.toFixed(1)}g • ${sug? sug.toFixed(1):'—'}U • ${giv? giv.toFixed(1):'—'}U`;
+    }
+
+    function printWeeklyBlank(){
+      // تحويل واجهة التقرير إلى “فراغات” بشكل سريع ثم print
+      const daysCol = wk.daysCol;
+      daysCol.innerHTML='';
+      const from = wk.from.value, to = wk.to.value;
+      const days = enumerateDays(from,to);
+
+      days.forEach(d=>{
+        const dayBox = document.createElement('div'); dayBox.className='day-card';
+        dayBox.innerHTML = `
+          <div class="day-head">
+            <div class="day-title">${d}</div>
+            <div class="day-arrow"> </div>
+          </div>
+          <div class="day-main"><b>القياس:</b> ________ mmol/L</div>
+          <div class="day-notes">ملاحظات: ________________________________</div>
+        `;
+        const slotsWrap = document.createElement('div'); slotsWrap.className='slots';
+        wk.slotsMap.forEach(([key,name])=>{
+          const line = document.createElement('div'); line.className='slot';
+          line.innerHTML = `<div class="slot-name">${name}</div><div class="slot-val">________ mmol/L</div>`;
+          const mdiv = document.createElement('div');
+          mdiv.className = 'meal-mini';
+          mdiv.textContent = `🍽 كارب: ________ g • جرعة: ________ U`;
+          line.appendChild(mdiv);
+          slotsWrap.appendChild(line);
+        });
+        dayBox.appendChild(slotsWrap);
+        daysCol.appendChild(dayBox);
+      });
+
+      // رأس التقرير يظل كما هو (بيانات الطفل)
+      window.print();
+    }
   </script>
 </body>
 </html>
