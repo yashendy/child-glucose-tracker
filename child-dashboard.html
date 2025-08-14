@@ -1,4 +1,3 @@
-<!-- child-dashboard.html — (الهيدر + بيانات الطفل + إعدادات القياس والجرعات) بدون قسم القياسات -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -10,17 +9,27 @@
     :root{
       --brand:#0ea5e9; --brand2:#6ee7b7; --line:#e5e7eb;
       --ink:#0f172a; --muted:#6b7280; --bg:#f6fbff; --card:#fff;
-      --chip:#eef6ff;
+      --ok:#10b981; --warn:#f59e0b; --bad:#ef4444; --chip:#eef6ff;
     }
     *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "Tajawal",system-ui,sans-serif}
+    body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "Tajawal",system-ui,sans-serif; display:flex; min-height:100vh}
 
-    /* الهيدر */
+    /* ===== Sidebar ===== */
+    .sidebar{
+      width:260px; flex:0 0 260px; background:linear-gradient(180deg,var(--brand),var(--brand2));
+      color:#fff; padding:16px; position:sticky; top:0; height:100vh; overflow:auto
+    }
+    .sb-title{font-weight:800; font-size:18px; margin-bottom:12px}
+    .sb-btn{display:block; width:100%; text-align:right; background:transparent; border:none; color:#fff;
+      padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:700; margin:4px 0}
+    .sb-btn:hover, .sb-btn.active{background:rgba(255,255,255,.18)}
+    .spacer{height:6px}
+
+    /* ===== Main ===== */
+    .main{flex:1; min-width:0}
     header{
-      position:sticky; top:0; z-index:10;
-      background:linear-gradient(90deg,var(--brand),var(--brand2));
-      color:#fff; padding:12px 16px;
-      display:flex; align-items:center; justify-content:space-between;
+      position:sticky; top:0; z-index:10; background:linear-gradient(90deg,var(--brand),var(--brand2));
+      color:#fff; padding:12px 16px; display:flex; align-items:center; justify-content:space-between;
     }
     .head-left{display:flex; align-items:center; gap:12px}
     .kid-photo{ width:56px; height:56px; border-radius:16px; overflow:hidden; border:2px solid rgba(255,255,255,.75); background:#fff; display:grid; place-items:center }
@@ -35,12 +44,11 @@
     .btn.dark{background:#0f172a; color:#fff}
     .btn.primary{background:var(--brand); color:#fff}
 
-    /* الصفحة */
     main{max-width:1200px; margin:auto; padding:16px}
     .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; box-shadow:0 2px 10px rgba(0,0,0,.05); margin-bottom:14px}
     .note{color:var(--muted); font-size:14px}
 
-    /* شبكة الفورم */
+    /* Grids */
     .grid{display:grid; gap:12px}
     .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
     .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -48,7 +56,8 @@
     @media (max-width: 680px){ .g2,.g3{grid-template-columns:1fr} }
 
     label{display:block; color:var(--muted); font-size:13px; margin-bottom:6px}
-    input,select{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#fff}
+    input,select,textarea{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#fff}
+    textarea{min-height:90px; resize:vertical}
     .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
     .field{display:flex; flex-direction:column}
     .radio-wrap{display:flex; gap:14px; align-items:center}
@@ -56,190 +65,316 @@
     .section-title{margin:0 0 10px; font-size:18px}
     .badge{display:inline-block; padding:2px 8px; border-radius:999px; background:var(--chip); color:#0f172a; font-size:12px; margin-inline-start:6px}
 
+    /* Measurements list */
+    table{width:100%; border-collapse:collapse}
+    th,td{border:1px solid var(--line); padding:8px; text-align:center}
+    th{background:#f0f9ff}
+    .status{display:inline-block; padding:6px 10px; border-radius:999px; font-size:12px}
+    .ok{background:#ecfdf5; color:var(--ok)}
+    .high{background:#fee2e2; color:var(--bad)}
+    .low{background:#fff7ed; color:#b45309}
+
     /* Toast */
     .toast{position:fixed; bottom:16px; left:16px; background:#111; color:#fff; padding:10px 14px; border-radius:12px; opacity:0; transform:translateY(6px); transition:.25s}
     .toast.show{opacity:1; transform:none}
+
+    /* Section visibility */
+    .section{display:none}
+    .section.active{display:block}
   </style>
 </head>
 <body>
 
-  <!-- (1) الهيدر: صورة الطفل + الترحيب -->
-  <header>
-    <div class="head-left">
-      <div class="kid-photo">
-        <img id="childPhoto" alt="صورة الطفل">
-        <div id="avatarFallback" class="avatar-fallback">👧</div>
-      </div>
-      <div class="title-wrap">
-        <div class="hello">مرحبًا 👋</div>
-        <div id="kidName" class="kid-name">جاري تحميل الاسم...</div>
-      </div>
-    </div>
-    <div class="head-actions">
-      <a class="btn gray" href="dashboard.html">لوحة وليّ الأمر</a>
-      <button id="btnSaveInfo" class="btn primary">💾 حفظ بيانات الطفل</button>
-      <button id="btnLogout" class="btn dark">خروج</button>
-    </div>
-  </header>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sb-title">👧 لوحة الطفل</div>
+    <button class="sb-btn active" data-target="sec-home">🏠 الرئيسية</button>
+    <div class="spacer"></div>
+    <button class="sb-btn" data-target="sec-info">⚙️ بيانات الطفل</button>
+    <button class="sb-btn" data-target="sec-measure">📝 قياسات السكر</button>
+    <button class="sb-btn" data-target="sec-meals">🍽️ الوجبات</button>
+    <button class="sb-btn" data-target="sec-reports">📊 التقارير</button>
+    <button class="sb-btn" data-target="sec-doctor">🧑‍⚕️ الطبيب</button>
+    <button class="sb-btn" data-target="sec-visits">📅 الزيارات الطبية</button>
+  </aside>
 
-  <main>
-    <!-- (2) قسم بيانات الطفل (يشمل نوع القياس الافتراضي) -->
-    <section class="card" id="childInfoSection">
-      <h3 class="section-title">⚙️ بيانات الطفل</h3>
-      <div class="grid g3">
-        <div class="field">
-          <label for="childName">اسم الطفل</label>
-          <input id="childName" placeholder="مثال: ليلى أحمد">
+  <div class="main">
+    <!-- Header -->
+    <header>
+      <div class="head-left">
+        <div class="kid-photo">
+          <img id="childPhoto" alt="صورة الطفل">
+          <div id="avatarFallback" class="avatar-fallback">👧</div>
         </div>
+        <div class="title-wrap">
+          <div class="hello">مرحبًا 👋</div>
+          <div id="kidName" class="kid-name">جاري تحميل الاسم...</div>
+        </div>
+      </div>
+      <div class="head-actions">
+        <a class="btn gray" href="dashboard.html">لوحة وليّ الأمر</a>
+        <button id="btnLogout" class="btn dark">خروج</button>
+      </div>
+    </header>
 
-        <div class="field">
-          <label>النوع</label>
-          <div class="radio-wrap">
-            <label><input type="radio" name="gender" value="male"> ذكر</label>
-            <label><input type="radio" name="gender" value="female"> أنثى</label>
+    <main>
+      <!-- Home -->
+      <section id="sec-home" class="section active">
+        <div class="card">
+          <div class="note">اختاري من القائمة اليمنى القسم المطلوب.</div>
+        </div>
+      </section>
+
+      <!-- (1) بيانات الطفل -->
+      <section id="sec-info" class="section">
+        <section class="card" id="childInfoSection">
+          <h3 class="section-title">⚙️ بيانات الطفل</h3>
+          <div class="grid g3">
+            <div class="field">
+              <label for="childName">اسم الطفل</label>
+              <input id="childName" placeholder="مثال: ليلى أحمد">
+            </div>
+            <div class="field">
+              <label>النوع</label>
+              <div class="radio-wrap">
+                <label><input type="radio" name="gender" value="male"> ذكر</label>
+                <label><input type="radio" name="gender" value="female"> أنثى</label>
+              </div>
+            </div>
+            <div class="field">
+              <label for="childCivilId">الرقم المدني</label>
+              <input id="childCivilId" placeholder="اختياري">
+            </div>
+            <div class="field">
+              <label for="dob">تاريخ الميلاد</label>
+              <input id="dob" type="date">
+            </div>
+            <div class="field">
+              <label for="heightCm">الطول (سم)</label>
+              <input id="heightCm" type="number" step="0.1" placeholder="مثال: 125">
+            </div>
+            <div class="field">
+              <label for="weightKg">الوزن (كجم)</label>
+              <input id="weightKg" type="number" step="0.1" placeholder="مثال: 26.4">
+            </div>
+            <div class="field">
+              <label for="preferredUnit">الوحدة المفضلة للعرض</label>
+              <select id="preferredUnit">
+                <option value="mmol">mmol/L</option>
+                <option value="mgdl">mg/dL</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="defaultMeasurementType">نوع القياس الافتراضي</label>
+              <select id="defaultMeasurementType">
+                <option value="fingerstick">🩸 فحص إصبع</option>
+                <option value="cgm">📈 CGM</option>
+                <option value="lab">🧪 مختبر</option>
+                <option value="other">✳️ أخرى</option>
+              </select>
+            </div>
+            <div class="field" style="grid-column:1/-1">
+              <label for="notes">ملاحظات</label>
+              <input id="notes" placeholder="حساسية، تعليمات خاصة، إلخ (اختياري)">
+            </div>
           </div>
-        </div>
+          <div class="row" style="margin-top:8px">
+            <button id="btnSaveInfo" class="btn primary">💾 حفظ بيانات الطفل</button>
+          </div>
+        </section>
 
-        <div class="field">
-          <label for="childCivilId">الرقم المدني</label>
-          <input id="childCivilId" placeholder="اختياري">
-        </div>
+        <!-- إعدادات القياس والجرعات -->
+        <section class="card" id="glucoseDosingSection">
+          <h3 class="section-title">
+            🧪 إعدادات القياس و الجرعات
+            <span id="unitBadge" class="badge">الوحدة المعروضة: mmol/L</span>
+          </h3>
+          <div class="grid g3">
+            <div class="field">
+              <label for="target">القياس الأمثل (الهدف)</label>
+              <input id="target" type="number" step="0.1" placeholder="مثال: 6.5">
+            </div>
+            <div class="field">
+              <label for="low">حد الهبوط</label>
+              <input id="low" type="number" step="0.1" placeholder="مثال: 4.0">
+            </div>
+            <div class="field">
+              <label for="high">حد الارتفاع</label>
+              <input id="high" type="number" step="0.1" placeholder="مثال: 10.0">
+            </div>
+            <div class="field">
+              <label for="tresiba">جرعة الترسيبا (وحدة/يوم)</label>
+              <input id="tresiba" type="number" step="0.5" placeholder="مثال: 10">
+            </div>
+            <div class="field">
+              <label for="tdi">إجمالي الأنسولين اليومي TDI (وحدة)</label>
+              <input id="tdi" type="number" step="0.5" placeholder="مثال: 24">
+            </div>
+            <div class="field">
+              <label for="isf">معامل التصحيح ISF <span id="isfUnitLabel" class="badge">mmol/L لكل 1U</span></label>
+              <input id="isf" type="number" step="0.1" placeholder="كم تنزل الوحدة؟">
+            </div>
+            <div class="field">
+              <label for="icr">معامل الكارب ICR (جرام/وحدة)</label>
+              <input id="icr" type="number" step="0.5" placeholder="جرام كارب لكل 1U">
+            </div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button id="btnSuggest" class="btn gray">💡 احسب من إجمالي اليوم</button>
+            <button id="btnSaveGlucose" class="btn primary">💾 حفظ الإعدادات</button>
+          </div>
+        </section>
+      </section>
 
-        <div class="field">
-          <label for="dob">تاريخ الميلاد</label>
-          <input id="dob" type="date">
-        </div>
+      <!-- (2) قياسات السكر — بنمطك القديم (وثيقة لكل يوم + slots) -->
+      <section id="sec-measure" class="section">
+        <section class="card">
+          <h3 class="section-title">
+            📝 قياسات السكر
+            <span id="mUnitBadge" class="badge">الوحدة المعروضة: mmol/L</span>
+          </h3>
+          <div class="grid g3">
+            <div>
+              <label>التاريخ</label>
+              <input type="date" id="dateSel" />
+            </div>
+            <div>
+              <label>وقت القياس</label>
+              <select id="slotSel">
+                <option value="">— اختاري الوقت —</option>
+                <option value="preBreakfast">قبل الإفطار</option>
+                <option value="postBreakfast">بعد الإفطار</option>
+                <option value="preLunch">قبل الغداء</option>
+                <option value="postLunch">بعد الغداء</option>
+                <option value="preDinner">قبل العشاء</option>
+                <option value="postDinner">بعد العشاء</option>
+                <option value="bedtime">قبل النوم</option>
+                <option value="exercise">بعد التمرين</option>
+                <option value="other">أخرى...</option>
+              </select>
+            </div>
+            <div>
+              <label>نوع القياس</label>
+              <select id="mType">
+                <option value="fingerstick">🩸 فحص إصبع</option>
+                <option value="cgm">📈 CGM</option>
+                <option value="lab">🧪 مختبر</option>
+                <option value="other">✳️ أخرى</option>
+              </select>
+            </div>
+          </div>
+        </section>
 
-        <div class="field">
-          <label for="heightCm">الطول (سم)</label>
-          <input id="heightCm" type="number" step="0.1" placeholder="مثال: 125">
-        </div>
+        <section class="card">
+          <h3 class="section-title">إدخال القياس والوجبة</h3>
+          <div class="grid g3">
+            <div>
+              <label>القراءة</label>
+              <input type="number" id="reading" step="0.1" min="0" />
+              <div id="statusBadge" class="status ok" style="display:none;"></div>
+            </div>
+            <div>
+              <label>كارب (جم)</label>
+              <input type="number" id="carbs" step="0.1" min="0" />
+            </div>
+            <div>
+              <label>جرعة مقترحة (ICR)</label>
+              <input type="number" id="suggestedDose" readonly />
+            </div>
+            <div>
+              <label>جرعة فعلية</label>
+              <input type="number" id="mealDose" step="0.1" />
+            </div>
+            <div id="correctionSection" style="display:none;">
+              <label>جرعة تصحيحية</label>
+              <input type="number" id="correction" step="0.1" />
+            </div>
+            <div id="raiseSection" style="display:none;">
+              <label>رفع السكر (مثلاً عصير)</label>
+              <input type="text" id="raise" />
+            </div>
+            <div style="grid-column:1/-1">
+              <label>ملاحظة</label>
+              <textarea id="note" rows="2"></textarea>
+            </div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button class="btn primary" id="saveBtn">💾 حفظ القياس</button>
+            <button class="btn gray" id="reloadDay">🔄 تحديث القراءات</button>
+          </div>
+        </section>
 
-        <div class="field">
-          <label for="weightKg">الوزن (كجم)</label>
-          <input id="weightKg" type="number" step="0.1" placeholder="مثال: 26.4">
-        </div>
+        <section class="card">
+          <h3 class="section-title">قراءات اليوم</h3>
+          <table>
+            <thead>
+              <tr><th>الوقت</th><th>القراءة</th><th>الحالة</th><th>جرعة الوجبة</th><th>التصحيح/الرفع</th><th>نوع القياس</th><th>ملاحظة</th></tr>
+            </thead>
+            <tbody id="rows">
+              <tr><td colspan="7" class="note">لا توجد قراءات لليوم.</td></tr>
+            </tbody>
+          </table>
+        </section>
+      </section>
 
-        <div class="field">
-          <label for="preferredUnit">الوحدة المفضلة للعرض</label>
-          <select id="preferredUnit">
-            <option value="mmol">mmol/L</option>
-            <option value="mgdl">mg/dL</option>
-          </select>
-        </div>
+      <!-- (3) الوجبات -->
+      <section id="sec-meals" class="section">
+        <section class="card">
+          <h3 class="section-title">🍽️ الوجبات</h3>
+          <div class="note">هنكمّلها بعد ما تتأكدي من القياسات والقائمة 👍</div>
+        </section>
+      </section>
 
-        <div class="field">
-          <label for="defaultMeasurementType">نوع القياس الافتراضي</label>
-          <select id="defaultMeasurementType">
-            <option value="fingerstick">🩸 فحص إصبع</option>
-            <option value="cgm">📈 CGM</option>
-            <option value="lab">🧪 مختبر</option>
-            <option value="other">✳️ أخرى</option>
-          </select>
-        </div>
+      <!-- باقي الأقسام مجرد Placeholders حالياً -->
+      <section id="sec-reports" class="section">
+        <div class="card"><div class="note">📊 التقارير — قريبًا.</div></div>
+      </section>
 
-        <div class="field" style="grid-column:1/-1">
-          <label for="notes">ملاحظات</label>
-          <input id="notes" placeholder="حساسية، تعليمات خاصة، إلخ (اختياري)">
-        </div>
-      </div>
-      <div class="note" style="margin-top:8px">* سيتم استخدام نوع القياس الافتراضي لاحقًا عند إدخال قراءات جديدة.</div>
-    </section>
+      <section id="sec-doctor" class="section">
+        <div class="card"><div class="note">🧑‍⚕️ الطبيب — قريبًا.</div></div>
+      </section>
 
-    <!-- (3) كارت إعدادات القياس والجرعات -->
-    <section class="card" id="glucoseDosingSection">
-      <h3 class="section-title">
-        🧪 إعدادات القياس و الجرعات
-        <span id="unitBadge" class="badge">الوحدة المعروضة: mmol/L</span>
-      </h3>
-
-      <div class="grid g3">
-        <!-- الهدف والحدود -->
-        <div class="field">
-          <label for="target">القياس الأمثل (الهدف)</label>
-          <input id="target" type="number" step="0.1" placeholder="مثال: 6.5">
-        </div>
-        <div class="field">
-          <label for="low">حد الهبوط</label>
-          <input id="low" type="number" step="0.1" placeholder="مثال: 4.0">
-        </div>
-        <div class="field">
-          <label for="high">حد الارتفاع</label>
-          <input id="high" type="number" step="0.1" placeholder="مثال: 10.0">
-        </div>
-
-        <!-- الجرعات والمعاملات -->
-        <div class="field">
-          <label for="tresiba">جرعة الترسيبا (وحدة/يوم)</label>
-          <input id="tresiba" type="number" step="0.5" placeholder="مثال: 10">
-        </div>
-        <div class="field">
-          <label for="tdi">إجمالي الأنسولين اليومي TDI (وحدة)</label>
-          <input id="tdi" type="number" step="0.5" placeholder="مثال: 24">
-        </div>
-        <div class="field">
-          <label for="isf">معامل التصحيح ISF <span id="isfUnitLabel" class="badge">mmol/L لكل 1U</span></label>
-          <input id="isf" type="number" step="0.1" placeholder="كم تنزل الوحدة؟">
-        </div>
-        <div class="field">
-          <label for="icr">معامل الكارب ICR (جرام/وحدة)</label>
-          <input id="icr" type="number" step="0.5" placeholder="جرام كارب لكل 1U">
-        </div>
-      </div>
-
-      <div class="row" style="margin-top:8px">
-        <button id="btnSuggest" class="btn gray">💡 احسب من إجمالي اليوم</button>
-        <button id="btnSaveGlucose" class="btn primary">💾 حفظ الإعدادات</button>
-      </div>
-
-      <div class="note" style="margin-top:8px">
-        * التخزين داخليًا بالـ mmol لضمان اتساق الحسابات.  
-        * اقتراحات سريعة: ISF ≈ <strong>100 / TDI</strong> (mmol/L لكل 1U) — ICR ≈ <strong>500 / TDI</strong> (جرام/1U). القيم إرشادية وتُضبط طبيًا.
-      </div>
-    </section>
-
-    <!-- حامل لأقسام لاحقة (الوجبات، التقارير، الطبيب، الزيارات...) -->
-    <section class="card">
-      <div class="note">الأقسام التالية سنضيفها تباعًا (الوجبات، التقارير، الطبيب، الزيارات...).</div>
-    </section>
-  </main>
+      <section id="sec-visits" class="section">
+        <div class="card"><div class="note">📅 الزيارات الطبية — قريبًا.</div></div>
+      </section>
+    </main>
+  </div>
 
   <div id="toast" class="toast"></div>
 
   <script type="module">
     import { db, auth } from './firebase-init.js';
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-    import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+    import {
+      doc, getDoc, setDoc,
+      collection, getDocs, query, orderBy, limit, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-    // عناصر عامة
-    const elName   = document.getElementById('kidName');
-    const img      = document.getElementById('childPhoto');
-    const fallback = document.getElementById('avatarFallback');
-    const toastEl  = document.getElementById('toast');
+    // ===== Helpers & DOM =====
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => [...document.querySelectorAll(sel)];
+    const toastEl = $('#toast');
+    const showToast = (msg)=>{ toastEl.textContent=msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'),2200); };
 
-    const input = id => document.getElementById(id);
-    const genderRadios = () => [...document.querySelectorAll('input[name="gender"]')];
-    const btnSaveInfo = document.getElementById('btnSaveInfo');
-    const btnLogout   = document.getElementById('btnLogout');
+    const elName   = $('#kidName');
+    const img      = $('#childPhoto');
+    const fallback = $('#avatarFallback');
 
-    // كارت الإعدادات
-    const unitBadge     = document.getElementById('unitBadge');
-    const isfUnitLabel  = document.getElementById('isfUnitLabel');
-    const btnSuggest    = document.getElementById('btnSuggest');
-    const btnSaveGlu    = document.getElementById('btnSaveGlucose');
-
-    // childId من الرابط
     const params  = new URLSearchParams(location.search);
     const childId = params.get('child');
 
-    // Helpers
-    const slugify = s => (s||'').trim().toLowerCase()
-                          .replace(/\s+/g,'-')
-                          .replace(/[^\u0600-\u06FF\w-]/g,'');
-    const showToast = (msg) => { toastEl.textContent = msg; toastEl.classList.add('show'); setTimeout(()=> toastEl.classList.remove('show'), 2200); };
+    const input = id => document.getElementById(id);
+    const genderRadios = () => [...document.querySelectorAll('input[name="gender"]')];
+    const setGenderUI = (value) => genderRadios().forEach(r => r.checked = (r.value === value));
+    const getGenderUI = () => (genderRadios().find(r => r.checked)?.value || null);
+    const numOrNull = (el) => { const v = el.value; if (v === '' || v == null) return null; const n = Number(v); return Number.isFinite(n) ? n : null; };
+
+    const slugify = s => (s||'').trim().toLowerCase().replace(/\s+/g,'-').replace(/[^\u0600-\u06FF\w-]/g,'');
+
     const setAvatarFallback = (name, gender) => {
       const initials = (name||'').trim().split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
-      fallback.textContent = initials || (gender==='male' ? '👦' : '👧'); fallback.style.display = 'grid';
+      fallback.textContent = initials || (gender==='male' ? '👦' : '👧');
+      fallback.style.display = 'grid';
     };
     const trySetPhoto = (child) => {
       const byId = `/images/${childId}.jpg`, byName = `/images/${slugify(child.name||'')}.jpg`;
@@ -249,161 +384,302 @@
       }; test([byId,byName]);
     };
 
-    const setGenderUI = (value) => genderRadios().forEach(r => r.checked = (r.value === value));
-    const getGenderUI = () => (genderRadios().find(r => r.checked)?.value || null);
-    const numOrNull = (el) => { const v = el.value; if (v === '' || v == null) return null; const n = Number(v); return Number.isFinite(n) ? n : null; };
+    // ===== Sidebar navigation =====
+    $$('.sb-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        $$('.sb-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        const target = btn.dataset.target;
+        $$('.section').forEach(sec=>sec.classList.remove('active'));
+        document.getElementById(target).classList.add('active');
+      });
+    });
 
-    // وحدات (عرض/تخزين)
-    let preferredUnit = 'mmol'; // للعرض
+    // ===== Units & thresholds =====
+    let preferredUnit = 'mmol'; // "mmol" | "mgdl"
+    let targetMmol=null, lowMmol=null, highMmol=null;
+    let icr = null; // جرام/وحدة
+
     const toMmol  = (v) => (v==null?null : (preferredUnit==='mgdl' ? v*0.0555 : v));
-    const fromMmol= (v) => (v==null?''   : (preferredUnit==='mgdl' ? +(v/0.0555).toFixed(0) : +(+v).toFixed(1)));
+    const fromMmolNumber = (v) => (preferredUnit==='mgdl' ? (v/0.0555) : v);
 
-    // تحميل بيانات الطفل + تعبئة الأقسام
+    function displayValue(valueMmol){
+      if (valueMmol==null) return '';
+      if (preferredUnit==='mgdl'){
+        return String(Math.round(valueMmol/0.0555)); // mg/dL integer
+      }
+      return Number(valueMmol).toFixed(1); // mmol/L one decimal
+    }
+
+    function classify(mmol){
+      if (lowMmol!=null && mmol < lowMmol)  return 'low';
+      if (highMmol!=null && mmol > highMmol) return 'high';
+      return 'ok';
+    }
+
+    // ===== Auth & initial load =====
     onAuthStateChanged(auth, async (user) => {
-      if (!user) { location.href = 'index.html'; return; }
-      if (!childId) { elName.textContent = 'لم يتم تمرير رقم الطفل في الرابط.'; setAvatarFallback('',''); return; }
+      if (!user) { location.href='index.html'; return; }
+      if (!childId){ elName.textContent='لم يتم تمرير رقم الطفل في الرابط.'; setAvatarFallback('',''); return; }
 
-      try {
-        const childRef = doc(db, 'users', user.uid, 'children', childId);
-        const snap = await getDoc(childRef);
+      $('#btnLogout').addEventListener('click', ()=> signOut(auth).then(()=>location.href='index.html'));
 
-        if (!snap.exists()) { elName.textContent = 'الطفل غير موجود ❗'; setAvatarFallback('', ''); return; }
+      const childRef = doc(db, 'users', user.uid, 'children', childId);
+      const snap = await getDoc(childRef);
+      if (!snap.exists()){ elName.textContent='الطفل غير موجود ❗'; setAvatarFallback('',''); return; }
 
-        const c = snap.data();
-        elName.textContent = c.name || 'بدون اسم';
-        trySetPhoto(c);
+      const c = snap.data();
+      elName.textContent = c.name || 'بدون اسم';
+      trySetPhoto(c);
 
-        // (2) تعبئة بيانات الطفل
-        input('childName').value     = c.name || '';
-        setGenderUI(c.gender || '');
-        input('childCivilId').value  = c.childCivilId || '';
-        input('dob').value           = c.dob || '';
-        input('heightCm').value      = c.heightCm ?? '';
-        input('weightKg').value      = c.weightKg ?? '';
-        preferredUnit                = c.preferredUnit || 'mmol';
-        input('preferredUnit').value = preferredUnit;
-        input('defaultMeasurementType').value = c.defaultMeasurementType || 'fingerstick'; // 👈 إفتراضي فحص إصبع
-        input('notes').value         = c.notes || '';
+      // Fill child info
+      input('childName').value     = c.name || '';
+      setGenderUI(c.gender || '');
+      input('childCivilId').value  = c.childCivilId || '';
+      input('dob').value           = c.dob || '';
+      input('heightCm').value      = c.heightCm ?? '';
+      input('weightKg').value      = c.weightKg ?? '';
+      preferredUnit                = c.preferredUnit || 'mmol';
+      input('preferredUnit').value = preferredUnit;
+      input('defaultMeasurementType').value = c.defaultMeasurementType || 'fingerstick';
+      input('notes').value         = c.notes || '';
 
-        // (3) تعبئة كارت الإعدادات (مخزن بالـ mmol)
-        unitBadge.textContent = `الوحدة المعروضة: ${preferredUnit==='mgdl' ? 'mg/dL' : 'mmol/L'}`;
-        isfUnitLabel.textContent = preferredUnit==='mgdl' ? 'mg/dL لكل 1U' : 'mmol/L لكل 1U';
+      // Glucose config & dosing
+      $('#unitBadge').textContent = `الوحدة المعروضة: ${preferredUnit==='mgdl'?'mg/dL':'mmol/L'}`;
+      $('#mUnitBadge').textContent= `الوحدة المعروضة: ${preferredUnit==='mgdl'?'mg/dL':'mmol/L'}`;
+      $('#isfUnitLabel').textContent = preferredUnit==='mgdl' ? 'mg/dL لكل 1U' : 'mmol/L لكل 1U';
 
-        const gc  = (c.glucoseConfig || {});
-        const dos = (c.dosing || {});
+      const gc = (c.glucoseConfig||{});
+      const dos= (c.dosing||{});
+      targetMmol = gc.targetGlucoseMmol ?? null;
+      lowMmol    = gc.lowThresholdMmol ?? null;
+      highMmol   = gc.highThresholdMmol ?? null;
 
-        input('target').value = fromMmol(gc.targetGlucoseMmol ?? null);
-        input('low').value    = fromMmol(gc.lowThresholdMmol ?? null);
-        input('high').value   = fromMmol(gc.highThresholdMmol ?? null);
+      input('target').value = targetMmol==null ? '' : (preferredUnit==='mgdl'? Math.round(targetMmol/0.0555) : (+targetMmol).toFixed(1));
+      input('low').value    = lowMmol==null ? ''    : (preferredUnit==='mgdl'? Math.round(lowMmol/0.0555)    : (+lowMmol).toFixed(1));
+      input('high').value   = highMmol==null ? ''   : (preferredUnit==='mgdl'? Math.round(highMmol/0.0555)   : (+highMmol).toFixed(1));
 
-        input('tresiba').value = dos.basalTresibaUnits ?? '';
-        input('tdi').value     = dos.totalDailyInsulinUnits ?? '';
+      input('tresiba').value = dos.basalTresibaUnits ?? '';
+      input('tdi').value     = dos.totalDailyInsulinUnits ?? '';
+      const isfMmol = dos.isfMmolPerUnit ?? null;
+      input('isf').value = preferredUnit==='mgdl'
+        ? (isfMmol==null ? '' : Math.round(isfMmol/0.0555))
+        : (isfMmol==null ? '' : (+isfMmol).toFixed(1));
+      input('icr').value = dos.icrGramsPerUnit ?? '';
+      icr = dos.icrGramsPerUnit ?? null;
 
-        const isfMmol = dos.isfMmolPerUnit ?? null;
-        input('isf').value = preferredUnit==='mgdl'
-          ? (isfMmol==null ? '' : +(+isfMmol/0.0555).toFixed(0))
-          : (isfMmol==null ? '' : +(+isfMmol).toFixed(1));
-        input('icr').value = dos.icrGramsPerUnit ?? '';
+      // Measurements defaults
+      const today = new Date().toISOString().split('T')[0];
+      input('dateSel').value = today;
+      // Default type from child
+      input('mType').value = c.defaultMeasurementType || 'fingerstick';
 
-      } catch (err) {
-        console.error(err);
-        elName.textContent = 'حدث خطأ أثناء تحميل البيانات';
-        setAvatarFallback('', '');
-      }
+      bindInfoSavers(user.uid);
+      bindMeasurementHandlers(user.uid);
+      // Load today's readings
+      await loadDay(user.uid);
     });
 
-    // حفظ بيانات الطفل (يشمل نوع القياس الافتراضي)
-    document.getElementById('btnSaveInfo').addEventListener('click', async () => {
-      const user = auth.currentUser;
-      if (!user || !childId) return;
+    // ===== Save Info & Glucose config =====
+    function bindInfoSavers(uid){
+      $('#btnSaveInfo').addEventListener('click', async ()=>{
+        const payload = {
+          name: input('childName').value.trim() || null,
+          gender: getGenderUI(),
+          childCivilId: input('childCivilId').value.trim() || null,
+          dob: input('dob').value || null,
+          heightCm: numOrNull(input('heightCm')),
+          weightKg: numOrNull(input('weightKg')),
+          preferredUnit: input('preferredUnit').value,
+          defaultMeasurementType: input('defaultMeasurementType').value || 'fingerstick',
+          notes: input('notes').value.trim() || null,
+          storageUnit: "mmol",
+          lastUpdatedAt: new Date().toISOString()
+        };
+        try{
+          await setDoc(doc(db,'users',auth.currentUser.uid,'children',childId), payload, {merge:true});
+          preferredUnit = payload.preferredUnit;
+          $('#unitBadge').textContent = `الوحدة المعروضة: ${preferredUnit==='mgdl'?'mg/dL':'mmol/L'}`;
+          $('#mUnitBadge').textContent= `الوحدة المعروضة: ${preferredUnit==='mgdl'?'mg/dL':'mmol/L'}`;
+          $('#isfUnitLabel').textContent = preferredUnit==='mgdl'?'mg/dL لكل 1U':'mmol/L لكل 1U';
+          elName.textContent = payload.name || elName.textContent;
+          showToast('✅ تم حفظ بيانات الطفل');
+        }catch(e){ console.error(e); showToast('❗ حدث خطأ أثناء الحفظ'); }
+      });
 
-      const payload = {
-        name: input('childName').value.trim() || null,
-        gender: getGenderUI(),
-        childCivilId: input('childCivilId').value.trim() || null,
-        dob: input('dob').value || null,
-        heightCm: numOrNull(input('heightCm')),
-        weightKg: numOrNull(input('weightKg')),
-        preferredUnit: input('preferredUnit').value, // "mmol" | "mgdl"
-        defaultMeasurementType: input('defaultMeasurementType').value || 'fingerstick', // 👈 تخزين الافتراضي
-        notes: input('notes').value.trim() || null,
-        storageUnit: "mmol",
-        lastUpdatedAt: new Date().toISOString()
+      $('#btnSuggest').addEventListener('click', ()=>{
+        const tdi = Number(input('tdi').value);
+        if (!tdi || tdi <= 0) { showToast('أدخلي إجمالي اليوم أولًا'); return; }
+        const isfMmol = +(100/tdi).toFixed(2);
+        const icrVal  = +(500/tdi).toFixed(1);
+        input('isf').value = (preferredUnit==='mgdl') ? Math.round(isfMmol/0.0555) : isfMmol;
+        input('icr').value = icrVal;
+        icr = icrVal;
+        showToast('💡 تم اقتراح ISF و ICR من إجمالي اليوم');
+      });
+
+      $('#btnSaveGlucose').addEventListener('click', async ()=>{
+        const tDisp = numOrNull(input('target'));
+        const lDisp = numOrNull(input('low'));
+        const hDisp = numOrNull(input('high'));
+        const target = toMmol(tDisp);
+        const low    = toMmol(lDisp);
+        const high   = toMmol(hDisp);
+
+        if (target!=null && low!=null && low >= target) { showToast('⚠️ حد الهبوط يجب أن يكون أقل من الهدف'); return; }
+        if (target!=null && high!=null && high <= target){ showToast('⚠️ حد الارتفاع يجب أن يكون أكبر من الهدف'); return; }
+
+        const isfDisp = numOrNull(input('isf'));
+        const isfMmol = (preferredUnit==='mgdl')
+          ? (isfDisp==null ? null : +(isfDisp*0.0555).toFixed(2))
+          : (isfDisp==null ? null : +(+isfDisp).toFixed(2));
+
+        const payload = {
+          glucoseConfig: {
+            targetGlucoseMmol: target,
+            lowThresholdMmol : low,
+            highThresholdMmol: high
+          },
+          dosing: {
+            basalTresibaUnits      : numOrNull(input('tresiba')),
+            totalDailyInsulinUnits : numOrNull(input('tdi')),
+            isfMmolPerUnit         : isfMmol,
+            icrGramsPerUnit        : numOrNull(input('icr'))
+          },
+          lastUpdatedAt: new Date().toISOString()
+        };
+        try{
+          await setDoc(doc(db,'users',auth.currentUser.uid,'children',childId), payload, {merge:true});
+          targetMmol = target; lowMmol = low; highMmol = high;
+          icr = payload.dosing.icrGramsPerUnit ?? icr;
+          showToast('✅ تم حفظ إعدادات القياس والجرعات');
+        }catch(e){ console.error(e); showToast('❗ حدث خطأ أثناء الحفظ'); }
+      });
+    }
+
+    // ===== Measurements (per day doc + slots) =====
+    function bindMeasurementHandlers(uid){
+      input('dateSel').addEventListener('change', ()=> loadDay(uid));
+      $('#reloadDay').addEventListener('click', ()=> loadDay(uid));
+
+      // اقتراح جرعة من ICR عند إدخال كارب
+      input('carbs').addEventListener('input', ()=>{
+        const carbs = Number(input('carbs').value);
+        if (icr && icr>0 && carbs>=0) input('suggestedDose').value = +(carbs/icr).toFixed(1);
+        else input('suggestedDose').value = '';
+      });
+
+      // إظهار/إخفاء التصحيح/الرفع حسب القراءة
+      input('reading').addEventListener('input', onReadingChange);
+
+      // حفظ القياس
+      $('#saveBtn').addEventListener('click', ()=> onSave(uid));
+    }
+
+    function onReadingChange(){
+      const valDisp = Number(input('reading').value);
+      $('#correctionSection').style.display = 'none';
+      $('#raiseSection').style.display      = 'none';
+      $('#statusBadge').style.display       = 'none';
+
+      if (!valDisp && valDisp !== 0) return;
+
+      const mmol = toMmol(valDisp);
+      const cls = classify(mmol);
+      const sb = $('#statusBadge');
+      sb.className = `status ${cls}`;
+      sb.style.display = 'inline-block';
+      sb.textContent = (cls==='low'?'منخفض':cls==='high'?'مرتفع':'طبيعي');
+
+      if (cls==='high') $('#correctionSection').style.display = 'block';
+      if (cls==='low')  $('#raiseSection').style.display = 'block';
+    }
+
+    async function loadDay(uid){
+      const date = input('dateSel').value;
+      if (!date) return;
+      const ref = doc(db,'users',uid,'children',childId,'measurements',date);
+      const snap = await getDoc(ref);
+      const readings = (snap.data()||{}).readings || {};
+      renderRows(readings);
+    }
+
+    function renderRows(readings){
+      const tbody = $('#rows');
+      const keys = Object.keys(readings);
+      if (keys.length===0){ tbody.innerHTML = '<tr><td colspan="7" class="note">لا توجد قراءات لليوم.</td></tr>'; return; }
+
+      const labelSlot = {
+        preBreakfast:'قبل الإفطار', postBreakfast:'بعد الإفطار',
+        preLunch:'قبل الغداء', postLunch:'بعد الغداء',
+        preDinner:'قبل العشاء', postDinner:'بعد العشاء',
+        bedtime:'قبل النوم', exercise:'بعد التمرين', other:'أخرى'
       };
 
-      try {
-        await setDoc(doc(db, 'users', user.uid, 'children', childId), payload, { merge: true });
-        preferredUnit = payload.preferredUnit;
-        unitBadge.textContent = `الوحدة المعروضة: ${preferredUnit==='mgdl' ? 'mg/dL' : 'mmol/L'}`;
-        isfUnitLabel.textContent = preferredUnit==='mgdl' ? 'mg/dL لكل 1U' : 'mmol/L لكل 1U';
-        elName.textContent = payload.name || elName.textContent;
-        showToast('✅ تم حفظ بيانات الطفل');
-      } catch (e) {
-        console.error(e);
-        showToast('❗ حدث خطأ أثناء الحفظ');
+      tbody.innerHTML = '';
+      for (const slot of keys){
+        const r = readings[slot];
+        const mmol = r?.valueMmol ?? (r?.value ?? null); // دعم للسجلات القديمة
+        const disp = displayValue(mmol);
+        const cls = classify(mmol);
+        const statusHtml = `<span class="status ${cls}">${cls==='low'?'منخفض':cls==='high'?'مرتفع':'طبيعي'}</span>`;
+        const typeLabel = r?.measurementType==='cgm'?'📈 CGM': r?.measurementType==='lab'?'🧪 مختبر': r?.measurementType==='other'?'✳️ أخرى':'🩸 فحص إصبع';
+        const action = (r?.mealDose ?? r?.correction ?? r?.raise ?? '-') ;
+        const actionText = (r?.correction!=null) ? `تصحيح: ${r.correction}U` : (r?.raise ? `رفع: ${r.raise}` : (r?.mealDose!=null? `${r.mealDose}U`:'-'));
+        const note = r?.note || '-';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${labelSlot[slot]||slot}</td>
+          <td>${disp} ${preferredUnit==='mgdl'?'mg/dL':'mmol/L'}</td>
+          <td>${statusHtml}</td>
+          <td>${r?.mealDose!=null ? r.mealDose : '-'}</td>
+          <td>${actionText}</td>
+          <td>${typeLabel}</td>
+          <td>${escapeHtml(note)}</td>
+        `;
+        tbody.appendChild(tr);
       }
-    });
+    }
 
-    // 💡 اقتراح ISF & ICR من TDI
-    document.getElementById('btnSuggest').addEventListener('click', () => {
-      const tdi = Number(input('tdi').value);
-      if (!tdi || tdi <= 0) { showToast('أدخلي إجمالي اليوم أولًا'); return; }
-      const isfMmol = +(100/tdi).toFixed(2);  // ≈ 100/TDI
-      const icr     = +(500/tdi).toFixed(1);  // 500-rule
-      input('isf').value = (preferredUnit==='mgdl') ? Math.round(isfMmol/0.0555) : isfMmol;
-      input('icr').value = icr;
-      showToast('💡 تم اقتراح ISF و ICR من إجمالي اليوم');
-    });
+    async function onSave(uid){
+      const date = input('dateSel').value;
+      const slot = input('slotSel').value;
+      const rawDisp = Number(input('reading').value);
 
-    // حفظ كارت الإعدادات
-    document.getElementById('btnSaveGlucose').addEventListener('click', async () => {
-      const user = auth.currentUser;
-      if (!user || !childId) return;
+      if (!date || !slot || !rawDisp) { showToast('يرجى إدخال التاريخ والوقت والقيمة'); return; }
 
-      const tDisp = numOrNull(input('target'));
-      const lDisp = numOrNull(input('low'));
-      const hDisp = numOrNull(input('high'));
+      const ref = doc(db,'users',uid,'children',childId,'measurements',date);
+      const snap = await getDoc(ref);
+      const base = snap.exists()? snap.data() : { readings:{} };
 
-      const target = toMmol(tDisp);
-      const low    = toMmol(lDisp);
-      const high   = toMmol(hDisp);
+      if (base.readings[slot]?.valueMmol!=null || base.readings[slot]?.value!=null){
+        showToast('تم تسجيل هذا الوقت مسبقاً'); return;
+      }
 
-      if (target!=null && low!=null && low >= target) { showToast('⚠️ حد الهبوط يجب أن يكون أقل من الهدف'); return; }
-      if (target!=null && high!=null && high <= target){ showToast('⚠️ حد الارتفاع يجب أن يكون أكبر من الهدف'); return; }
-
-      const isfDisp = numOrNull(input('isf'));
-      const isfMmol = (preferredUnit==='mgdl')
-        ? (isfDisp==null ? null : +(isfDisp*0.0555).toFixed(2))
-        : (isfDisp==null ? null : +(+isfDisp).toFixed(2));
-
+      const mmol = toMmol(rawDisp);
       const payload = {
-        glucoseConfig: {
-          targetGlucoseMmol: target,
-          lowThresholdMmol : low,
-          highThresholdMmol: high
-        },
-        dosing: {
-          basalTresibaUnits      : numOrNull(input('tresiba')),
-          totalDailyInsulinUnits : numOrNull(input('tdi')),
-          isfMmolPerUnit         : isfMmol,
-          icrGramsPerUnit        : numOrNull(input('icr'))
-        },
-        lastUpdatedAt: new Date().toISOString()
+        valueMmol: +(+mmol).toFixed(2),                 // تخزين بالـ mmol
+        displayUnit: preferredUnit,                      // للوصف فقط
+        measurementType: input('mType').value || 'fingerstick',
+        note: (input('note').value||'').trim() || null,
+        carbs: numOrNull(input('carbs')),
+        mealDose: numOrNull(input('mealDose')),
+        correction: numOrNull(input('correction')),
+        raise: (input('raise').value||'').trim() || null,
+        // لزوم التوافق مع الكود القديم (اختياري):
+        value: undefined
       };
 
-      try {
-        await setDoc(doc(db, 'users', user.uid, 'children', childId), payload, { merge: true });
-        showToast('✅ تم حفظ إعدادات القياس والجرعات');
-      } catch (e) {
-        console.error(e);
-        showToast('❗ حدث خطأ أثناء الحفظ');
-      }
-    });
+      base.readings[slot] = payload;
+      try{
+        await setDoc(ref, base, {merge:true});
+        showToast('✅ تم حفظ القياس');
+        await loadDay(uid);
+      }catch(e){ console.error(e); showToast('❗ تعذر حفظ القياس'); }
+    }
 
-    // خروج
-    btnLogout.addEventListener('click', () => {
-      signOut(auth).then(()=> location.href='index.html');
-    });
+    function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
   </script>
 </body>
 </html>
