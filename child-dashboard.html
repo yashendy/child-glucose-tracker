@@ -1,173 +1,159 @@
+<!-- child-dashboard.html — العنصر (1/7): الهيدر + صورة الطفل + الترحيب -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>لوحة طفل - متابعة سكر الأطفال</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>لوحة الطفل — متابعة سكر الأطفال</title>
+
   <style>
-    :root {
-      --brand: #0ea5e9;
-      --brand2: #6ee7b7;
-      --line: #e5e7eb;
-      --ink: #0f172a;
-      --muted: #6b7280;
-      --bg: #f6fbff;
-      --card: #fff;
-      --chip: #eef6ff
+    :root{
+      --brand:#0ea5e9; --brand2:#6ee7b7; --line:#e5e7eb;
+      --ink:#0f172a; --muted:#6b7280; --bg:#f6fbff; --card:#fff;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "Tajawal",system-ui,sans-serif}
+
+    /* الهيدر */
+    header{
+      position:sticky; top:0; z-index:10;
+      background:linear-gradient(90deg,var(--brand),var(--brand2));
+      color:#fff; padding:12px 16px;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .head-left{display:flex; align-items:center; gap:12px}
+    /* إطار صورة الطفل */
+    .kid-photo{
+      width:56px; height:56px; border-radius:16px; overflow:hidden;
+      border:2px solid rgba(255,255,255,.75); background:#fff;
+      display:grid; place-items:center;
+    }
+    .kid-photo img{width:100%; height:100%; object-fit:cover; display:block}
+    /* fallback للأفاتار بحروف الاسم */
+    .avatar-fallback{
+      width:100%; height:100%; display:none; place-items:center;
+      background:#e0f7fa; color:#0f172a; font-weight:800; font-size:18px;
     }
 
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: 'Tajawal', sans-serif;
-      background: var(--bg);
-      color: var(--ink);
-      display: flex;
-    }
+    .title-wrap{display:flex; flex-direction:column}
+    .hello{font-size:14px; opacity:.9}
+    .kid-name{font-size:18px; font-weight:800}
 
-    .sidebar {
-      width: 240px;
-      background: linear-gradient(180deg, var(--brand), var(--brand2));
-      color: white;
-      padding: 20px;
-      min-height: 100vh;
-    }
+    .head-actions{display:flex; gap:8px; flex-wrap:wrap}
+    .btn{border:none; border-radius:10px; padding:8px 12px; font-weight:800; cursor:pointer}
+    .btn.gray{background:#eef2f7}
+    .btn.dark{background:#0f172a; color:#fff}
 
-    .sidebar h3 {
-      font-size: 20px;
-      margin-bottom: 20px;
-    }
-
-    .sidebar-btn {
-      display: block;
-      width: 100%;
-      text-align: right;
-      background: transparent;
-      border: none;
-      color: white;
-      padding: 12px;
-      margin: 6px 0;
-      font-size: 16px;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    .sidebar-btn:hover, .sidebar-btn.active {
-      background: rgba(255,255,255,0.15);
-    }
-
-    main {
-      flex: 1;
-      padding: 20px;
-    }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.05);
-    }
-
-    .note {
-      font-size: 15px;
-      color: var(--muted);
-    }
-
+    /* مساحة المحتوى لاحقًا */
+    main{max-width:1200px; margin:auto; padding:16px}
+    .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; box-shadow:0 2px 10px rgba(0,0,0,.04)}
+    .note{color:var(--muted); font-size:14px}
   </style>
 </head>
 <body>
 
-<!-- ✅ القائمة الجانبية -->
-<div class="sidebar">
-  <h3>👧 لوحة الطفل</h3>
-  <button class="sidebar-btn active" data-section="home">🏠 الرئيسية</button>
-  <button class="sidebar-btn" data-section="info">⚙️ بيانات الطفل</button>
-  <button class="sidebar-btn" data-section="measure">📝 قياسات السكر</button>
-  <button class="sidebar-btn" data-section="meals">🍽️ الوجبات</button>
-  <button class="sidebar-btn" data-section="reports">📊 التقارير</button>
-  <button class="sidebar-btn" data-section="doctor">🧑‍⚕️ الطبيب</button>
-  <button class="sidebar-btn" data-section="visits">📅 الزيارات الطبية</button>
-</div>
+  <!-- الهيدر: صورة الطفل + الترحيب -->
+  <header>
+    <div class="head-left">
+      <div class="kid-photo">
+        <img id="childPhoto" alt="صورة الطفل">
+        <div id="avatarFallback" class="avatar-fallback">👧</div>
+      </div>
+      <div class="title-wrap">
+        <div class="hello">مرحبًا 👋</div>
+        <div id="kidName" class="kid-name">جاري تحميل الاسم...</div>
+      </div>
+    </div>
+    <div class="head-actions">
+      <a class="btn gray" href="dashboard.html">لوحة وليّ الأمر</a>
+      <button id="btnLogout" class="btn dark">خروج</button>
+    </div>
+  </header>
 
-<!-- ✅ منطقة المحتوى -->
-<main>
-  <div id="main-content" class="card">
-    <h2>جاري تحميل بيانات الطفل...</h2>
-    <p class="note">يرجى الانتظار، يتم تجهيز الصفحة بناءً على رقم الطفل.</p>
-  </div>
-</main>
+  <!-- مجرد حامل مؤقت لباقي العناصر التي سنضيفها تباعًا -->
+  <main>
+    <section class="card">
+      <div class="note">سيظهر هنا باقي أقسام لوحة الطفل (بيانات الطفل، القياسات، الوجبات، التقارير، الطبيب، الزيارات) — سنضيفها عنصرًا تلو الآخر.</div>
+    </section>
+  </main>
 
-<!-- ✅ السكريبت -->
-<script type="module">
-  import { db } from './firebase-init.js';
-  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+  <script type="module">
+    import { db, auth } from './firebase-init.js';
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-  // استخراج ID الطفل من الرابط
-  const urlParams = new URLSearchParams(window.location.search);
-  const childId = urlParams.get("child");
+    // عناصر DOM
+    const elName   = document.getElementById('kidName');
+    const img      = document.getElementById('childPhoto');
+    const fallback = document.getElementById('avatarFallback');
+    const btnLogout= document.getElementById('btnLogout');
 
-  const content = document.getElementById("main-content");
-  const buttons = document.querySelectorAll(".sidebar-btn");
+    // childId من الرابط
+    const params  = new URLSearchParams(location.search);
+    const childId = params.get('child');
 
-  // تفعيل التنقل داخل الصفحة
-  buttons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      buttons.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      const section = btn.dataset.section;
-      renderSection(section);
-    });
-  });
+    // أدوات مساعدة
+    const slugify = s => (s||'').trim().toLowerCase()
+                          .replace(/\s+/g,'-')
+                          .replace(/[^\u0600-\u06FF\w-]/g,''); // يسمح بالعربي والحروف/الأرقام والشرطة
 
-  async function renderSection(section) {
-    switch (section) {
-      case "home":
-        content.innerHTML = `<h2>مرحبًا بكم 👋</h2><p class="note">اختر القسم المطلوب من القائمة الجانبية.</p>`;
-        break;
+    const setAvatarFallback = (name, gender) => {
+      // حروف أولية من الاسم (أول حرفين عربي/لاتيني)
+      const initials = (name||'').trim().split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+      fallback.textContent = initials || (gender==='male' ? '👦' : '👧');
+      fallback.style.display = 'grid';
+    };
 
-      case "info":
-        const ref = doc(db, "children", childId);
-        const snap = await getDoc(ref);
+    const trySetPhoto = (child) => {
+      // نحاول: by-id ثم by-name-slug
+      const byId   = `/images/${childId}.jpg`;
+      const byName = `/images/${slugify(child.name||'')}.jpg`;
+
+      // نختبر id أولاً، لو فشلت نحول للاسم، ولو فشلت نعرض fallback
+      const test = (srcs, i=0) => {
+        if (i >= srcs.length) { img.style.display='none'; setAvatarFallback(child.name, child.gender); return; }
+        img.onload = () => { img.style.display='block'; fallback.style.display='none'; };
+        img.onerror= () => test(srcs, i+1);
+        img.src = srcs[i];
+      };
+      test([byId, byName]);
+    };
+
+    // تحميل بيانات الطفل
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { location.href = 'index.html'; return; }
+
+      if (!childId) {
+        elName.textContent = 'لم يتم تمرير رقم الطفل في الرابط.';
+        setAvatarFallback('','');
+        return;
+      }
+
+      try {
+        const childRef = doc(db, 'users', user.uid, 'children', childId);
+        const snap = await getDoc(childRef);
+
         if (!snap.exists()) {
-          content.innerHTML = `<p class="note">❗ لا توجد بيانات لهذا الطفل.</p>`;
-        } else {
-          const data = snap.data();
-          content.innerHTML = `
-            <h2>⚙️ بيانات الطفل</h2>
-            <p><strong>الاسم:</strong> ${data.name || "—"}</p>
-            <p><strong>الرقم المدني:</strong> ${data.childCivilId || "—"}</p>
-            <p><strong>الطول:</strong> ${data.height || "—"} سم</p>
-            <p><strong>الوزن:</strong> ${data.weight || "—"} كجم</p>
-          `;
+          elName.textContent = 'الطفل غير موجود ❗';
+          setAvatarFallback('', '');
+          return;
         }
-        break;
 
-      case "measure":
-        content.innerHTML = `<h2>📝 تسجيل القياسات</h2><p>قريبًا سيتم عرض النموذج هنا...</p>`;
-        break;
+        const child = snap.data();
+        elName.textContent = child.name || 'بدون اسم';
+        trySetPhoto(child);
 
-      case "meals":
-        content.innerHTML = `<h2>🍽️ وجبات الطفل</h2><p>قائمة الوجبات ستظهر هنا قريبًا.</p>`;
-        break;
+      } catch (err) {
+        console.error(err);
+        elName.textContent = 'حدث خطأ أثناء تحميل البيانات';
+        setAvatarFallback('', '');
+      }
+    });
 
-      case "reports":
-        content.innerHTML = `<h2>📊 تقارير السكر</h2><p>بيانات التقارير في مرحلة التحضير...</p>`;
-        break;
-
-      case "doctor":
-        content.innerHTML = `<h2>🧑‍⚕️ الطبيب</h2><p>الملاحظات والوصفات السابقة ستُعرض هنا.</p>`;
-        break;
-
-      case "visits":
-        content.innerHTML = `<h2>📅 الزيارات الطبية</h2><p>تاريخ الزيارات وتفاصيلها قريبًا هنا.</p>`;
-        break;
-    }
-  }
-
-  // أول تحميل
-  renderSection("home");
-</script>
+    // خروج
+    btnLogout.addEventListener('click', () => {
+      signOut(auth).then(()=> location.href='index.html');
+    });
+  </script>
 </body>
 </html>
