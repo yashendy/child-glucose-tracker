@@ -1,4 +1,4 @@
-<!-- child-dashboard.html — العناصر (1+2+3+4/7) -->
+<!-- child-dashboard.html — (الهيدر + بيانات الطفل + إعدادات القياس والجرعات) بدون قسم القياسات -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -10,7 +10,7 @@
     :root{
       --brand:#0ea5e9; --brand2:#6ee7b7; --line:#e5e7eb;
       --ink:#0f172a; --muted:#6b7280; --bg:#f6fbff; --card:#fff;
-      --ok:#10b981; --warn:#f59e0b; --bad:#ef4444; --chip:#eef6ff;
+      --chip:#eef6ff;
     }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "Tajawal",system-ui,sans-serif}
@@ -34,7 +34,6 @@
     .btn.gray{background:#eef2f7}
     .btn.dark{background:#0f172a; color:#fff}
     .btn.primary{background:var(--brand); color:#fff}
-    .btn.warn{background:var(--warn); color:#fff}
 
     /* الصفحة */
     main{max-width:1200px; margin:auto; padding:16px}
@@ -49,22 +48,13 @@
     @media (max-width: 680px){ .g2,.g3{grid-template-columns:1fr} }
 
     label{display:block; color:var(--muted); font-size:13px; margin-bottom:6px}
-    input,select,textarea{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#fff}
-    textarea{min-height:90px; resize:vertical}
+    input,select{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#fff}
     .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
     .field{display:flex; flex-direction:column}
     .radio-wrap{display:flex; gap:14px; align-items:center}
     .radio-wrap label{margin:0; font-size:14px; color:var(--ink)}
     .section-title{margin:0 0 10px; font-size:18px}
     .badge{display:inline-block; padding:2px 8px; border-radius:999px; background:var(--chip); color:#0f172a; font-size:12px; margin-inline-start:6px}
-
-    /* قيود لونية للقراءات */
-    .reading{display:flex; justify-content:space-between; align-items:center; border:1px solid var(--line); border-radius:12px; padding:10px 12px; margin-bottom:8px; background:#fff}
-    .r-val{font-weight:800}
-    .r-tag{font-size:12px; color:var(--muted)}
-    .r-bad   {border-color:#fecaca; background:#fef2f2}
-    .r-warn  {border-color:#fde68a; background:#fffbeb}
-    .r-ok    {border-color:#bbf7d0; background:#f0fdf4}
 
     /* Toast */
     .toast{position:fixed; bottom:16px; left:16px; background:#111; color:#fff; padding:10px 14px; border-radius:12px; opacity:0; transform:translateY(6px); transition:.25s}
@@ -93,7 +83,7 @@
   </header>
 
   <main>
-    <!-- (2) قسم بيانات الطفل -->
+    <!-- (2) قسم بيانات الطفل (يشمل نوع القياس الافتراضي) -->
     <section class="card" id="childInfoSection">
       <h3 class="section-title">⚙️ بيانات الطفل</h3>
       <div class="grid g3">
@@ -138,12 +128,22 @@
           </select>
         </div>
 
+        <div class="field">
+          <label for="defaultMeasurementType">نوع القياس الافتراضي</label>
+          <select id="defaultMeasurementType">
+            <option value="fingerstick">🩸 فحص إصبع</option>
+            <option value="cgm">📈 CGM</option>
+            <option value="lab">🧪 مختبر</option>
+            <option value="other">✳️ أخرى</option>
+          </select>
+        </div>
+
         <div class="field" style="grid-column:1/-1">
           <label for="notes">ملاحظات</label>
           <input id="notes" placeholder="حساسية، تعليمات خاصة، إلخ (اختياري)">
         </div>
       </div>
-      <div class="note" style="margin-top:8px">* يتم استخدام هذه البيانات كأساس لبقية الأقسام (القياسات، الجرعات، التقارير…)</div>
+      <div class="note" style="margin-top:8px">* سيتم استخدام نوع القياس الافتراضي لاحقًا عند إدخال قراءات جديدة.</div>
     </section>
 
     <!-- (3) كارت إعدادات القياس والجرعات -->
@@ -198,59 +198,7 @@
       </div>
     </section>
 
-    <!-- (4) قياسات السكر -->
-    <section class="card" id="measurementsSection">
-      <h3 class="section-title">
-        📝 قياسات السكر
-        <span id="mUnitBadge" class="badge">الوحدة المعروضة: mmol/L</span>
-      </h3>
-
-      <!-- نموذج إضافة قياس -->
-      <div class="grid g3">
-        <div class="field">
-          <label for="mValue">القيمة</label>
-          <input id="mValue" type="number" step="0.1" placeholder="أدخل القراءة">
-        </div>
-        <div class="field">
-          <label for="mTime">الوقت</label>
-          <input id="mTime" type="datetime-local">
-        </div>
-        <div class="field">
-          <label for="mContext">السياق</label>
-          <select id="mContext">
-            <option value="pre-breakfast">قبل الفطور</option>
-            <option value="post-breakfast">بعد الفطور</option>
-            <option value="pre-lunch">قبل الغداء</option>
-            <option value="post-lunch">بعد الغداء</option>
-            <option value="pre-dinner">قبل العشاء</option>
-            <option value="post-dinner">بعد العشاء</option>
-            <option value="bedtime">قبل النوم</option>
-            <option value="exercise">بعد التمرين</option>
-            <option value="random">عشوائي</option>
-          </select>
-        </div>
-
-        <div class="field" style="grid-column:1/-1">
-          <label for="mNotes">ملاحظات</label>
-          <textarea id="mNotes" placeholder="مثلاً: قبل الوجبة بربع ساعة، إحساس بدوخة، إلخ"></textarea>
-        </div>
-      </div>
-
-      <div class="row" style="margin-top:8px">
-        <button id="btnAddMeasurement" class="btn primary">➕ حفظ القياس</button>
-        <button id="btnReloadMeasurements" class="btn gray">🔄 تحديث القائمة</button>
-      </div>
-
-      <div class="note" style="margin-top:8px">* التخزين داخليًا بالـ mmol؛ العرض حسب الوحدة المفضلة.</div>
-
-      <!-- قائمة آخر القراءات -->
-      <div style="margin-top:14px">
-        <h4 style="margin:0 0 8px">آخر القراءات (10)</h4>
-        <div id="measurementsList"></div>
-      </div>
-    </section>
-
-    <!-- حامل لأقسام لاحقة -->
+    <!-- حامل لأقسام لاحقة (الوجبات، التقارير، الطبيب، الزيارات...) -->
     <section class="card">
       <div class="note">الأقسام التالية سنضيفها تباعًا (الوجبات، التقارير، الطبيب، الزيارات...).</div>
     </section>
@@ -261,10 +209,7 @@
   <script type="module">
     import { db, auth } from './firebase-init.js';
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-    import {
-      doc, getDoc, setDoc,
-      collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+    import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
     // عناصر عامة
     const elName   = document.getElementById('kidName');
@@ -277,17 +222,11 @@
     const btnSaveInfo = document.getElementById('btnSaveInfo');
     const btnLogout   = document.getElementById('btnLogout');
 
-    // عناصر كارت الإعدادات
+    // كارت الإعدادات
     const unitBadge     = document.getElementById('unitBadge');
     const isfUnitLabel  = document.getElementById('isfUnitLabel');
     const btnSuggest    = document.getElementById('btnSuggest');
     const btnSaveGlu    = document.getElementById('btnSaveGlucose');
-
-    // عناصر القياسات
-    const mUnitBadge    = document.getElementById('mUnitBadge');
-    const btnAddMeas    = document.getElementById('btnAddMeasurement');
-    const btnReloadMeas = document.getElementById('btnReloadMeasurements');
-    const listMeas      = document.getElementById('measurementsList');
 
     // childId من الرابط
     const params  = new URLSearchParams(location.search);
@@ -319,10 +258,7 @@
     const toMmol  = (v) => (v==null?null : (preferredUnit==='mgdl' ? v*0.0555 : v));
     const fromMmol= (v) => (v==null?''   : (preferredUnit==='mgdl' ? +(v/0.0555).toFixed(0) : +(+v).toFixed(1)));
 
-    // حدود القياس (مخزنة بالـ mmol)
-    let targetMmol=null, lowMmol=null, highMmol=null;
-
-    // تحميل بيانات الطفل + تعبئة (1)(2)(3) + إعداد القياسات
+    // تحميل بيانات الطفل + تعبئة الأقسام
     onAuthStateChanged(auth, async (user) => {
       if (!user) { location.href = 'index.html'; return; }
       if (!childId) { elName.textContent = 'لم يتم تمرير رقم الطفل في الرابط.'; setAvatarFallback('',''); return; }
@@ -337,7 +273,7 @@
         elName.textContent = c.name || 'بدون اسم';
         trySetPhoto(c);
 
-        // (2) بيانات الطفل
+        // (2) تعبئة بيانات الطفل
         input('childName').value     = c.name || '';
         setGenderUI(c.gender || '');
         input('childCivilId').value  = c.childCivilId || '';
@@ -346,11 +282,11 @@
         input('weightKg').value      = c.weightKg ?? '';
         preferredUnit                = c.preferredUnit || 'mmol';
         input('preferredUnit').value = preferredUnit;
+        input('defaultMeasurementType').value = c.defaultMeasurementType || 'fingerstick'; // 👈 إفتراضي فحص إصبع
         input('notes').value         = c.notes || '';
 
-        // (3) كارت الإعدادات
+        // (3) تعبئة كارت الإعدادات (مخزن بالـ mmol)
         unitBadge.textContent = `الوحدة المعروضة: ${preferredUnit==='mgdl' ? 'mg/dL' : 'mmol/L'}`;
-        mUnitBadge.textContent = unitBadge.textContent;
         isfUnitLabel.textContent = preferredUnit==='mgdl' ? 'mg/dL لكل 1U' : 'mmol/L لكل 1U';
 
         const gc  = (c.glucoseConfig || {});
@@ -359,10 +295,6 @@
         input('target').value = fromMmol(gc.targetGlucoseMmol ?? null);
         input('low').value    = fromMmol(gc.lowThresholdMmol ?? null);
         input('high').value   = fromMmol(gc.highThresholdMmol ?? null);
-
-        targetMmol = gc.targetGlucoseMmol ?? null;
-        lowMmol    = gc.lowThresholdMmol ?? null;
-        highMmol   = gc.highThresholdMmol ?? null;
 
         input('tresiba').value = dos.basalTresibaUnits ?? '';
         input('tdi').value     = dos.totalDailyInsulinUnits ?? '';
@@ -373,10 +305,6 @@
           : (isfMmol==null ? '' : +(+isfMmol).toFixed(1));
         input('icr').value = dos.icrGramsPerUnit ?? '';
 
-        // (4) تهيئة وقت القياس الافتراضي وتحميل آخر القراءات
-        setDefaultDateTimeNow(input('mTime'));
-        await loadRecentMeasurements(user.uid);
-
       } catch (err) {
         console.error(err);
         elName.textContent = 'حدث خطأ أثناء تحميل البيانات';
@@ -384,8 +312,8 @@
       }
     });
 
-    // حفظ بيانات الطفل (العنصر 2)
-    btnSaveInfo.addEventListener('click', async () => {
+    // حفظ بيانات الطفل (يشمل نوع القياس الافتراضي)
+    document.getElementById('btnSaveInfo').addEventListener('click', async () => {
       const user = auth.currentUser;
       if (!user || !childId) return;
 
@@ -397,6 +325,7 @@
         heightCm: numOrNull(input('heightCm')),
         weightKg: numOrNull(input('weightKg')),
         preferredUnit: input('preferredUnit').value, // "mmol" | "mgdl"
+        defaultMeasurementType: input('defaultMeasurementType').value || 'fingerstick', // 👈 تخزين الافتراضي
         notes: input('notes').value.trim() || null,
         storageUnit: "mmol",
         lastUpdatedAt: new Date().toISOString()
@@ -405,9 +334,7 @@
       try {
         await setDoc(doc(db, 'users', user.uid, 'children', childId), payload, { merge: true });
         preferredUnit = payload.preferredUnit;
-        const unitText = preferredUnit==='mgdl' ? 'mg/dL' : 'mmol/L';
-        unitBadge.textContent = `الوحدة المعروضة: ${unitText}`;
-        mUnitBadge.textContent = `الوحدة المعروضة: ${unitText}`;
+        unitBadge.textContent = `الوحدة المعروضة: ${preferredUnit==='mgdl' ? 'mg/dL' : 'mmol/L'}`;
         isfUnitLabel.textContent = preferredUnit==='mgdl' ? 'mg/dL لكل 1U' : 'mmol/L لكل 1U';
         elName.textContent = payload.name || elName.textContent;
         showToast('✅ تم حفظ بيانات الطفل');
@@ -418,7 +345,7 @@
     });
 
     // 💡 اقتراح ISF & ICR من TDI
-    btnSuggest.addEventListener('click', () => {
+    document.getElementById('btnSuggest').addEventListener('click', () => {
       const tdi = Number(input('tdi').value);
       if (!tdi || tdi <= 0) { showToast('أدخلي إجمالي اليوم أولًا'); return; }
       const isfMmol = +(100/tdi).toFixed(2);  // ≈ 100/TDI
@@ -428,8 +355,8 @@
       showToast('💡 تم اقتراح ISF و ICR من إجمالي اليوم');
     });
 
-    // حفظ كارت الإعدادات (العنصر 3)
-    btnSaveGlu.addEventListener('click', async () => {
+    // حفظ كارت الإعدادات
+    document.getElementById('btnSaveGlucose').addEventListener('click', async () => {
       const user = auth.currentUser;
       if (!user || !childId) return;
 
@@ -466,7 +393,6 @@
 
       try {
         await setDoc(doc(db, 'users', user.uid, 'children', childId), payload, { merge: true });
-        targetMmol = target; lowMmol = low; highMmol = high; // عشان التلوين
         showToast('✅ تم حفظ إعدادات القياس والجرعات');
       } catch (e) {
         console.error(e);
@@ -474,120 +400,10 @@
       }
     });
 
-    // ===== (4) قياسات السكر =====
-
-    // الوقت الافتراضي الآن
-    function setDefaultDateTimeNow(el){
-      const d = new Date();
-      const pad = n=> String(n).padStart(2,'0');
-      const local = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-      el.value = local;
-    }
-
-    // حفظ قياس جديد
-    btnAddMeas.addEventListener('click', async () => {
-      const user = auth.currentUser;
-      if (!user || !childId) return;
-
-      const vDisp = numOrNull(input('mValue'));
-      if (vDisp == null) { showToast('أدخلي قيمة القياس'); return; }
-      const when = input('mTime').value;
-      if (!when) { showToast('اختاري وقت القياس'); return; }
-
-      const mmol = toMmol(vDisp);
-      const payload = {
-        valueMmol: +(+mmol).toFixed(2),
-        context: input('mContext').value || 'random',
-        notes: (input('mNotes').value || '').trim() || null,
-        takenAt: new Date(when).toISOString(),
-        createdAt: serverTimestamp()
-      };
-
-      try {
-        await addDoc(collection(db, 'users', user.uid, 'children', childId, 'measurements'), payload);
-        showToast('✅ تم حفظ القياس');
-        input('mValue').value = '';
-        input('mNotes').value = '';
-        await loadRecentMeasurements(user.uid);
-      } catch (e) {
-        console.error(e);
-        showToast('❗ تعذر حفظ القياس');
-      }
-    });
-
-    // تحميل آخر 10 قياسات
-    btnReloadMeas.addEventListener('click', async () => {
-      const user = auth.currentUser; if (!user) return;
-      await loadRecentMeasurements(user.uid);
-    });
-
-    async function loadRecentMeasurements(uid){
-      listMeas.innerHTML = '<div class="note">جاري التحميل...</div>';
-      try {
-        const q = query(
-          collection(db, 'users', uid, 'children', childId, 'measurements'),
-          orderBy('takenAt', 'desc'),
-          limit(10)
-        );
-        const snap = await getDocs(q);
-        if (snap.empty) { listMeas.innerHTML = '<div class="note">لا توجد قراءات بعد.</div>'; return; }
-
-        listMeas.innerHTML = '';
-        snap.forEach(docSnap => {
-          const m = docSnap.data();
-          const mmol = m.valueMmol;
-          const disp = fromMmol(mmol);
-          const unitText = (preferredUnit==='mgdl' ? 'mg/dL' : 'mmol/L');
-
-          // تصنيف لوني
-          const cls = classify(mmol);
-          const row = document.createElement('div');
-          row.className = `reading ${cls}`;
-          row.innerHTML = `
-            <div>
-              <div class="r-val">${disp} <span class="r-tag">${unitText}</span></div>
-              <div class="r-tag">${formatContext(m.context)} • ${formatDate(m.takenAt)}</div>
-            </div>
-            <div class="r-tag">${m.notes ? escapeHtml(m.notes) : ''}</div>
-          `;
-          listMeas.appendChild(row);
-        });
-
-      } catch (e) {
-        console.error(e);
-        listMeas.innerHTML = '<div class="note">حدث خطأ أثناء تحميل القراءات.</div>';
-      }
-    }
-
-    function classify(mmol){
-      if (lowMmol!=null && mmol < lowMmol)  return 'r-bad';
-      if (highMmol!=null && mmol > highMmol) return 'r-warn';
-      return 'r-ok';
-    }
-
-    function formatContext(k){
-      const map = {
-        'pre-breakfast':'قبل الفطور','post-breakfast':'بعد الفطور',
-        'pre-lunch':'قبل الغداء','post-lunch':'بعد الغداء',
-        'pre-dinner':'قبل العشاء','post-dinner':'بعد العشاء',
-        'bedtime':'قبل النوم','exercise':'بعد التمرين','random':'عشوائي'
-      };
-      return map[k] || k;
-    }
-
-    function formatDate(iso){
-      if (!iso) return '';
-      const d = new Date(iso);
-      const pad = n => String(n).padStart(2,'0');
-      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    }
-
-    function escapeHtml(s){
-      return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-    }
-
     // خروج
-    btnLogout.addEventListener('click', () => { signOut(auth).then(()=> location.href='index.html'); });
+    btnLogout.addEventListener('click', () => {
+      signOut(auth).then(()=> location.href='index.html');
+    });
   </script>
 </body>
 </html>
