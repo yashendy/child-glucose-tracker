@@ -171,7 +171,9 @@
       collection, getDocs, addDoc, query, orderBy, limit, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-    const $ = s ⇒ document.querySelector(s);
+  
+    const $ = s => document.querySelector(s);
+
     const showToast = (msg) ⇒ {
       const t = $('#toast');
       t.textContent = msg; t.classList.add('show');
