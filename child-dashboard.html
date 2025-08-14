@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>لوحة طفل - متابعة سكر الأطفال</title>
+  <style>
+    :root {
+      --brand: #0ea5e9;
+      --brand2: #6ee7b7;
+      --line: #e5e7eb;
+      --ink: #0f172a;
+      --muted: #6b7280;
+      --bg: #f6fbff;
+      --card: #fff;
+      --chip: #eef6ff
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Tajawal', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      display: flex;
+    }
+
+    .sidebar {
+      width: 240px;
+      background: linear-gradient(180deg, var(--brand), var(--brand2));
+      color: white;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .sidebar h3 {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+
+    .sidebar-btn {
+      display: block;
+      width: 100%;
+      text-align: right;
+      background: transparent;
+      border: none;
+      color: white;
+      padding: 12px;
+      margin: 6px 0;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .sidebar-btn:hover, .sidebar-btn.active {
+      background: rgba(255,255,255,0.15);
+    }
+
+    main {
+      flex: 1;
+      padding: 20px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+    }
+
+    .note {
+      font-size: 15px;
+      color: var(--muted);
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- ✅ القائمة الجانبية -->
+<div class="sidebar">
+  <h3>👧 لوحة الطفل</h3>
+  <button class="sidebar-btn active" data-section="home">🏠 الرئيسية</button>
+  <button class="sidebar-btn" data-section="info">⚙️ بيانات الطفل</button>
+  <button class="sidebar-btn" data-section="measure">📝 قياسات السكر</button>
+  <button class="sidebar-btn" data-section="meals">🍽️ الوجبات</button>
+  <button class="sidebar-btn" data-section="reports">📊 التقارير</button>
+  <button class="sidebar-btn" data-section="doctor">🧑‍⚕️ الطبيب</button>
+  <button class="sidebar-btn" data-section="visits">📅 الزيارات الطبية</button>
+</div>
+
+<!-- ✅ منطقة المحتوى -->
+<main>
+  <div id="main-content" class="card">
+    <h2>جاري تحميل بيانات الطفل...</h2>
+    <p class="note">يرجى الانتظار، يتم تجهيز الصفحة بناءً على رقم الطفل.</p>
+  </div>
+</main>
+
+<!-- ✅ السكريبت -->
+<script type="module">
+  import { db } from './firebase-init.js';
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+  // استخراج ID الطفل من الرابط
+  const urlParams = new URLSearchParams(window.location.search);
+  const childId = urlParams.get("child");
+
+  const content = document.getElementById("main-content");
+  const buttons = document.querySelectorAll(".sidebar-btn");
+
+  // تفعيل التنقل داخل الصفحة
+  buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      buttons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const section = btn.dataset.section;
+      renderSection(section);
+    });
+  });
+
+  async function renderSection(section) {
+    switch (section) {
+      case "home":
+        content.innerHTML = `<h2>مرحبًا بكم 👋</h2><p class="note">اختر القسم المطلوب من القائمة الجانبية.</p>`;
+        break;
+
+      case "info":
+        const ref = doc(db, "children", childId);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) {
+          content.innerHTML = `<p class="note">❗ لا توجد بيانات لهذا الطفل.</p>`;
+        } else {
+          const data = snap.data();
+          content.innerHTML = `
+            <h2>⚙️ بيانات الطفل</h2>
+            <p><strong>الاسم:</strong> ${data.name || "—"}</p>
+            <p><strong>الرقم المدني:</strong> ${data.childCivilId || "—"}</p>
+            <p><strong>الطول:</strong> ${data.height || "—"} سم</p>
+            <p><strong>الوزن:</strong> ${data.weight || "—"} كجم</p>
+          `;
+        }
+        break;
+
+      case "measure":
+        content.innerHTML = `<h2>📝 تسجيل القياسات</h2><p>قريبًا سيتم عرض النموذج هنا...</p>`;
+        break;
+
+      case "meals":
+        content.innerHTML = `<h2>🍽️ وجبات الطفل</h2><p>قائمة الوجبات ستظهر هنا قريبًا.</p>`;
+        break;
+
+      case "reports":
+        content.innerHTML = `<h2>📊 تقارير السكر</h2><p>بيانات التقارير في مرحلة التحضير...</p>`;
+        break;
+
+      case "doctor":
+        content.innerHTML = `<h2>🧑‍⚕️ الطبيب</h2><p>الملاحظات والوصفات السابقة ستُعرض هنا.</p>`;
+        break;
+
+      case "visits":
+        content.innerHTML = `<h2>📅 الزيارات الطبية</h2><p>تاريخ الزيارات وتفاصيلها قريبًا هنا.</p>`;
+        break;
+    }
+  }
+
+  // أول تحميل
+  renderSection("home");
+</script>
+</body>
+</html>
