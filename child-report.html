@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تقارير القياسات — الطفل</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --brand:#0ea5e9; --brand2:#6ee7b7; --line:#e5e7eb; --ink:#0f172a; --muted:#6b7280;
+  --bg:#f6fbff; --card:#fff; --ok:#16a34a; --low:#b45309; --high:#dc2626;
+  --okbg:#ecfdf5; --lowbg:#fff7ed; --highbg:#fee2e2;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.7 "Tajawal",system-ui,sans-serif}
+a{text-decoration:none;color:inherit}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.btn{border:none;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
+.btn.primary{background:var(--brand);color:#fff}
+.btn.gray{background:#eef2f7}
+.btn.green{background:#10b981;color:#fff}
+.btn.orange{background:#f97316;color:#fff}
+.note{color:var(--muted);font-size:13px}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:10px 14px;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;position:sticky;top:0;z-index:10}
+.topbar .btn{background:#ffffff22;border:1px solid #ffffff66;color:#fff}
+
+.container{max-width:1200px;margin:auto;padding:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 6px 24px rgba(0,0,0,.04);margin-bottom:12px}
+
+.kid-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.kid{display:flex;align-items:center;gap:12px}
+.avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.kid .name{font-weight:800}
+.badge{display:inline-block;background:#eef6ff;color:#0369a1;border-radius:999px;padding:6px 10px;font-weight:800}
+
+.controls .grid{display:grid;gap:10px;grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:980px){.controls .grid{grid-template-columns:1fr 1fr}}
+input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+
+.kpis{display:grid;gap:10px;grid-template-columns:repeat(6,minmax(0,1fr))}
+.kpi{background:#f0f9ff;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.kpi .t{font-size:12px;color:var(--muted)}
+.kpi .v{font-weight:800}
+
+.table-wrap{overflow:auto}
+.table{width:100%;border-collapse:separate;border-spacing:0;direction:rtl}
+.table th,.table td{border:1px solid var(--line);padding:6px;vertical-align:top;text-align:right}
+.table thead th{background:#f8fafc;font-weight:800;text-align:center}
+.table .date-head{font-weight:800}
+.table .date-sub{font-size:12px;color:var(--muted)}
+.table .slot{background:#fbfdff;font-weight:800;white-space:nowrap;position:sticky;right:0;z-index:2}
+.table tbody td.slot{background:#fbfdff}
+.cell{display:flex;flex-direction:column;gap:2px}
+.line{font-size:12px}
+.measure{font-weight:800}
+.state.ok{color:var(--ok)}
+.state.low{color:var(--low)}
+.state.high{color:var(--high)}
+.dim{color:var(--muted)}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+
+.loader{display:none;position:fixed;inset:0;background:rgba(255,255,255,.6);z-index:9999;align-items:center;justify-content:center}
+.loader .dot{width:10px;height:10px;border-radius:50%;margin:0 4px;background:#0ea5e9;animation:b .9s infinite alternate}
+.loader .dot:nth-child(2){animation-delay:.15s}.loader .dot:nth-child(3){animation-delay:.3s}
+@keyframes b{to{transform:translateY(-6px);background:#06b6d4}}
+.toast{position:fixed;bottom:16px;left:16px;background:#111;color:#fff;padding:10px 14px;border-radius:10px;opacity:0;transform:translateY(8px);transition:.3s;z-index:99999}
+.toast.show{opacity:1;transform:none}
+
+/* طباعة PDF — أسبوع واحد في صفحة */
+@media print{
+  @page{ size: A4 portrait; margin: 8mm }
+  body{background:#fff}
+  header,.no-print{display:none!important}
+  .card{border:0;box-shadow:none;padding:0;margin:0}
+  .table th,.table td{padding:4px}
+  .line{font-size:11px}
+  .kpi .t{font-size:10px}
+  .kpi .v{font-size:12px}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="row">
+    <a class="btn" href="dashboard.html">لوحة وليّ الأمر</a>
+    <a class="btn" id="backChild" href="#">رجوع للطفل</a>
+  </div>
+  <div class="row">تقارير القياسات</div>
+</header>
+
+<main class="container">
+  <!-- رأس الطفل -->
+  <section class="card kid-head">
+    <div class="kid">
+      <img id="kidAvatar" class="avatar" src="images/avatar-default.png" alt="صورة الطفل">
+      <div>
+        <div class="name" id="kidName">—</div>
+        <div class="note" id="kidMeta">—</div>
+      </div>
+    </div>
+    <span class="badge" id="unitBadge">الوحدة: mmol/L</span>
+  </section>
+
+  <!-- فلاتر -->
+  <section class="card controls">
+    <div class="grid">
+      <div>
+        <label class="note">من</label>
+        <input id="from" type="date">
+      </div>
+      <div>
+        <label class="note">إلى</label>
+        <input id="to" type="date">
+      </div>
+      <div>
+        <label class="note">فترة جاهزة</label>
+        <select id="rangeSel">
+          <option value="7">أسبوع (7 أيام)</option>
+          <option value="14">أسبوعان (14 يوم)</option>
+          <option value="30">شهر (30 يوم)</option>
+        </select>
+      </div>
+      <div class="tools">
+        <button class="btn primary" id="btnRun">عرض التقرير</button>
+        <button class="btn gray no-print" id="btnWeekPrint">🖨️ طباعة أسبوع</button>
+        <button class="btn gray no-print" id="btnBlank">📝 تقرير فارغ (7 أيام)</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- KPIs -->
+  <section class="card">
+    <div class="kpis">
+      <div class="kpi"><div class="t">إجمالي القراءات</div><div class="v" id="k_total">—</div></div>
+      <div class="kpi"><div class="t">منخفض</div><div class="v" id="k_low">—</div></div>
+      <div class="kpi"><div class="t">طبيعي</div><div class="v" id="k_ok">—</div></div>
+      <div class="kpi"><div class="t">مرتفع</div><div class="v" id="k_high">—</div></div>
+      <div class="kpi"><div class="t">% داخل النطاق</div><div class="v" id="k_tir">—%</div></div>
+      <div class="kpi"><div class="t">متوسط الفترة</div><div class="v" id="k_avg">—</div></div>
+    </div>
+  </section>
+
+  <!-- الجدول الأفقي -->
+  <section class="card">
+    <div id="meta" class="note" style="margin-bottom:8px">—</div>
+    <div class="table-wrap">
+      <table class="table" id="rep">
+        <!-- يُبنى برمجيًا -->
+      </table>
+    </div>
+  </section>
+</main>
+
+<!-- لودر وتوست -->
+<div id="loader" class="loader" aria-hidden="true"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+<div id="toast" class="toast"></div>
+
+<script type="module">
+/* ===== Imports ===== */
+import { db, auth } from './firebase-init.js';
+import {
+  collection, query, where, orderBy, getDocs, doc, getDoc
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+/* ===== Helpers ===== */
+const $=s=>document.querySelector(s);
+const slotsOrder = [
+  'uponWake','preBreakfast','postBreakfast','preLunch','postLunch',
+  'preDinner','postDinner','beforeSleep','duringSleep','beforeExercise',
+  'afterExercise','random','other'
+];
+const slotLabels = {
+  uponWake:'الاستيقاظ',
+  preBreakfast:'قبل الإفطار', postBreakfast:'بعد الإفطار',
+  preLunch:'قبل الغداء',      postLunch:'بعد الغداء',
+  preDinner:'قبل العشاء',     postDinner:'بعد العشاء',
+  beforeSleep:'قبل النوم',    duringSleep:'أثناء النوم',
+  beforeExercise:'قبل التمرين', afterExercise:'بعد التمرين',
+  random:'قياس عشوائي', other:'أخرى'
+};
+const ONE_DAY=86400000;
+
+function showLoader(on=true){ const x=$('#loader'); if(!x) return; x.style.display=on?'flex':'none'; }
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
+function iso(d){ const z=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate()); }
+function fmtDMY(isoStr){ const [y,m,d]=isoStr.split('-'); return `${d}/${m}/${y}`; }
+function round1(n){ return Math.round(Number(n)*10)/10; }
+function stateBy(v, lo, hi){ if(v==null||isNaN(v)) return 'ok'; if(isFinite(lo)&&v<lo) return 'low'; if(isFinite(hi)&&v>hi) return 'high'; return 'ok'; }
+function escapeHTML(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* نافذة زمنية لكل توقيت لمطابقة الوجبات (±90 د) */
+const slotWindows = {
+  preBreakfast:   [6,  9], postBreakfast:[7, 10],
+  preLunch:       [11,14], postLunch:    [12,15],
+  preDinner:      [17,20], postDinner:   [18,21],
+  uponWake:       [5,  9], beforeSleep:  [21,24],
+  duringSleep:    [0,  5], beforeExercise:[0,24], afterExercise:[0,24],
+  random:         [0, 24], other:[0,24]
+};
+
+/* ===== Page State ===== */
+let uid=null, childId=null, child=null;
+
+/* ===== Auth & boot ===== */
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){ location.href='index.html'; return; }
+  uid=user.uid;
+  const params=new URLSearchParams(location.search);
+  childId=params.get('child');
+  if(!childId){ alert('لم يتم تحديد الطفل'); return; }
+  $('#backChild').href = `child-dashboard.html?child=${encodeURIComponent(childId)}`;
+  await loadChildMeta();
+  initDates();
+  await runReport();
+});
+
+/* ===== Load child meta ===== */
+async function loadChildMeta(){
+  showLoader(true);
+  try{
+    const snap=await getDoc(doc(db,'users',uid,'children',childId));
+    if(!snap.exists()){ alert('الطفل غير موجود'); return; }
+    child=snap.data();
+    $('#kidName').textContent = child.name || '—';
+    const ageTxt = child.birthDate ? ` • العمر تقريبًا: ${calcAge(child.birthDate)}` : '';
+    $('#kidMeta').textContent = `${child.gender||''} • ${child.weight??'—'}كجم • ${child.height??'—'}سم • حدود: ${child.lowThreshold??'—'}–${child.highThreshold??'—'}${ageTxt}`;
+    if(child.photoURL) $('#kidAvatar').src = child.photoURL;
+    $('#unitBadge').textContent = 'الوحدة: mmol/L';
+  }finally{
+    showLoader(false);
+  }
+}
+
+function calcAge(dIso){
+  const d=new Date(dIso); if(isNaN(d)) return '—';
+  const diff=Date.now()-d.getTime(); const y=diff/(365.25*ONE_DAY);
+  return Math.floor(y)+' س';
+}
+
+/* ===== Date controls ===== */
+function initDates(){
+  const today=new Date();
+  const from = new Date(today.getTime() - 6*ONE_DAY);
+  $('#from').value = iso(from);
+  $('#to').value   = iso(today);
+  $('#rangeSel').addEventListener('change', ()=>{
+    const days=Number($('#rangeSel').value)||7;
+    const t=new Date(); const f=new Date(t.getTime()-(days-1)*ONE_DAY);
+    $('#from').value=iso(f); $('#to').value=iso(t);
+  });
+  $('#btnRun').addEventListener('click', runReport);
+  $('#btnWeekPrint').addEventListener('click', ()=>window.print());
+  $('#btnBlank').addEventListener('click', buildBlank7);
+}
+
+/* ===== Fetch & build ===== */
+async function runReport(){
+  const from=$('#from').value, to=$('#to').value;
+  if(!from||!to){ alert('حددي الفترة'); return; }
+  showLoader(true);
+  try{
+    $('#meta').textContent = `الفترة: ${from} → ${to} • الوحدة: mmol/L`;
+    const dates = enumerateDates(from,to);
+    // قياسات
+    const readSnaps = await Promise.all(dates.map(d=>getDoc(doc(db,'users',uid,'children',childId,'measurements',d))));
+    const byDate = Object.create(null);
+    dates.forEach((d,i)=>{ byDate[d] = readSnaps[i].data() || {date:d, readings:{}}; });
+
+    // وجبات (لأيقونة 🍽️)
+    const mealsMap = await fetchMealsMap(from,to);
+
+    buildTableHorizontal(dates, byDate, mealsMap);
+    updateKPIs(byDate);
+  }catch(e){
+    console.error(e); toast('تعذّر تحميل التقرير');
+  }finally{
+    showLoader(false);
+  }
+}
+
+function enumerateDates(from,to){
+  const out=[]; let d=new Date(from); const end=new Date(to);
+  while(d<=end){ out.push(iso(d)); d=new Date(d.getTime()+ONE_DAY); }
+  return out;
+}
+
+/* نبني جدول: صف العناوين = (عمود ثابت للتوقيتات) + الأعمدة = الأيام.
+   كل صف لاحق يمثل توقيت واحد، وكل خلية هي (يوم × توقيت). */
+function buildTableHorizontal(dates, byDate, mealsMap){
+  const tbl=$('#rep'); tbl.innerHTML='';
+  const thead=document.createElement('thead');
+  const htr=document.createElement('tr');
+
+  // رأس عمود التوقيتات (أقصى يسار بصريًا، لكنه أول TH)
+  const thSlot=document.createElement('th');
+  thSlot.className='slot';
+  thSlot.textContent='اليوم / التوقيت';
+  htr.appendChild(thSlot);
+
+  // تواريخ كرؤوس أعمدة
+  dates.forEach(d=>{
+    const th=document.createElement('th');
+    th.innerHTML = `
+      <div class="date-head">${fmtDMY(d)}</div>
+      <div class="date-sub dim"></div>
+    `;
+    htr.appendChild(th);
+  });
+  thead.appendChild(htr);
+  tbl.appendChild(thead);
+
+  // الجسم
+  const tbody=document.createElement('tbody');
+
+  // لكل توقيت صف
+  slotsOrder.forEach(slot=>{
+    const tr=document.createElement('tr');
+
+    // خلية عنوان التوقيت (ثابتة)
+    const tdSlot=document.createElement('td');
+    tdSlot.className='slot';
+    tdSlot.textContent = slotLabels[slot];
+    tr.appendChild(tdSlot);
+
+    // خلايا كل يوم لنفس التوقيت
+    dates.forEach(d=>{
+      const td=document.createElement('td');
+      const readings = (byDate[d].readings || {});
+      const r = readings[slot];
+
+      if(!r || (r.valueMmol==null && r.value==null)) {
+        td.innerHTML = `<div class="dim">—</div>`;
+      } else {
+        const v = round1(Number(r.valueMmol ?? r.value));
+        const lo = Number(child?.lowThreshold), hi = Number(child?.highThreshold);
+        const st = stateBy(v, lo, hi);
+        const icon = st==='low' ? '⬇️' : (st==='high'?'⬆️':'🟢');
+
+        // جرعات
+        const mealDose = r.mealDose!=null ? `💉 وجبة: ${r.mealDose}U` : '';
+        // لو في هبوط ومعاه رفع، نعرض الرفع
+        const corrDose = (st==='low' && r.raisedWith) ? `🍹 رفع: ${escapeHTML(r.raisedWith)}` :
+                         (r.correctionGiven!=null ? `🎯 تصحيح: ${r.correctionGiven}U` : '');
+
+        // ملاحظات + أيقونة وجبة 🍽️ لو فيه وجبة في نفس نافذة التوقيت
+        const hasMeal = hasMealForDateSlot(mealsMap, d, slot);
+        const notesIcon = hasMeal ? '🍽️' : '';
+        const noteTxt = r.note ? `📝 ${escapeHTML(r.note)}` : '';
+        const noteLine = (notesIcon || noteTxt) ? `${notesIcon}${noteTxt?(' '+noteTxt):''}` : '';
+
+        td.innerHTML = `
+          <div class="cell">
+            <div class="line measure state ${st}">${icon} ${v.toFixed(1)} mmol/L</div>
+            ${mealDose||corrDose ? `<div class="line dim">${mealDose}${mealDose&&corrDose?' • ':''}${corrDose}</div>` : ''}
+            ${noteLine ? `<div class="line dim">${noteLine}</div>` : ''}
+          </div>
+        `;
+      }
+
+      tr.appendChild(td);
+    });
+
+    tbody.appendChild(tr);
+  });
+
+  tbl.appendChild(tbody);
+}
+
+/* KPIs للفترة */
+function updateKPIs(byDate){
+  let total=0, low=0, ok=0, high=0, sum=0;
+  for(const d in byDate){
+    const readings=byDate[d].readings||{};
+    slotsOrder.forEach(slot=>{
+      const r=readings[slot];
+      if(!r || (r.valueMmol==null && r.value==null)) return;
+      const v=round1(Number(r.valueMmol ?? r.value));
+      const st=stateBy(v, Number(child?.lowThreshold), Number(child?.highThreshold));
+      total++; sum+=v;
+      if(st==='low') low++; else if(st==='high') high++; else ok++;
+    });
+  }
+  $('#k_total').textContent=total;
+  $('#k_low').textContent=low;
+  $('#k_ok').textContent=ok;
+  $('#k_high').textContent=high;
+  $('#k_tir').textContent = total? Math.round((ok/total)*100)+'%' : '—%';
+  $('#k_avg').textContent = total? (sum/total).toFixed(1)+' mmol/L' : '—';
+}
+
+/* تقرير فارغ 7 أيام */
+function buildBlank7(){
+  const today=new Date();
+  const dates=Array.from({length:7},(_,i)=>iso(new Date(today.getTime()+i*ONE_DAY)));
+  const fake=Object.create(null);
+  dates.forEach(d=>fake[d]={readings:{}});
+  buildTableHorizontal(dates, fake, new Map());
+}
+
+/* ==== Meals mapping for 🍽️ ==== */
+/* هنجيب وجبات اليوم ونحطها في Map(date => [meals]) عشان نقدر نقرر
+   هل فيه وجبة في نافذة زمنية مناظرة للتوقيت */
+async function fetchMealsMap(from,to){
+  // ملحوظة: لو عدد الوجبات كبير، ممكن نرشّح بـ where على time، بس مخزنة local-ISO؛ هنفلتر يدويًا.
+  const mealsCol = collection(db,'users',uid,'children',childId,'meals');
+  const qs = await getDocs(mealsCol);
+  const map = new Map(); // dateISO -> meals[]
+  qs.forEach(s=>{
+    const m=s.data();
+    const dt = m.time || ''; // "YYYY-MM-DDTHH:mm"
+    if(!dt || dt.length<10) return;
+    const date = dt.slice(0,10);
+    if(date<from || date>to) return;
+    if(!map.has(date)) map.set(date, []);
+    map.get(date).push(m);
+  });
+  return map;
+}
+
+function hasMealForDateSlot(mealsMap, dateISO, slot){
+  const arr = mealsMap.get(dateISO); if(!arr||!arr.length) return false;
+  // نافذة الساعات المسموح بيها للتوقيت
+  const w = slotWindows[slot] || [0,24];
+  // نقرأ الساعة من datetime-local
+  return arr.some(m=>{
+    const hh = parseInt((m.time||'T00:00').slice(11,13),10);
+    if(isNaN(hh)) return false;
+    // duringSleep (0-5) تعامل مع 0..5 طبيعيًا
+    const [a,b]=w;
+    return hh>=a && hh<b;
+  });
+}
+</script>
+</body>
+</html>

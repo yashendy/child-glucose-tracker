@@ -1,0 +1,44 @@
+<script type="module">
+// ✅ رأس موحد لكل صفحات الطفل
+
+// استيراد Firebase من ملف الإعدادات الموحد
+import { auth, db, storage, refs } from './firebase-init.js';
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+// جلب هوية المستخدم والطفل من الداشبورد
+let uid  = localStorage.getItem('currentUserId');
+let childId = localStorage.getItem('currentChildId');
+let childName = localStorage.getItem('currentChildName') || '';
+let childPhotoURL = localStorage.getItem('currentChildPhotoURL') || '';
+
+// Fallback: لو الصفحة اتفتحت مباشرة من رابط فيه child=
+if (!childId) {
+  const fromUrl = new URL(location.href).searchParams.get('child');
+  if (fromUrl) {
+    childId = fromUrl;
+    localStorage.setItem('currentChildId', childId);
+  }
+}
+
+// التأكد من تسجيل الدخول
+onAuthStateChanged(auth, (u)=>{
+  if(!u){ location.href='index.html'; return; }
+  if(!uid) uid = u.uid;
+  if(!uid || !childId){ location.href='child-dashboard.html'; return; }
+
+  // هنا ممكن نعرض بيانات الطفل في رأس الصفحة
+  const headerEl = document.querySelector('#childHeader');
+  if (headerEl) {
+    headerEl.innerHTML = `
+      <div class="child-info">
+        <img src="${childPhotoURL || 'images/avatar-default.png'}" 
+             alt="صورة الطفل" class="child-avatar">
+        <div>
+          <h2>${childName}</h2>
+          <small>كود الطفل: ${childId}</small>
+        </div>
+      </div>
+    `;
+  }
+
+  // … بقية منطق الصفحة الخاصة

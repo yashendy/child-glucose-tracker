@@ -1,560 +1,623 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>إدارة الأصناف — متابعة سكر الأطفال</title>
+<title>إدارة الأصناف الغذائية</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap">
 <style>
-  :root{
-    --brand:#0ea5e9; --brand2:#6ee7b7; --line:#e5e7eb; --ink:#0f172a;
-    --muted:#64748b; --bg:#f0fafd; --card:#fff; --ok:#10b981; --warn:#f59e0b; --bad:#ef4444;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "Tajawal",system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+:root{
+  --brand:#0ea5e9; --brand2:#6ee7b7; --line:#e5e7eb; --ink:#0f172a; --muted:#6b7280;
+  --bg:#f6fbff; --card:#fff; --ok:#16a34a; --warn:#b45309; --err:#dc2626;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "Tajawal",system-ui,sans-serif}
+a{text-decoration:none;color:inherit}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.btn{border:none;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
+.btn.primary{background:var(--brand);color:#fff}
+.btn.gray{background:#eef2f7}
+.btn.green{background:#10b981;color:#fff}
+.btn.orange{background:#f97316;color:#fff}
+.btn.red{background:#ef4444;color:#fff}
+.btn.blue{background:#3b82f6;color:#fff}
+.note{color:var(--muted);font-size:13px}
 
-  header{
-    position:sticky; top:0; z-index:10;
-    background:linear-gradient(90deg,var(--brand),var(--brand2));
-    color:#fff; padding:12px 16px; display:flex; align-items:center; justify-content:space-between;
-  }
-  .btn{border:none;border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer}
-  .btn.gray{background:#eef2f7}
-  .btn.primary{background:var(--brand);color:#fff}
-  .btn.ok{background:var(--ok);color:#fff}
-  .btn.warn{background:var(--warn);color:#fff}
-  .btn.bad{background:var(--bad);color:#fff}
-  .btn.ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5)}
-  .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#eef6ff;color:#0f172a;font-size:12px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:10px 14px;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;position:sticky;top:0;z-index:10}
+.topbar .btn{background:#ffffff22;border:1px solid #ffffff66;color:#fff}
 
-  .layout{display:grid; grid-template-columns: 300px 1fr 340px; gap:14px; padding:14px; max-width:1400px; margin:auto; width:100%}
-  @media (max-width:1100px){ .layout{grid-template-columns:1fr} }
+.container{max-width:1200px;margin:auto;padding:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 6px 24px rgba(0,0,0,.04);margin-bottom:12px}
 
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
-  .title{margin:0 0 10px;font-size:18px}
-  label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
-  input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
-  textarea{min-height:90px;resize:vertical}
-  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .grid{display:grid;gap:10px}
-  .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .list{max-height:calc(100vh - 190px);overflow:auto}
-  .list-item{padding:10px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:#fff;cursor:pointer;display:flex;justify-content:space-between;gap:8px}
-  .list-item:hover{background:#f7fbff}
-  .active{outline:2px solid var(--brand)}
-  .muted{color:var(--muted)}
-  .danger{color:var(--bad)}
-  .note{color:var(--muted);font-size:13px}
-  .banner{padding:10px;border-radius:12px;margin-bottom:10px}
-  .banner.warn{background:#fff7ed;border:1px solid #fed7aa}
-  .banner.ok{background:#ecfdf5;border:1px solid #bbf7d0}
-  .divider{height:1px;background:var(--line);margin:10px 0}
+.layout{display:grid;grid-template-columns:260px 1fr;gap:14px}
+@media(max-width:980px){.layout{grid-template-columns:1fr}}
 
-  .serving-row{display:grid;grid-template-columns: 1fr 120px 40px; gap:8px; align-items:center}
-  .serving-row .del{background:#eef2f7;border:none;border-radius:10px;height:40px;cursor:pointer}
+.sidebar{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px}
+.cat-btn{width:100%;text-align:right;border:1px solid var(--line);background:#fff;padding:10px;border-radius:10px;margin:6px 0;cursor:pointer;font-weight:800}
+.cat-btn.active,.cat-btn:hover{background:#e6f7ff;border-color:#b3e5ff}
+.badge{display:inline-block;background:#eef6ff;color:#0369a1;border-radius:999px;padding:4px 8px;font-weight:800;font-size:12px}
+.badge.ok{background:#ecfdf5;color:#16a34a}
+.badge.warn{background:#fff7ed;color:#b45309}
+.badge.err{background:#fee2e2;color:#dc2626}
 
-  .preview-card{text-align:center}
-  .preview-img{width:120px;height:120px;object-fit:contain;border-radius:12px;background:#f8fafc;margin:auto}
-  .preview-name{font-weight:800;margin:8px 0 2px}
-  .chip{display:inline-block;background:#f1f5f9;color:#0f172a;border-radius:999px;padding:4px 8px;font-size:12px}
+.searchbar{display:flex;gap:8px}
+.searchbar input{flex:1;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
 
-  .toast{position:fixed;bottom:16px;left:16px;background:#111;color:#fff;padding:10px 14px;border-radius:12px;opacity:0;transform:translateY(6px);transition:.25s}
-  .toast.show{opacity:1;transform:none}
+.table{width:100%;border-collapse:separate;border-spacing:0}
+.table th,.table td{border:1px solid var(--line);padding:8px;text-align:right;vertical-align:top}
+.table thead th{background:#f0f9ff;font-weight:800}
+.center{text-align:center}
+
+.form-grid{display:grid;gap:10px;grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:900px){.form-grid{grid-template-columns:1fr}}
+input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+textarea{resize:vertical}
+
+.units{display:flex;flex-direction:column;gap:8px}
+.unit-row{display:grid;grid-template-columns:1.5fr 1fr auto;gap:8px}
+.unit-row input{width:100%}
+.unit-row .rm{background:#f1f5f9;border:1px solid var(--line);border-radius:10px;padding:0 10px;cursor:pointer}
+
+.preview{max-height:360px;overflow:auto;border:1px dashed var(--line);border-radius:10px;padding:8px;background:#fcfeff}
+
+.loader{display:none;position:fixed;inset:0;background:rgba(255,255,255,.6);z-index:9999;align-items:center;justify-content:center}
+.loader .dot{width:10px;height:10px;border-radius:50%;margin:0 4px;background:#0ea5e9;animation:b .9s infinite alternate}
+.loader .dot:nth-child(2){animation-delay:.15s}.loader .dot:nth-child(3){animation-delay:.3s}
+@keyframes b{to{transform:translateY(-6px);background:#06b6d4}}
+.toast{position:fixed;bottom:16px;left:16px;background:#111;color:#fff;padding:10px 14px;border-radius:10px;opacity:0;transform:translateY(8px);transition:.3s;z-index:99999}
+.toast.show{opacity:1;transform:none}
+
+.small{font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
-
-<header>
+<header class="topbar">
   <div class="row">
-    <div style="font-weight:800">🗂️ إدارة الأصناف</div>
-    <span class="pill" id="userHint">وضع المستخدم</span>
+    <a class="btn" href="dashboard.html">لوحة وليّ الأمر</a>
+    <a class="btn" href="child-meals.html">رجوع للوجبات</a>
   </div>
-  <div class="row">
-    <a href="child-dashboard.html" class="btn ghost">لوحة الطفل</a>
-  </div>
+  <div class="row">إدارة الأصناف الغذائية</div>
 </header>
 
-<div class="layout">
-  <!-- العمود 1: بحث + تصنيفات + قائمة أصناف -->
-  <aside class="card">
-    <h3 class="title">بحث وتصنيفات</h3>
-    <div class="row">
-      <input id="search" placeholder="ابحث بالاسم أو الوسم...">
-      <button id="btnNew" class="btn primary">➕ صنف جديد</button>
-    </div>
-    <div class="divider"></div>
+<main class="container">
+  <div class="row searchbar card">
+    <input id="q" placeholder="ابحث بالاسم أو التصنيف أو نوع الوحدة…">
+    <button id="btnAdd" class="btn green">➕ إضافة صنف</button>
+    <input id="fileXLSX" type="file" accept=".xlsx,.xls" hidden>
+    <button id="btnImport" class="btn orange">📥 استيراد Excel</button>
+    <span id="resultCount" class="badge">— نتائج</span>
+  </div>
 
-    <div class="row" id="cats" style="flex-wrap:wrap; gap:6px"></div>
+  <div class="layout">
+    <!-- Sidebar: Categories -->
+    <aside class="sidebar">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <b>التصنيفات</b>
+        <span id="catTotal" class="badge">—</span>
+      </div>
+      <div id="cats"></div>
+    </aside>
 
-    <div class="divider"></div>
-    <div class="list" id="foodsList">
-      <div class="note">جاري التحميل...</div>
-    </div>
-  </aside>
+    <!-- Main -->
+    <section>
+      <!-- قائمة الأصناف الحالية -->
+      <section class="card">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <h3 style="margin:0">📋 الأصناف الحالية</h3>
+          <div class="small">يتم تحميلها من Firestore: <b>foods</b></div>
+        </div>
+        <div style="overflow:auto">
+          <table class="table" id="tblFoods">
+            <thead>
+              <tr>
+                <th style="min-width:180px">الاسم</th>
+                <th>التصنيف</th>
+                <th>كارب/100جم</th>
+                <th style="min-width:180px">الوحدات</th>
+                <th>صورة</th>
+                <th>حالة</th>
+              </tr>
+            </thead>
+            <tbody id="foodsBody"><tr><td colspan="6" class="center note">جاري التحميل…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
 
-  <!-- العمود 2: نموذج الصنف -->
-  <section class="card">
-    <h3 class="title">نموذج الصنف</h3>
+      <!-- إضافة/تعديل صنف يدوي -->
+      <section class="card">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <h3 style="margin:0">➕ إضافة صنف يدويًا</h3>
+          <div class="small">الحقول الإلزامية: الاسم، التصنيف، كارب/100جم</div>
+        </div>
 
-    <div id="legacyBanner" class="banner warn" style="display:none">
-      <div><strong>⚠️ هذا الصنف بصيغة قديمة</strong> — يمكنك تحويله لصيغة المقاييس المنزلية الجديدة.</div>
-      <div class="note">لو كان <code>gramsPerServing</code> نسبة من 100جم (مثلاً 0.3 ⇒ 30جم) سيتم حسابها تلقائيًا.</div>
-      <div class="row" style="margin-top:6px">
-        <button id="btnConvertLegacy" class="btn warn">حوّل الآن</button>
-      </div>
-    </div>
+        <div class="form-grid">
+          <div>
+            <label>الاسم *</label>
+            <input id="fName" placeholder="مثال: زبادي قليل الدسم">
+          </div>
+          <div>
+            <label>التصنيف *</label>
+            <input id="fCategory" list="catsList" placeholder="ألبان / بقوليات / فواكه…">
+            <datalist id="catsList"></datalist>
+          </div>
+          <div>
+            <label>كارب/100جم *</label>
+            <input id="fCarbs" type="number" min="0" step="0.1" placeholder="مثال: 4.7">
+          </div>
 
-    <div class="grid g2">
-      <div>
-        <label>اسم الصنف</label>
-        <input id="fName" placeholder="مثال: الأرز الأبيض (مطبوخ)">
-      </div>
-      <div>
-        <label>التصنيف</label>
-        <input id="fCategory" placeholder="مثال: الحبوب والنشويات">
-      </div>
-      <div>
-        <label>كارب لكل 100 جم</label>
-        <input id="fCarbs100" type="number" step="0.1" placeholder="مثال: 30">
-      </div>
-      <div>
-        <label>رابط صورة (اختياري)</label>
-        <input id="fImage" placeholder="https://...">
-      </div>
-      <div style="grid-column:1/-1">
-        <label>وسوم (افصل بينها بمسافة)</label>
-        <input id="fTags" placeholder="أرز غداء نشاء">
-      </div>
-    </div>
+          <div>
+            <label>صورة (رابط اختياري)</label>
+            <input id="fImg" placeholder="https://…">
+          </div>
+          <div>
+            <label>ملاحظات (اختياري)</label>
+            <input id="fNotes" placeholder="—">
+          </div>
+          <div class="row" style="align-items:flex-end">
+            <button id="btnQuickUnits" class="btn gray" type="button">⚡ قوالب وحدات شائعة</button>
+          </div>
+        </div>
 
-    <div class="divider"></div>
-    <h4 style="margin:6px 0">المقاييس المنزلية (servings)</h4>
-    <div id="servingsWrap"></div>
-    <div class="row" style="margin-top:8px">
-      <button id="btnAddServing" class="btn gray">➕ إضافة مقياس</button>
-    </div>
+        <div class="units" id="unitsBox" style="margin-top:10px">
+          <div class="row" style="justify-content:space-between;align-items:center">
+            <b>وحدات التقديم</b>
+            <button id="btnAddUnit" class="btn gray" type="button">➕ إضافة وحدة</button>
+          </div>
+          <!-- صف افتراضي -->
+          <div class="unit-row">
+            <input class="uName" placeholder="مثال: جرام / كوب / ملعقة / حبة">
+            <input class="uGrams" type="number" min="0" step="0.1" placeholder="جرام">
+            <button class="rm">🗑️</button>
+          </div>
+        </div>
 
-    <div class="divider"></div>
-    <div class="grid g2">
-      <div>
-        <label>الحالة</label>
-        <select id="fStatus">
-          <option value="approved">Approved (ظاهر للجميع)</option>
-          <option value="pending">Pending (مراجعة)</option>
-        </select>
-      </div>
-      <div>
-        <label>الظهور</label>
-        <select id="fVisible">
-          <option value="true">ظاهر</option>
-          <option value="false">مخفي</option>
-        </select>
-      </div>
-    </div>
+        <div class="row" style="justify-content:flex-end;margin-top:10px">
+          <button id="btnSaveFood" class="btn primary">💾 حفظ الصنف</button>
+        </div>
+      </section>
 
-    <div class="row" style="margin-top:10px">
-      <button id="btnSave" class="btn ok">💾 حفظ</button>
-      <button id="btnClone" class="btn gray">🧬 استنساخ</button>
-      <button id="btnDelete" class="btn bad">🗑️ حذف</button>
-      <span id="docMeta" class="note" style="margin-inline-start:auto"></span>
-    </div>
-  </section>
+      <!-- معاينة الاستيراد -->
+      <section class="card" id="importBox" style="display:none">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <h3 style="margin:0">📥 معاينة الاستيراد من Excel</h3>
+          <div class="row">
+            <button id="btnCommitImport" class="btn blue">✅ حفظ الصالح فقط</button>
+            <button id="btnCancelImport" class="btn gray">إلغاء</button>
+          </div>
+        </div>
+        <div class="note" style="margin-bottom:8px">
+          الأعمدة المطلوبة بالترتيب: <b>name*</b>, <b>category*</b>, <b>carbsPer100g*</b>, unit1, grams1, unit2, grams2, unit3, grams3, imageUrl, isActive, notes
+        </div>
+        <div class="row" style="gap:12px;margin-bottom:6px">
+          <span class="badge ok"   id="impOk">صالح: 0</span>
+          <span class="badge warn" id="impWarn">تحذير: 0</span>
+          <span class="badge err"  id="impErr">أخطاء: 0</span>
+          <span class="badge"      id="impTotal">الإجمالي: 0</span>
+        </div>
+        <div class="preview">
+          <table class="table" id="tblImport">
+            <thead>
+              <tr>
+                <th>#</th><th>الحالة</th><th>الاسم</th><th>التصنيف</th><th>كارب/100جم</th>
+                <th>الوحدات</th><th>صورة</th><th>Active</th><th>ملاحظات</th>
+              </tr>
+            </thead>
+            <tbody id="impBody"><tr><td colspan="9" class="center note">ارفعي ملف Excel لعرض المعاينة.</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </div>
+</main>
 
-  <!-- العمود 3: المعاينة والآلة الحاسبة -->
-  <aside class="card">
-    <h3 class="title">معاينة + اختبار الكارب</h3>
-
-    <div class="preview-card">
-      <img id="prevImg" class="preview-img" alt="">
-      <div id="prevName" class="preview-name">—</div>
-      <div id="prevCat" class="note">—</div>
-      <div style="margin-top:6px">
-        <span id="prevChip" class="chip">كارب/100جم: —</span>
-      </div>
-    </div>
-
-    <div class="divider"></div>
-    <h4 style="margin:6px 0">اختبار سريع</h4>
-    <div class="grid">
-      <div>
-        <label>وضع الإدخال</label>
-        <select id="calcMode">
-          <option value="grams">جرامات</option>
-          <option value="serving">مقياس منزلي</option>
-        </select>
-      </div>
-      <div id="calcGramsBlock">
-        <label>كمية (جم)</label>
-        <input id="calcGrams" type="number" step="1" placeholder="مثال: 150">
-      </div>
-      <div id="calcServingBlock" style="display:none">
-        <label>اختر المقياس</label>
-        <select id="calcServing"></select>
-        <label style="margin-top:6px">عدد الحصص</label>
-        <input id="calcCount" type="number" step="0.5" value="1">
-      </div>
-      <div>
-        <label>الكارب المحسوب</label>
-        <input id="calcCarbs" readonly>
-      </div>
-    </div>
-    <div class="note" style="margin-top:8px">الحساب: (الجرامات × كارب/100) ÷ 100</div>
-  </aside>
-</div>
-
+<!-- Overlays -->
+<div id="loader" class="loader" aria-hidden="true"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
 <div id="toast" class="toast"></div>
 
+<!-- XLSX -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha512-VQqX2JH0Qm8O1G3ZxB9v3rEJmW7i3o3wqz5kSo7x2qXrWvQbI2nqJpHkAOlzqOuqLhVqLkC5q7hF9r0Xxw0jTQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
 <script type="module">
-  import { db, auth } from './firebase-init.js';
-  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-  import {
-    collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc,
-    serverTimestamp, query, orderBy, where, limit, startAfter
-  } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+/* ===== Firebase init ===== */
+import { app, db, auth } from './firebase-init.js';
+import {
+  collection, getDocs, addDoc, writeBatch, doc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
-  // ======== DOM helpers ========
-  const $  = (s)=>document.querySelector(s);
-  const $$ = (s)=>[...document.querySelectorAll(s)];
-  const toastEl = $('#toast');
-  const showToast = (m)=>{ toastEl.textContent=m; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'),2000); };
+/* ===== Helpers (UI) ===== */
+const $=s=>document.querySelector(s);
+function toast(msg, ms=2200){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),ms); }
+function loading(on=true){ const l=$("#loader"); l.style.display=on?'flex':'none'; l.setAttribute('aria-hidden', on?'false':'true'); }
+function toFixed1(n){ const v=Math.round(Number(n)*10)/10; return Number.isFinite(v)? v.toFixed(1):''; }
 
-  const foodsList = $('#foodsList');
-  const catsWrap  = $('#cats');
-  const searchIn  = $('#search');
-  const userHint  = $('#userHint');
+/* تطبيع عربي للبحث (يزيل التشكيل ويفرّغ الهمزات) */
+function normalizeArabic(s){
+  if(!s) return '';
+  return s.toString().toLowerCase()
+   .normalize("NFKD")
+   .replace(/[ًٌٍَُِّْـ]/g,'')       // تشكيل
+   .replace(/[إأآ]/g,'ا')            // همزات
+   .replace(/ى/g,'ي').replace(/ؤ/g,'و').replace(/ئ/g,'ي')
+   .replace(/\s+/g,' ').trim();
+}
 
-  // Form els
-  const fName  = $('#fName'), fCategory=$('#fCategory'), fCarbs100=$('#fCarbs100'), fImage=$('#fImage'), fTags=$('#fTags');
-  const fStatus= $('#fStatus'), fVisible=$('#fVisible'), servingsWrap = $('#servingsWrap');
-  const legacyBanner = $('#legacyBanner'), btnConvertLegacy = $('#btnConvertLegacy');
+/* ===== State ===== */
+let UID=null;
+let foodsAll=[];     // كافة الأصناف من Firestore
+let filtered=[];     // ناتج البحث/التصنيف
+let currentCat='*';  // التصنيف المختار في الشريط الجانبي
+let importRows=[];   // نتائج قراءة الإكسل (مع حالة التحقق)
 
-  // Preview/Calc
-  const prevImg = $('#prevImg'), prevName=$('#prevName'), prevCat=$('#prevCat'), prevChip=$('#prevChip');
-  const calcMode=$('#calcMode'), calcGramsBlock=$('#calcGramsBlock'), calcServingBlock=$('#calcServingBlock');
-  const calcGrams=$('#calcGrams'), calcServing=$('#calcServing'), calcCount=$('#calcCount'), calcCarbs=$('#calcCarbs');
+/* ===== Auth ===== */
+onAuthStateChanged(auth, (u)=>{
+  if(!u){ location.href='index.html'; return; }
+  UID=u.uid;
+  initPage();
+});
 
-  const btnNew   = $('#btnNew');
-  const btnSave  = $('#btnSave');
-  const btnDelete= $('#btnDelete');
-  const btnClone = $('#btnClone');
-  const docMeta  = $('#docMeta');
+/* ===== Init ===== */
+async function initPage(){
+  bindUI();
+  await loadFoods();
+  buildCats();
+  renderFoods();
+  fillCatsDatalist();
+}
 
-  // ======== State ========
-  let uid = null;
-  let items = [];          // loaded foods
-  let filtered = [];       // filtered list
-  let activeId = null;     // current editing doc id (null = new)
-  let activeDoc = null;    // last loaded doc data (for legacy conv)
+/* ===== Bind UI ===== */
+function bindUI(){
+  $("#btnAdd").addEventListener("click", ()=>{ document.getElementById('fName').focus(); window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}); });
+  $("#btnImport").addEventListener("click", ()=>$("#fileXLSX").click());
+  $("#fileXLSX").addEventListener("change", onPickExcel);
+  $("#q").addEventListener("input", debounce(renderFoods, 250));
+  $("#btnSaveFood").addEventListener("click", saveFood);
+  $("#btnAddUnit").addEventListener("click", addUnitRow);
+  $("#btnQuickUnits").addEventListener("click", quickUnits);
 
-  // ======== Auth check ========
-  onAuthStateChanged(auth, async (user)=>{
-    if(!user){ location.href='index.html'; return; }
-    uid = user.uid;
-    userHint.textContent = 'وضع المستخدم (مؤقتًا)';
-    await loadFoods();
+  $("#btnCommitImport").addEventListener("click", commitImport);
+  $("#btnCancelImport").addEventListener("click", ()=>{
+    importRows=[]; $("#impBody").innerHTML='<tr><td colspan="9" class="center note">تم إلغاء المعاينة.</td></tr>';
+    $("#importBox").style.display='none';
   });
 
-  // ======== Load foods & build dynamic categories ========
-  async function loadFoods(){
-    foodsList.innerHTML = '<div class="note">جاري التحميل...</div>';
-    items = [];
-    // مبدئياً نحمل أول 500 صنف مرتبين بالتصنيف ثم الاسم
-    const q1 = query(collection(db,'foods'), orderBy('category'), orderBy('name'), limit(500));
-    const snap = await getDocs(q1);
-    snap.forEach(d => items.push({id:d.id, ...d.data()}));
-    buildCats();
-    renderList();
+  // إزالة صف وحدة
+  $("#unitsBox").addEventListener("click",(e)=>{
+    if(e.target.classList.contains('rm')){
+      const rows=[...document.querySelectorAll('.unit-row')];
+      if(rows.length<=1){ // اترك صف واحد على الأقل
+        rows[0].querySelector('.uName').value='';
+        rows[0].querySelector('.uGrams').value='';
+      }else{
+        e.target.closest('.unit-row').remove();
+      }
+    }
+  });
+}
+
+/* ===== Load + Render foods ===== */
+async function loadFoods(){
+  loading(true);
+  foodsAll=[];
+  const qs=await getDocs(collection(db,'foods'));
+  qs.forEach(s=>{
+    const d=s.data();
+    foodsAll.push({
+      id:s.id,
+      name:d.name||'بدون اسم',
+      category:d.category||'أخرى',
+      carbsPer100g:Number(d.carbsPer100g)||0,
+      imageUrl:d.imageUrl||'',
+      servingUnits:Array.isArray(d.servingUnits)? d.servingUnits:[],
+      isActive:(d.isActive===false? false:true),
+      _norm: normalizeArabic((d.name||'')+' '+(d.category||'')+' '+(d.servingUnits||[]).map(u=>u.unit).join(' '))
+    });
+  });
+  loading(false);
+}
+
+function buildCats(){
+  const set=new Set(['*']);
+  foodsAll.forEach(f=>set.add(f.category||'أخرى'));
+  $("#catTotal").textContent = foodsAll.length+' عنصر';
+  const C=$("#cats"); C.innerHTML='';
+  [...set].forEach(cat=>{
+    const b=document.createElement('button');
+    b.className='cat-btn'+(cat===currentCat?' active':'');
+    b.textContent=(cat==='*'?'كل الأصناف':cat);
+    b.addEventListener('click',()=>{
+      currentCat=cat;
+      [...C.querySelectorAll('.cat-btn')].forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      renderFoods();
+    });
+    C.appendChild(b);
+  });
+}
+
+function renderFoods(){
+  const q=normalizeArabic($("#q").value);
+  filtered=foodsAll.filter(f=>{
+    const byCat=(currentCat==='*' || f.category===currentCat);
+    const byText= !q || f._norm.includes(q);
+    return byCat && byText;
+  });
+  $("#resultCount").textContent = filtered.length+' نتائج';
+
+  const TB=$("#foodsBody");
+  if(!filtered.length){
+    TB.innerHTML='<tr><td colspan="6" class="center note">لا توجد أصناف مطابقة.</td></tr>';
+    return;
+  }
+  TB.innerHTML = filtered.map(f=>{
+    const units = (f.servingUnits||[]).map(u=>`${u.unit} (${toFixed1(u.grams||0)}جم)`).join(' • ') || '—';
+    const img = f.imageUrl ? `<img src="${escapeHtml(f.imageUrl)}" alt="" style="width:36px;height:36px;object-fit:cover;border-radius:8px;border:1px solid var(--line)">` : '—';
+    const st  = f.isActive ? '<span class="badge ok">نشط</span>' : '<span class="badge warn">معلق</span>';
+    return `<tr>
+      <td><b>${escapeHtml(f.name)}</b></td>
+      <td>${escapeHtml(f.category||'—')}</td>
+      <td>${toFixed1(f.carbsPer100g)}</td>
+      <td>${units}</td>
+      <td>${img}</td>
+      <td>${st}</td>
+    </tr>`;
+  }).join('');
+}
+
+function fillCatsDatalist(){
+  const D=$("#catsList"); D.innerHTML='';
+  const uniq=Array.from(new Set(foodsAll.map(f=>f.category||'أخرى'))).sort();
+  uniq.forEach(c=>{
+    const o=document.createElement('option'); o.value=c; D.appendChild(o);
+  });
+}
+
+/* ===== Add Food manually ===== */
+function addUnitRow(){
+  const row=document.createElement('div');
+  row.className='unit-row';
+  row.innerHTML=`
+    <input class="uName" placeholder="مثال: كوب / ملعقة كبيرة / حبة">
+    <input class="uGrams" type="number" min="0" step="0.1" placeholder="جرام">
+    <button class="rm">🗑️</button>`;
+  $("#unitsBox").appendChild(row);
+}
+function quickUnits(){
+  const box=$("#unitsBox");
+  box.innerHTML='';
+  [
+    {unit:'جرام', grams:100},
+    {unit:'كوب', grams:240},
+    {unit:'ملعقة كبيرة', grams:15}
+  ].forEach(u=>{
+    const row=document.createElement('div');
+    row.className='unit-row';
+    row.innerHTML=`
+      <input class="uName" value="${u.unit}">
+      <input class="uGrams" type="number" min="0" step="0.1" value="${u.grams}">
+      <button class="rm">🗑️</button>`;
+    box.appendChild(row);
+  });
+}
+function collectUnits(){
+  const rows=[...document.querySelectorAll('.unit-row')];
+  const arr=[];
+  rows.forEach(r=>{
+    const name=r.querySelector('.uName').value.trim();
+    const grams=Number(r.querySelector('.uGrams').value);
+    if(name==='' && !Number.isFinite(grams)) return;
+    if(name!=='' && Number.isFinite(grams) && grams>=0){
+      arr.push({unit:name, grams:+(Math.round(grams*10)/10)});
+    }
+  });
+  return arr;
+}
+async function saveFood(){
+  const name=$("#fName").value.trim();
+  const category=$("#fCategory").value.trim();
+  const carbs=Number($("#fCarbs").value);
+  const imageUrl=$("#fImg").value.trim();
+  const notes=$("#fNotes").value.trim() || null;
+  const units=collectUnits();
+
+  if(!name || !category || !Number.isFinite(carbs) || carbs<0){
+    toast('⚠️ تأكدي من: الاسم + التصنيف + كارب/100جم'); return;
+  }
+  if(!units.length){
+    // على الأقل وحدة واحدة (نضيف جرام 100 تلقائيًا)
+    units.push({unit:'جرام', grams:100});
   }
 
-  function buildCats(){
-    const set = new Set();
-    items.forEach(x=>{ if(x.category) set.add(x.category) });
-    const cats = ['الكل', ...[...set].sort((a,b)=>a.localeCompare(b,'ar'))];
-    catsWrap.innerHTML = '';
-    cats.forEach(c=>{
-      const b = document.createElement('button');
-      b.className = 'btn gray';
-      b.textContent = c;
-      b.dataset.cat = c;
-      b.addEventListener('click', ()=>{
-        $$('#cats .btn').forEach(x=>x.classList.remove('primary'));
-        b.classList.add('primary');
-        renderList();
+  loading(true);
+  try{
+    await addDoc(collection(db,'foods'),{
+      name, category, carbsPer100g:+(Math.round(carbs*10)/10),
+      imageUrl: imageUrl || null,
+      servingUnits: units,
+      isActive: true,
+      createdBy: UID,
+      createdAt: serverTimestamp(),
+      notes
+    });
+    toast('✅ تم حفظ الصنف');
+    // reset
+    $("#fName").value=''; $("#fCategory").value=''; $("#fCarbs").value='';
+    $("#fImg").value=''; $("#fNotes").value='';
+    $("#unitsBox").innerHTML=`
+      <div class="unit-row">
+        <input class="uName" placeholder="مثال: جرام / كوب / ملعقة / حبة">
+        <input class="uGrams" type="number" min="0" step="0.1" placeholder="جرام">
+        <button class="rm">🗑️</button>
+      </div>`;
+    await loadFoods(); buildCats(); renderFoods(); fillCatsDatalist();
+  }catch(e){
+    console.error(e);
+    toast('❌ فشل الحفظ: '+(e.message||e));
+  }finally{
+    loading(false);
+  }
+}
+
+/* ===== Import Excel ===== */
+async function onPickExcel(e){
+  const file=e.target.files && e.target.files[0];
+  if(!file){ return; }
+  loading(true);
+  try{
+    const buf=await file.arrayBuffer();
+    const wb=XLSX.read(buf,{type:'array'});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(ws, {header:1, defval:''}); // مصفوفة صفوف
+
+    // توقع رؤوس أعمدة
+    // name, category, carbsPer100g, unit1, grams1, unit2, grams2, unit3, grams3, imageUrl, isActive, notes
+    importRows=parseExcel(rows);
+    renderImportPreview();
+    $("#importBox").style.display='block';
+    toast('📥 تم تحميل الملف — راجعي المعاينة');
+  }catch(err){
+    console.error(err);
+    toast('❌ ملف غير صالح أو صيغة غير مدعومة');
+  }finally{
+    loading(false);
+    // reset input ليسمح باختيار نفس الملف مرة أخرى
+    e.target.value='';
+  }
+}
+
+function parseExcel(rows){
+  if(!rows.length) return [];
+  // اشطفي صفوف العناوين الفارغة بالأول
+  while(rows.length && rows[0].every(c=>String(c).trim()==='')) rows.shift();
+
+  // التحقق من رؤوس الأعمدة
+  const head = rows[0].map(x=>String(x).trim());
+  const need = ['name','category','carbsPer100g','unit1','grams1','unit2','grams2','unit3','grams3','imageUrl','isActive','notes'];
+  const mapIndex = (name)=> head.findIndex(h=>normalizeArabic(h)===normalizeArabic(name));
+  const idx = Object.fromEntries(need.map(n=>[n, mapIndex(n)]));
+  if(idx.name<0 || idx.category<0 || idx.carbsPer100g<0){
+    // لو الرؤوس مختلفة، هنعتبر السطر الأول هو بيانات ونستخدم ترتيب أعمدة افتراضي
+    // لكن الأفضل الالتزام بالقالب
+  }
+
+  const out=[];
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i]; if(!r || r.length===0) continue;
+    // سحب القيم بأمان
+    const val=(key)=> idx[key]>=0 ? r[idx[key]] : '';
+    const name = String(val('name')||'').trim();
+    const category = String(val('category')||'').trim();
+    const carbs = Number(String(val('carbsPer100g')).toString().replace(',','.'));
+    const imageUrl = String(val('imageUrl')||'').trim();
+    const activeRaw = String(val('isActive')||'').toLowerCase();
+    const isActive = (activeRaw===''? true : ['true','1','yes','y','صح','صحيح'].includes(activeRaw));
+
+    // وحدات
+    const units=[];
+    for(let k=1;k<=3;k++){
+      const u = String(val('unit'+k)||'').trim();
+      const g = Number(String(val('grams'+k)||'').toString().replace(',','.'));
+      if(u!=='' && Number.isFinite(g) && g>=0){ units.push({unit:u, grams: +(Math.round(g*10)/10)}); }
+      else if(u==='' && !Number.isFinite(g)){ /* تجاهل */ }
+      else if(u!=='' || String(val('grams'+k)).trim()!==''){ /*片*/ }
+    }
+    if(!units.length){ units.push({unit:'جرام', grams:100}); }
+
+    // التحقق
+    const errs=[];
+    if(!name) errs.push('الاسم مفقود');
+    if(!category) errs.push('التصنيف مفقود');
+    if(!Number.isFinite(carbs) || carbs<0) errs.push('قيمة كارب/100جم غير صالحة');
+    if(carbs>100) errs.push('قيمة كارب/100جم مرتفعة جدًا');
+
+    const warn=[];
+    if(imageUrl && !/^https?:\/\//i.test(imageUrl)) warn.push('رابط صورة غير واضح');
+
+    out.push({
+      i:i, name, category, carbsPer100g: +(Math.round((carbs||0)*10)/10),
+      servingUnits: units, imageUrl: imageUrl||null,
+      isActive, notes: String(val('notes')||'').trim()||null,
+      _errs:errs, _warn:warn, _status: errs.length? 'err' : (warn.length? 'warn':'ok')
+    });
+  }
+  return out;
+}
+
+function renderImportPreview(){
+  const TB=$("#impBody");
+  if(!importRows.length){ TB.innerHTML='<tr><td colspan="9" class="center note">لا يوجد بيانات للعرض.</td></tr>'; return; }
+
+  let cOk=0,cWarn=0,cErr=0;
+  TB.innerHTML = importRows.map((r,idx)=>{
+    if(r._status==='ok') cOk++; else if(r._status==='warn') cWarn++; else cErr++;
+    const badge = r._status==='ok' ? '<span class="badge ok">صالح</span>'
+                 : r._status==='warn' ? '<span class="badge warn">تحذير</span>'
+                 : '<span class="badge err">خطأ</span>';
+    const units = r.servingUnits.map(u=>`${escapeHtml(u.unit)} (${toFixed1(u.grams)}جم)`).join(' • ');
+    return `<tr>
+      <td>${idx+1}</td>
+      <td>${badge}${r._errs.length?'<div class="small">'+escapeHtml(r._errs.join(' • '))+'</div>':''}${r._warn.length?'<div class="small">'+escapeHtml(r._warn.join(' • '))+'</div>':''}</td>
+      <td>${escapeHtml(r.name)}</td>
+      <td>${escapeHtml(r.category)}</td>
+      <td>${toFixed1(r.carbsPer100g)}</td>
+      <td>${units || '—'}</td>
+      <td>${r.imageUrl? `<a href="${escapeAttr(r.imageUrl)}" target="_blank">رابط</a>`:'—'}</td>
+      <td>${r.isActive? '✓' : '✗'}</td>
+      <td>${escapeHtml(r.notes||'—')}</td>
+    </tr>`;
+  }).join('');
+  $("#impOk").textContent   = 'صالح: '+cOk;
+  $("#impWarn").textContent = 'تحذير: '+cWarn;
+  $("#impErr").textContent  = 'أخطاء: '+cErr;
+  $("#impTotal").textContent= 'الإجمالي: '+importRows.length;
+}
+
+async function commitImport(){
+  const rows = importRows.filter(r=>r._status!=='err');
+  if(!rows.length){ toast('لا يوجد صفوف صالحة للحفظ'); return; }
+
+  loading(true);
+  try{
+    const CHUNK=400; // أقل من حد 500
+    let saved=0;
+    for(let i=0;i<rows.length;i+=CHUNK){
+      const part=rows.slice(i,i+CHUNK);
+      const batch = writeBatchSafe();
+      part.forEach(r=>{
+        const ref = doc(collection(db,'foods'));
+        batch.set(ref,{
+          name:r.name, category:r.category, carbsPer100g:r.carbsPer100g,
+          imageUrl:r.imageUrl||null, servingUnits:r.servingUnits,
+          isActive: r.isActive, notes:r.notes||null,
+          createdBy: UID, createdAt: serverTimestamp()
+        });
       });
-      if(c==='الكل') b.classList.add('primary');
-      catsWrap.appendChild(b);
-    });
-  }
-
-  searchIn.addEventListener('input', renderList);
-
-  function renderList(){
-    const activeCatBtn = $('#cats .btn.primary');
-    const cat = activeCatBtn ? activeCatBtn.dataset.cat : 'الكل';
-    const q = (searchIn.value||'').trim().toLowerCase();
-
-    filtered = items.filter(x=>{
-      const byCat = (cat==='الكل' || x.category===cat);
-      if(!byCat) return false;
-      if(!q) return true;
-      const tags = (x.tags||[]).join(' ');
-      return (x.name||'').toLowerCase().includes(q) || tags.toLowerCase().includes(q);
-    });
-
-    foodsList.innerHTML = '';
-    if(filtered.length===0){
-      foodsList.innerHTML = '<div class="note">لا نتائج.</div>';
-      return;
+      await batch.commit();
+      saved += part.length;
     }
-
-    filtered.forEach(x=>{
-      const it = document.createElement('div');
-      it.className = 'list-item';
-      it.dataset.id = x.id;
-      it.innerHTML = `
-        <div>
-          <div style="font-weight:800">${escapeHtml(x.name||'بدون اسم')}</div>
-          <div class="muted">${escapeHtml(x.category||'—')}</div>
-        </div>
-        <div class="muted">${x.carbsPer100g!=null? `${x.carbsPer100g}g/100g` : '—'}</div>
-      `;
-      it.addEventListener('click', ()=> selectItem(x.id));
-      foodsList.appendChild(it);
-    });
+    toast('✅ تم حفظ '+saved+' صنف');
+    // تنظيف المعاينة + إعادة التحميل
+    importRows=[]; $("#importBox").style.display='none';
+    await loadFoods(); buildCats(); renderFoods(); fillCatsDatalist();
+  }catch(e){
+    console.error(e);
+    toast('❌ فشل الحفظ: '+(e.message||e));
+  }finally{
+    loading(false);
   }
+}
+function writeBatchSafe(){
+  // استدعاء ديناميكي لتفادي إعادة الاستيراد بالأعلى
+  return new (await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js")).writeBatch(db);
+}
 
-  function markActive(id){
-    $$('#foodsList .list-item').forEach(el=> el.classList.toggle('active', el.dataset.id===id));
-  }
+/* ===== Utils ===== */
+function debounce(fn,ms){ let t=null; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn.apply(null,a),ms); }; }
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+function escapeAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
 
-  // ======== Select / New ========
-  btnNew.addEventListener('click', ()=>{
-    activeId = null; activeDoc = null;
-    markActive(null);
-    formFill({
-      name:'', category:'', carbsPer100g:null, imageUrl:'', tags:[],
-      servings:[], status:'approved', visible:true, createdAt:null, updatedAt:null
-    });
-    legacyBanner.style.display = 'none';
-    docMeta.textContent = '';
-  });
-
-  async function selectItem(id){
-    try{
-      const snap = await getDoc(doc(db,'foods',id));
-      if(!snap.exists()){ showToast('الصنف غير موجود'); return; }
-      activeId = id; activeDoc = {id, ...snap.data()};
-      markActive(id);
-      formFill(activeDoc);
-      // Legacy banner
-      const hasLegacy = (!activeDoc.servings || activeDoc.servings.length===0)
-                        && (activeDoc.gramsPerServing!=null || activeDoc.servingDescription);
-      legacyBanner.style.display = hasLegacy ? 'block' : 'none';
-      docMeta.textContent = metaText(activeDoc);
-    }catch(e){ console.error(e); showToast('تعذر تحميل الصنف') }
-  }
-
-  function metaText(d){
-    const c = d.createdAt?.toDate ? d.createdAt.toDate() : null;
-    const u = d.updatedAt?.toDate ? d.updatedAt.toDate() : null;
-    const fmt = (x)=> x? new Date(x).toLocaleString('ar-EG') : '—';
-    return `أُنشئ: ${fmt(c)} — آخر تحديث: ${fmt(u)}`;
-  }
-
-  // ======== Form helpers ========
-  function formFill(d){
-    fName.value = d.name || '';
-    fCategory.value = d.category || '';
-    fCarbs100.value = (d.carbsPer100g!=null? d.carbsPer100g : '');
-    fImage.value = d.imageUrl || '';
-    fTags.value  = (d.tags||[]).join(' ');
-    fStatus.value= d.status || 'approved';
-    fVisible.value = (d.visible===false? 'false':'true');
-
-    renderServings(d.servings||[]);
-    previewUpdate();
-    calcUpdate();
-  }
-
-  function renderServings(arr){
-    servingsWrap.innerHTML = '';
-    if(!arr || arr.length===0){
-      addServingRow({label:'كوب', grams:150});
-      return;
-    }
-    arr.forEach(s=> addServingRow(s));
-  }
-
-  function addServingRow(s){
-    const row = document.createElement('div');
-    row.className = 'serving-row';
-    row.innerHTML = `
-      <input class="sv-label" placeholder="مثال: كوب" value="${escapeAttr(s.label||'')}">
-      <input class="sv-grams" type="number" step="1" placeholder="جم" value="${s.grams!=null? s.grams : ''}">
-      <button class="del">✖</button>
-    `;
-    row.querySelector('.del').addEventListener('click', ()=> row.remove());
-    servingsWrap.appendChild(row);
-    refreshCalcServingOptions();
-  }
-
-  $('#btnAddServing').addEventListener('click', ()=> addServingRow({label:'', grams:null}));
-
-  function currentServings(){
-    const rows = [...servingsWrap.querySelectorAll('.serving-row')];
-    return rows.map(r=>{
-      const label = r.querySelector('.sv-label').value.trim();
-      const grams = Number(r.querySelector('.sv-grams').value);
-      return (!label || !Number.isFinite(grams) || grams<=0) ? null : {label, grams: Math.round(grams)};
-    }).filter(Boolean);
-  }
-
-  // ======== Legacy convert ========
-  btnConvertLegacy.addEventListener('click', async ()=>{
-    if(!activeDoc){ return; }
-    const sd  = (activeDoc.servingDescription || 'حصة').toString();
-    const gps = Number(activeDoc.gramsPerServing);
-    let grams = null;
-    if(Number.isFinite(gps)){
-      grams = (gps <= 3) ? Math.round(gps*100) : Math.round(gps);
-    }else{
-      grams = 100; // fallback
-    }
-    const newServings = [{label: sd || 'حصة', grams}];
-    try{
-      await updateDoc(doc(db,'foods',activeDoc.id), { servings: newServings, updatedAt: serverTimestamp() });
-      activeDoc.servings = newServings;
-      legacyBanner.style.display = 'none';
-      renderServings(newServings);
-      showToast('✅ تم التحويل إلى المقاييس المنزلية');
-    }catch(e){ console.error(e); showToast('❗ فشل التحويل') }
-  });
-
-  // ======== Save / Delete / Clone ========
-  btnSave.addEventListener('click', async ()=>{
-    const name = fName.value.trim();
-    const category = fCategory.value.trim();
-    const carbs = Number(fCarbs100.value);
-    if(!name){ showToast('أدخلي اسم الصنف'); return; }
-    if(!category){ showToast('أدخلي التصنيف'); return; }
-    if(!Number.isFinite(carbs) || carbs<0 || carbs>100){ showToast('كارب/100جم يجب أن يكون بين 0 و 100'); return; }
-
-    const servings = currentServings();
-    if(servings.length===0){ showToast('أضيفي مقياسًا منزليًا واحدًا على الأقل'); return; }
-
-    const payload = {
-      name, category,
-      carbsPer100g: +(+carbs).toFixed(1),
-      imageUrl: fImage.value.trim() || '',
-      tags: (fTags.value||'').split(/\s+/).filter(Boolean),
-      servings,
-      status: fStatus.value || 'approved',
-      visible: (fVisible.value==='true'),
-      updatedAt: serverTimestamp()
-    };
-    if(!activeId){
-      payload.createdAt = serverTimestamp();
-      try{
-        const ref = await addDoc(collection(db,'foods'), payload);
-        activeId = ref.id;
-        items.unshift({id: ref.id, ...payload});
-        showToast('✅ تم إضافة الصنف');
-        await selectItem(ref.id);
-        renderList();
-      }catch(e){ console.error(e); showToast('❗ فشل الإضافة') }
-    }else{
-      try{
-        await setDoc(doc(db,'foods',activeId), payload, {merge:true});
-        const ix = items.findIndex(x=>x.id===activeId);
-        if(ix>-1) items[ix] = {...items[ix], ...payload};
-        showToast('✅ تم حفظ التعديلات');
-        docMeta.textContent = '— تم التحديث الآن';
-        renderList();
-      }catch(e){ console.error(e); showToast('❗ فشل الحفظ') }
-    }
-  });
-
-  btnDelete.addEventListener('click', async ()=>{
-    if(!activeId){ showToast('لا يوجد صنف محدد'); return; }
-    if(!confirm('هل أنت متأكد من حذف هذا الصنف؟')) return;
-    try{
-      await deleteDoc(doc(db,'foods',activeId));
-      items = items.filter(x=>x.id!==activeId);
-      activeId=null; activeDoc=null;
-      formFill({name:'',category:'',carbsPer100g:null,imageUrl:'',tags:[],servings:[],status:'approved',visible:true});
-      renderList();
-      showToast('🗑️ تم الحذف');
-    }catch(e){ console.error(e); showToast('❗ فشل الحذف') }
-  });
-
-  btnClone.addEventListener('click', ()=>{
-    if(!activeId){ showToast('افتح صنفًا أولاً'); return; }
-    const s = currentServings();
-    formFill({
-      name: (fName.value||'') + ' (نسخة)',
-      category: fCategory.value, carbsPer100g: Number(fCarbs100.value)||null,
-      imageUrl: fImage.value, tags: (fTags.value||'').split(/\s+/).filter(Boolean),
-      servings: s, status:'approved', visible:true
-    });
-    activeId = null; activeDoc=null;
-    markActive(null);
-    docMeta.textContent = '— صنف جديد (منسوخ)';
-    showToast('🧬 تم إنشاء نسخة — احفظيها كصنف جديد');
-  });
-
-  // ======== Preview & Calc ========
-  function previewUpdate(){
-    const name = fName.value.trim() || '—';
-    const category = fCategory.value.trim() || '—';
-    const carbs = Number(fCarbs100.value)||0;
-    const img = fImage.value.trim();
-    prevName.textContent = name;
-    prevCat.textContent = category;
-    prevChip.textContent = `كارب/100جم: ${carbs||'—'}`;
-    if(img){ prevImg.src = img; prevImg.alt = name; } else { prevImg.removeAttribute('src'); prevImg.alt=''; }
-  }
-  [fName,fCategory,fCarbs100,fImage].forEach(el => el.addEventListener('input', ()=>{ previewUpdate(); calcUpdate(); }));
-
-  function refreshCalcServingOptions(){
-    const ss = currentServings();
-    calcServing.innerHTML = '';
-    ss.forEach((s,i)=>{
-      const opt = document.createElement('option');
-      opt.value = String(i);
-      opt.textContent = `${s.label} — ${s.grams}جم`;
-      calcServing.appendChild(opt);
-    });
-    if(ss.length===0){
-      const opt = document.createElement('option'); opt.textContent='—'; opt.value='';
-      calcServing.appendChild(opt);
-    }
-  }
-
-  calcMode.addEventListener('change', ()=>{
-    const mode = calcMode.value;
-    calcGramsBlock.style.display   = (mode==='grams')?'block':'none';
-    calcServingBlock.style.display = (mode==='serving')?'block':'none';
-    calcUpdate();
-  });
-  [calcGrams, calcServing, calcCount].forEach(el=> el.addEventListener('input', calcUpdate));
-
-  function calcUpdate(){
-    const carbs100 = Number(fCarbs100.value)||0;
-    let grams = 0;
-    if(calcMode.value==='grams'){
-      grams = Number(calcGrams.value)||0;
-    }else{
-      const ss = currentServings();
-      const ix = Number(calcServing.value);
-      const cnt = Number(calcCount.value)||0;
-      if(Number.isFinite(ix) && ss[ix]) grams = ss[ix].grams * cnt;
-    }
-    const carbs = (grams * carbs100) / 100;
-    calcCarbs.value = carbs ? carbs.toFixed(1) : '';
-  }
-
-  // ======== Utils ========
-  function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
-  function escapeAttr(s){ return escapeHtml(s||''); }
 </script>
 </body>
 </html>

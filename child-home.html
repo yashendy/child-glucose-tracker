@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>لوحة الطفل — نقاط الدخول</title>
+<style>
+:root{
+  --brand:#0ea5e9; --brand2:#6ee7b7; --ink:#0f172a; --muted:#6b7280;
+  --bg:#f6fbff; --card:#fff; --line:#e5e7eb;
+  --tile1:#dbeafe; --tile2:#dcfce7; --tile3:#ffe4e6; --tile4:#fef9c3; --tile5:#ede9fe; --tile6:#e0f2fe;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif}
+a{text-decoration:none;color:inherit}
+
+.topbar{
+  position:sticky;top:0;z-index:10;
+  background:linear-gradient(90deg,var(--brand),var(--brand2));
+  color:#fff;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px
+}
+.btn{border:none;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
+.btn.ghost{background:#ffffff22;border:1px solid #ffffff66;color:#fff}
+.container{max-width:1100px;margin:auto;padding:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 6px 24px rgba(0,0,0,.05)}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.note{color:var(--muted);font-size:13px}
+
+.header{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:12px
+}
+.kid{display:flex;align-items:center;gap:12px}
+.avatar{width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.kmeta{color:#334155;font-size:13px}
+.badge{display:inline-block;background:#eef6ff;color:#0369a1;border-radius:999px;padding:6px 10px;font-weight:800}
+
+.grid{
+  display:grid;gap:14px;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+}
+@media(max-width:960px){.grid{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+
+.tile{
+  background:var(--tile1);
+  border:1px solid var(--line);
+  border-radius:16px; padding:16px; min-height:112px;
+  display:flex; flex-direction:column; justify-content:space-between;
+  transition:.2s transform, .2s box-shadow;
+}
+.tile:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(0,0,0,.06)}
+.tile h3{margin:0 0 4px;font-size:18px}
+.tile p{margin:0;color:#374151;font-size:13px}
+.tile .go{align-self:flex-start;margin-top:10px}
+.tile .go .btn{background:#0ea5e9;color:#fff}
+
+.tile.t2{background:var(--tile2)}
+.tile.t3{background:var(--tile3)}
+.tile.t4{background:var(--tile4)}
+.tile.t5{background:var(--tile5)}
+.tile.t6{background:var(--tile6)}
+
+.footer{
+  margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap
+}
+.kpis{display:flex;gap:8px;flex-wrap:wrap}
+.kpi{background:#ecfeff;border:1px solid #bae6fd;color:#075985;padding:6px 10px;border-radius:999px;font-weight:800;font-size:12px}
+
+.toast{position:fixed;bottom:16px;left:16px;background:#111;color:#fff;padding:10px 14px;border-radius:10px;opacity:0;transform:translateY(8px);transition:.3s;z-index:9999}
+.toast.show{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="row">
+    <a class="btn ghost" href="dashboard.html">لوحة وليّ الأمر</a>
+  </div>
+  <div id="hello" class="row">مرحبًا…</div>
+  <button id="btnLogout" class="btn ghost">خروج</button>
+</header>
+
+<main class="container">
+  <section class="card">
+    <div class="header">
+      <div class="kid">
+        <img id="kidAvatar" class="avatar" alt="صورة الطفل">
+        <div>
+          <div id="kidName" style="font-weight:800;font-size:18px">—</div>
+          <div id="kidMeta" class="kmeta">—</div>
+        </div>
+      </div>
+      <span id="unitBadge" class="badge">الوحدة: mmol/L</span>
+    </div>
+
+    <div class="grid">
+      <div class="tile t1">
+        <div>
+          <h3>🧒 بيانات الطفل</h3>
+          <p>الاسم، النوع، الطول/الوزن، الحدود، ICR…</p>
+        </div>
+        <div class="go"><a id="linkProfile" class="btn">فتح</a></div>
+      </div>
+
+      <div class="tile t2">
+        <div>
+          <h3>🧪 قياسات السكر</h3>
+          <p>تسجيل وقراءات اليوم ومنع التكرار لنفس الوقت.</p>
+        </div>
+        <div class="go"><a id="linkMeasures" class="btn">فتح</a></div>
+      </div>
+
+      <div class="tile t3">
+        <div>
+          <h3>🍽️ الوجبات</h3>
+          <p>اختيار أصناف، حساب الكارب، جرعة مقترحة.</p>
+        </div>
+        <div class="go"><a id="linkMeals" class="btn">فتح</a></div>
+      </div>
+
+      <div class="tile t4">
+        <div>
+          <h3>📊 التقارير</h3>
+          <p>أسبوع/أسبوعين/شهر — PDF جاهز للطباعة.</p>
+        </div>
+        <div class="go"><a id="linkReports" class="btn">فتح</a></div>
+      </div>
+
+      <div class="tile t5">
+        <div>
+          <h3>🧑‍⚕️ الطبيب</h3>
+          <p>ملخصات، مخططات، نسب داخل/خارج النطاق.</p>
+        </div>
+        <div class="go"><a id="linkDoctor" class="btn">فتح</a></div>
+      </div>
+
+      <div class="tile t6">
+        <div>
+          <h3>📅 الزيارات الطبية</h3>
+          <p>تسجيل الزيارة، المرفقات، طباعة الملخص.</p>
+        </div>
+        <div class="go"><a id="linkVisits" class="btn">فتح</a></div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="kpis" id="kpis">
+        <span class="kpi" id="kpiICR">ICR: —</span>
+        <span class="kpi" id="kpiBounds">الحدود: —</span>
+      </div>
+      <div class="note">تلميح: احفظي صورة الطفل من “بيانات الطفل” لتظهر هنا.</div>
+    </div>
+  </section>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script type="module">
+/* ===== Firebase init (اعتمدي على ملفك firebase-init.js) ===== */
+import { app, db, auth } from './firebase-init.js';
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const $ = s => document.querySelector(s);
+const params = new URLSearchParams(location.search);
+const childId = params.get('child');
+
+const FALLBACK_SVG = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0ea5e9"/><stop offset="1" stop-color="#6ee7b7"/></linearGradient></defs>
+  <rect width="100%" height="100%" rx="48" fill="url(#g)"/>
+  <circle cx="48" cy="38" r="16" fill="#fff"/>
+  <path d="M16 82a32 24 0 0 1 64 0" fill="#fff"/>
+</svg>`);
+
+function toast(msg, ms=2200){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), ms);
+}
+
+let uid=null, child=null;
+
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){ location.href='index.html'; return; }
+  uid = user.uid;
+  $('#hello').textContent = `مرحبًا — UID: ${uid.slice(0,6)}…`;
+  if(!childId){ toast('⚠️ لم يتم تحديد الطفل'); return; }
+  await loadChild();
+  wireLinks();
+});
+
+async function loadChild(){
+  try{
+    const snap = await getDoc(doc(db,'users',uid,'children',childId));
+    if(!snap.exists()){ toast('⚠️ الطفل غير موجود'); return; }
+    child = snap.data() || {};
+    $('#kidName').textContent = child.name || '—';
+    $('#kidMeta').textContent = `${child.gender||'—'} • ${child.weight??'—'} كجم • ${child.height??'—'} سم`;
+    $('#unitBadge').textContent = `الوحدة: ${(child.unit||'mmol/L')}`;
+    $('#kpiICR').textContent = `ICR: ${child.icr!=null ? child.icr : '—'}`;
+    $('#kpiBounds').textContent = `الحدود: ${child.lowThreshold??'—'} – ${child.highThreshold??'—'}`;
+
+    const img = $('#kidAvatar');
+    img.src = child.photoURL || FALLBACK_SVG;
+    img.onerror = ()=>{ img.src = FALLBACK_SVG; };
+  }catch(e){
+    console.error(e);
+    toast('تعذر تحميل بيانات الطفل');
+  }
+}
+
+function linkWithId(base){ return `${base}?child=${encodeURIComponent(childId)}`; }
+function wireLinks(){
+  $('#linkProfile').href  = linkWithId('child-profile.html');
+  $('#linkMeasures').href = linkWithId('child-measures.html');
+  $('#linkMeals').href    = linkWithId('child-meals.html');
+  $('#linkReports').href  = linkWithId('child-reports.html');
+  $('#linkDoctor').href   = linkWithId('child-doctor.html');
+  $('#linkVisits').href   = linkWithId('child-visits.html');
+}
+
+$('#btnLogout').addEventListener('click', ()=> signOut(auth).then(()=>location.href='index.html'));
+</script>
+</body>
+</html>

@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🍽️ وجبات الطفل</title>
+<style>
+:root{
+  --brand:#0ea5e9; --brand2:#6ee7b7; --line:#e5e7eb; --ink:#0f172a; --muted:#6b7280;
+  --bg:#f6fbff; --card:#fff; --ok:#16a34a; --danger:#ef4444;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif}
+a{text-decoration:none;color:inherit}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.btn{border:none;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
+.btn.primary{background:var(--brand);color:#fff}
+.btn.gray{background:#eef2f7}
+.btn.red{background:#fee2e2;color:#b91c1c}
+.badge{display:inline-block;background:#ecfeff;color:#075985;border:1px solid #bae6fd;
+  padding:6px 10px;border-radius:999px;font-weight:800;font-size:12px}
+.note{color:var(--muted);font-size:13px}
+
+/* Top bar */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:12px 14px;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;position:sticky;top:0;z-index:10}
+.topbar .btn{background:#ffffff22;border:1px solid #ffffff66;color:#fff}
+
+/* Container + cards */
+.container{max-width:1100px;margin:auto;padding:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 6px 24px rgba(0,0,0,.04);margin-bottom:12px}
+
+/* Child header */
+.child-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.kid{display:flex;align-items:center;gap:12px}
+.avatar{width:60px;height:60px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.12);background:#fff}
+.kmeta{font-size:13px;color:#0f172ac7}
+
+/* Meals layout */
+.meals-wrap{display:grid;grid-template-columns:240px 1fr;gap:12px}
+@media(max-width:900px){.meals-wrap{grid-template-columns:1fr}}
+.search{display:flex;gap:8px}
+.search input{flex:1;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.cats{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.cat-btn{border:none;border-radius:12px;padding:10px;background:#ffffff;cursor:pointer;text-align:right;
+  box-shadow:0 1px 6px rgba(0,0,0,.06);border:1px solid var(--line);font-weight:800}
+.cat-btn.active,.cat-btn:hover{background:#e6f7ff;border-color:#b3e5ff}
+
+/* Foods grid */
+.foods-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.food{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.food img{width:84px;height:84px;object-fit:contain;background:#fff;border-radius:12px}
+.food .name{font-weight:800;margin-top:6px}
+.food .carb{color:#0f766e;font-weight:700;font-size:13px}
+.food .row{justify-content:center}
+.input-mini{width:100px}
+
+/* Basket */
+.basket table{width:100%;border-collapse:separate;border-spacing:0}
+.basket th,.basket td{border:1px solid var(--line);padding:8px;text-align:center}
+.basket thead th{background:#f0f9ff}
+
+/* Toast + loader */
+.toast{position:fixed;bottom:16px;left:16px;background:#111;color:#fff;padding:10px 14px;border-radius:10px;opacity:0;transform:translateY(8px);transition:.3s;z-index:99999}
+.toast.show{opacity:1;transform:none}
+.loader{display:none;position:fixed;inset:0;background:rgba(255,255,255,.6);z-index:9999;align-items:center;justify-content:center}
+.loader .dot{width:10px;height:10px;border-radius:50%;margin:0 4px;background:#0ea5e9;animation:b .9s infinite alternate}
+.loader .dot:nth-child(2){animation-delay:.15s}.loader .dot:nth-child(3){animation-delay:.3s}
+@keyframes b{to{transform:translateY(-6px);background:#06b6d4}}
+</style>
+</head>
+<body>
+
+<!-- Top -->
+<header class="topbar">
+  <div class="row">
+    <a class="btn" href="child-dashboard.html">لوحة الطفل</a>
+  </div>
+  <div class="row" id="hello">الوجبات</div>
+</header>
+
+<main class="container">
+
+  <!-- Child summary -->
+  <section class="card child-head" id="headCard" style="display:none">
+    <div class="kid">
+      <img id="kidAvatar" class="avatar" alt="صورة الطفل">
+      <div>
+        <div style="font-weight:800" id="kidName">—</div>
+        <div class="kmeta" id="kidMeta">—</div>
+      </div>
+    </div>
+    <div class="row">
+      <span class="badge">الوحدة: <b id="unitBadge">mmol/L</b></span>
+      <span class="badge">ICR: <b id="icrBadge">—</b> g/U</span>
+      <span class="badge">الحدود: <b id="rangesBadge">—</b></span>
+    </div>
+  </section>
+
+  <!-- Meal setup -->
+  <section class="card">
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <h3 style="margin:0">🍽️ إعداد الوجبة</h3>
+      <div class="note">اختاري الأصناف ثم احفظي الوجبة</div>
+    </div>
+    <div class="row" style="gap:12px;flex-wrap:wrap;margin-top:10px">
+      <div>
+        <label class="note">نوع الوجبة</label><br>
+        <select id="mealType" style="padding:10px;border:1px solid var(--line);border-radius:10px">
+          <option value="breakfast">فطور</option>
+          <option value="lunch">غداء</option>
+          <option value="dinner">عشاء</option>
+          <option value="snack">سناك</option>
+          <option value="other">أخرى</option>
+        </select>
+      </div>
+      <div>
+        <label class="note">وقت الأكل</label><br>
+        <input id="mealTime" type="datetime-local" style="padding:10px;border:1px solid var(--line);border-radius:10px">
+      </div>
+      <div style="flex:1;min-width:240px">
+        <label class="note">ملاحظة</label><br>
+        <input id="mealNote" placeholder="اختياري" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:10px">
+      </div>
+    </div>
+  </section>
+
+  <!-- Foods & basket -->
+  <section class="card">
+    <div class="meals-wrap">
+      <!-- left: categories + search -->
+      <div>
+        <div class="search">
+          <input id="foodSearch" placeholder="ابحثي عن صنف… (عربي/إنجليزي)">
+          <button class="btn gray" id="btnClearSearch">مسح</button>
+        </div>
+        <div id="catList" class="cats" style="margin-top:10px">
+          <button class="cat-btn active" data-cat="*">كل الأصناف</button>
+        </div>
+      </div>
+
+      <!-- right: foods grid + basket -->
+      <div>
+        <div id="foodsGrid" class="foods-grid"><div class="note">جاري التحميل…</div></div>
+
+        <div class="card" style="margin-top:12px">
+          <div class="row" style="justify-content:space-between">
+            <h4 style="margin:0">🧺 سلة الوجبة</h4>
+            <div class="badge">إجمالي الكارب: <b id="totalCarbs">0.0</b> جم</div>
+          </div>
+          <div class="basket" style="margin-top:8px;overflow:auto">
+            <table>
+              <thead><tr><th>الصنف</th><th>الوحدة</th><th>الكمية</th><th>الكارب (جم)</th><th>إجراء</th></tr></thead>
+              <tbody id="basketBody">
+                <tr><td colspan="5" class="note">لا توجد عناصر بعد.</td></tr>
+              </tbody>
+              <tfoot>
+                <tr><td colspan="3"><b>الإجمالي</b></td><td id="totalCarbsCell">0.0</td><td></td></tr>
+              </tfoot>
+            </table>
+          </div>
+          <div class="row" style="gap:12px;margin-top:10px;flex-wrap:wrap">
+            <div>
+              <label class="note">الجرعة المقترحة</label><br>
+              <input id="doseSuggestedMeal" readonly style="padding:10px;border:1px solid var(--line);border-radius:10px;width:140px">
+            </div>
+            <div>
+              <label class="note">جرعة فعلية (اختياري)</label><br>
+              <input id="doseGivenMeal" type="number" step="0.1" style="padding:10px;border:1px solid var(--line);border-radius:10px;width:160px">
+            </div>
+            <div style="flex:1"></div>
+            <button id="saveMealBtn" class="btn primary">💾 حفظ الوجبة</button>
+          </div>
+          <div class="note" style="margin-top:6px">الحساب: الكارب = (جرام الوحدة × الكمية × كارب/100جم) ÷ 100 • الجرعة = إجمالي الكارب ÷ ICR (تقريب 0.1U).</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Toast & Loader -->
+<div id="toast" class="toast"></div>
+<div id="loader" class="loader" aria-hidden="true"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+
+<script type="module">
+/* ======== Firebase imports (app context) ======== */
+import { db, auth } from './firebase-init.js';
+import {
+  collection, getDocs, doc, getDoc, setDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+/* ======== Helpers ======== */
+const $ = s => document.querySelector(s);
+function showToast(msg, ms=2200){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"), ms); }
+function showLoader(on=true){ const x=$("#loader"); x.style.display = on? 'flex':'none'; x.setAttribute('aria-hidden', on? 'false':'true'); }
+function escapeHTML(s){ return String(s||'').replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+function round1(n){ return Math.round(Number(n)*10)/10; }
+function localDTNow(){ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,16); }
+
+/* ======== State ======== */
+let uid=null, childId=null, child=null;
+let foodsAll=[], foodsFiltered=[], currentCategory='*', basket=[];
+
+/* ======== Boot ======== */
+const params = new URLSearchParams(location.search);
+childId = params.get('child');
+
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){ location.href='index.html'; return; }
+  uid=user.uid;
+  if(!childId){ alert('لم يتم تحديد الطفل'); return; }
+  try{
+    showLoader(true);
+    await loadChild();
+    await initMealsPage();
+  }catch(e){
+    console.error(e);
+    alert('تعذّر تحميل الصفحة: ' + (e.message || e));
+  }finally{
+    showLoader(false);
+  }
+});
+
+/* ======== Load child summary ======== */
+async function loadChild(){
+  const snap = await getDoc(doc(db,'users',uid,'children',childId));
+  if(!snap.exists()) throw new Error('الطفل غير موجود');
+  child = snap.data();
+
+  // Header UI
+  const name = child.name || '—';
+  const gender = child.gender || '';
+  const wt = (child.weight!=null)? (child.weight+' كجم') : '—';
+  const ht = (child.height!=null)? (child.height+' سم') : '—';
+  const unit = child.unit || child.preferredUnit || 'mmol/L';
+  const icr  = (child.icr!=null)? child.icr : '—';
+  const lo   = (child.lowThreshold!=null)? child.lowThreshold : '—';
+  const hi   = (child.highThreshold!=null)? child.highThreshold : '—';
+
+  $('#kidName').textContent = name;
+  $('#kidMeta').textContent = `${gender} • ${wt} • ${ht}`;
+  $('#unitBadge').textContent = unit;
+  $('#icrBadge').textContent = icr;
+  $('#rangesBadge').textContent = `${lo} – ${hi}`;
+
+  // Avatar with safe fallback (inline data URI)
+  const fallback = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120">
+      <rect width="100%" height="100%" fill="white"/>
+      <circle cx="60" cy="46" r="22" fill="#e5f3ff"/>
+      <rect x="22" y="74" width="76" height="34" rx="16" fill="#eaf6ff"/>
+      <text x="60" y="50" font-size="16" text-anchor="middle" fill="#0ea5e9" font-family="sans-serif">👶</text>
+    </svg>`);
+  const img = $('#kidAvatar');
+  img.src = child.photoURL || fallback;
+  img.onerror = ()=>{ img.src = fallback; };
+
+  $('#headCard').style.display='flex';
+}
+
+/* ======== Init page ======== */
+async function initMealsPage(){
+  // default datetime
+  $('#mealTime').value = localDTNow();
+
+  // events
+  $('#foodSearch').addEventListener('input', renderFoods);
+  $('#btnClearSearch').addEventListener('click', ()=>{ $('#foodSearch').value=''; renderFoods(); });
+  $('#saveMealBtn').addEventListener('click', saveMeal);
+
+  // load foods
+  await loadFoods();
+  buildCategories();
+  renderFoods();
+}
+
+/* ======== Foods (load, filter, render) ======== */
+async function loadFoods(){
+  foodsAll = [];
+  const qs = await getDocs(collection(db,'foods'));
+  qs.forEach(s=>{
+    const d = s.data() || {};
+    if(d.isActive===false) return;
+    foodsAll.push({
+      id: s.id,
+      name: d.name || 'بدون اسم',
+      category: d.category || 'أخرى',
+      carbsPer100g: Number(d.carbsPer100g)||0,
+      imageUrl: d.imageUrl || null,
+      servingUnits: Array.isArray(d.servingUnits) && d.servingUnits.length
+        ? d.servingUnits
+        : [{unit:'جرام', grams:100}]
+    });
+  });
+  // sort by name (arabic/english)
+  foodsAll.sort((a,b)=> a.name.localeCompare(b.name,'ar',{sensitivity:'base'}));
+}
+
+function buildCategories(){
+  const set = new Set(['*']);
+  foodsAll.forEach(f=> set.add(f.category||'أخرى'));
+  const catList = $('#catList');
+  catList.innerHTML = '';
+  [...set].forEach(cat=>{
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn' + (cat===currentCategory?' active':'');
+    btn.dataset.cat = cat;
+    btn.textContent = (cat==='*'?'كل الأصناف':cat);
+    btn.addEventListener('click', ()=>{
+      currentCategory = cat;
+      [...catList.querySelectorAll('.cat-btn')].forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderFoods();
+    });
+    catList.appendChild(btn);
+  });
+}
+
+function renderFoods(){
+  const grid = $('#foodsGrid');
+  grid.innerHTML = '';
+  const q = ($('#foodSearch').value||'').trim().toLowerCase();
+
+  foodsFiltered = foodsAll.filter(f=>{
+    const byCat = (currentCategory==='*' || f.category===currentCategory);
+    const byText = !q || f.name.toLowerCase().includes(q);
+    return byCat && byText;
+  });
+
+  if(!foodsFiltered.length){
+    grid.innerHTML = '<div class="note">لا توجد أصناف مطابقة.</div>';
+    return;
+  }
+
+  foodsFiltered.forEach(f=>{
+    const card = document.createElement('div'); card.className='food';
+    const unitOptions = f.servingUnits.map(u=>`<option value="${Number(u.grams)}">${escapeHTML(u.unit)} (${Number(u.grams)} جم)</option>`).join('');
+    const imgSrc = f.imageUrl || 'data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><rect width="100%" height="100%" fill="white"/><text x="50%" y="55%" font-size="20" text-anchor="middle" fill="#0ea5e9" font-family="sans-serif">🍽️</text></svg>');
+    card.innerHTML = `
+      <img src="${imgSrc}" alt="${escapeHTML(f.name)}">
+      <div class="name">${escapeHTML(f.name)}</div>
+      <div class="carb">كارب / 100جم: <b>${f.carbsPer100g}</b></div>
+      <div class="row" style="margin-top:6px">
+        <select class="unitSel">${unitOptions}</select>
+        <input class="qty input-mini" type="number" min="0.1" step="0.1" value="1" placeholder="الكمية">
+      </div>
+      <div class="row" style="justify-content:space-between;margin-top:8px">
+        <button class="btn gray addBtn">➕ أضف</button>
+        <span class="badge">${escapeHTML(f.category)}</span>
+      </div>
+    `;
+    const unitSel = card.querySelector('.unitSel');
+    const qtyInp  = card.querySelector('.qty');
+    card.querySelector('.addBtn').addEventListener('click', ()=>{
+      const gramsPerUnit = Number(unitSel.value)||100;
+      const qty = Number(qtyInp.value)||0;
+      if(qty<=0){ showToast('🧮 أدخلي كمية صحيحة'); return; }
+      const totalCarbs = round1((gramsPerUnit * qty * f.carbsPer100g)/100);
+      basket.push({
+        foodId: f.id,
+        name: f.name,
+        unit: findUnitName(f.servingUnits, gramsPerUnit),
+        gramsPerUnit,
+        qty,
+        carbsPer100g: f.carbsPer100g,
+        totalCarbs
+      });
+      renderBasket();
+    });
+    grid.appendChild(card);
+  });
+}
+
+function findUnitName(units, grams){
+  const u = (units||[]).find(x=> Number(x.grams)===Number(grams));
+  return u ? `${u.unit} (${u.grams}جم)` : `جرام (${grams})`;
+}
+
+/* ======== Basket ======== */
+function renderBasket(){
+  const tbody = $('#basketBody');
+  if(!basket.length){
+    tbody.innerHTML = '<tr><td colspan="5" class="note">لا توجد عناصر بعد.</td></tr>';
+    $('#totalCarbs').textContent = '0.0';
+    $('#totalCarbsCell').textContent = '0.0';
+    $('#doseSuggestedMeal').value = '';
+    return;
+  }
+  tbody.innerHTML = '';
+  let total = 0;
+
+  basket.forEach((it, idx)=>{
+    total += it.totalCarbs;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHTML(it.name)}</td>
+      <td>${escapeHTML(it.unit)}</td>
+      <td><input class="input-mini qtyRow" type="number" min="0.1" step="0.1" value="${it.qty}"></td>
+      <td class="carbCell">${it.totalCarbs.toFixed(1)}</td>
+      <td><button class="btn red rmBtn">حذف</button></td>
+    `;
+    tr.querySelector('.qtyRow').addEventListener('input', (e)=>{
+      const q = Number(e.target.value)||0;
+      it.qty = q;
+      it.totalCarbs = round1((it.gramsPerUnit * q * it.carbsPer100g)/100);
+      tr.querySelector('.carbCell').textContent = it.totalCarbs.toFixed(1);
+      recomputeTotals();
+    });
+    tr.querySelector('.rmBtn').addEventListener('click', ()=>{
+      basket.splice(idx,1);
+      renderBasket();
+    });
+    tbody.appendChild(tr);
+  });
+
+  $('#totalCarbs').textContent = total.toFixed(1);
+  $('#totalCarbsCell').textContent = total.toFixed(1);
+
+  const icrVal = Number(child?.icr)||0;
+  $('#doseSuggestedMeal').value = (icrVal>0 && total>0) ? (Math.round((total/icrVal)*10)/10).toFixed(1) : '';
+}
+
+function recomputeTotals(){
+  let total = 0;
+  basket.forEach(it=> total += it.totalCarbs);
+  $('#totalCarbs').textContent = total.toFixed(1);
+  $('#totalCarbsCell').textContent = total.toFixed(1);
+  const icrVal = Number(child?.icr)||0;
+  $('#doseSuggestedMeal').value = (icrVal>0 && total>0) ? (Math.round((total/icrVal)*10)/10).toFixed(1) : '';
+}
+
+/* ======== Save meal ======== */
+async function saveMeal(){
+  try{
+    if(!basket.length){ showToast('السلة فارغة'); return; }
+    const time = $('#mealTime').value;
+    if(!time){ showToast('اختاري وقت الأكل'); return; }
+
+    const totalCarbs = basket.reduce((a,b)=>a+b.totalCarbs,0);
+    const suggested  = $('#doseSuggestedMeal').value ? Number($('#doseSuggestedMeal').value) : null;
+    const given      = $('#doseGivenMeal').value ? Number($('#doseGivenMeal').value) : null;
+
+    const payload = {
+      type: $('#mealType').value,
+      time, // local ISO (input value)
+      note: $('#mealNote').value || null,
+      icrUsed: Number(child?.icr)||null,
+      totalCarbs: round1(totalCarbs),
+      doseSuggested: suggested,
+      doseGiven: given,
+      items: basket,
+      createdAt: serverTimestamp()
+    };
+
+    // auto id by timestamp string to keep chronological order in UI (optional)
+    const id = `${Date.now()}`;
+    await setDoc(doc(db,'users',uid,'children',childId,'meals',id), payload);
+
+    showToast('✅ تم حفظ الوجبة');
+    basket = []; renderBasket();
+    $('#mealType').value = 'breakfast';
+    $('#mealNote').value = '';
+  }catch(e){
+    console.error(e);
+    alert('تعذّر حفظ الوجبة: ' + (e.message||e));
+  }
+}
+</script>
+</body>
+</html>
