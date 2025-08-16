@@ -1,131 +1,148 @@
-<!doctype html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ملف الطفل</title>
-<link rel="stylesheet" href="styles.css">
-<style>
-/* لمسات سريعة */
-.form grid{display:grid;gap:10px}
-.grid.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
-@media(max-width:900px){.grid.g2{grid-template-columns:1fr}}
-</style>
-</head>
-<body>
-<div class="topbar">
-  <div>🧒 ملف الطفل</div>
-  <div class="row">
-    <a id="lnkDash" class="btn gray">لوحة الطفل</a>
-    <a id="lnkHome" class="btn gray">رجوع</a>
-  </div>
-</div>
+// ===============================
+// firebase-init.js
+// تهيئة Firebase + مساعدين موحّدين لكل الصفحات
+// ===============================
 
-<main class="container">
-  <section class="card">
-    <div class="row" style="gap:12px;align-items:center">
-      <img id="avatar" class="avatar" style="width:84px;height:84px" src="images/avatar-default.png" alt="">
-      <div>
-        <div id="kidName" style="font-weight:800">—</div>
-        <div id="kidMeta" class="note">—</div>
-      </div>
-    </div>
-  </section>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signInAnonymously,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import {
+  getFirestore
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import {
+  getStorage
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
 
-  <section class="card">
-    <h3 style="margin-top:0">البيانات الأساسية</h3>
-    <div class="grid g2">
-      <div><label>الاسم</label><input id="cName"></div>
-      <div><label>النوع</label>
-        <select id="cGender"><option>ذكر</option><option>أنثى</option></select>
-      </div>
-      <div><label>تاريخ الميلاد</label><input id="cBirth" type="date"></div>
-      <div><label>الرقم المدني</label><input id="cCivilId"></div>
-      <div><label>الوزن (كجم)</label><input id="cWeight" type="number" step="0.1"></div>
-      <div><label>الطول (سم)</label><input id="cHeight" type="number" step="0.1"></div>
-      <div><label>الوحدة المفضلة</label>
-        <select id="cUnit"><option>mmol/L</option><option>mg/dL</option></select>
-      </div>
-    </div>
-  </section>
+// 🔐 إعدادات مشروعك
+const firebaseConfig = {
+  apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
+  authDomain: "child-glucose-tracker.firebaseapp.com",
+  projectId: "child-glucose-tracker",
+  storageBucket: "child-glucose-tracker.firebasestorage.app",
+  messagingSenderId: "294563325904",
+  appId: "1:294563325904:web:39562550bf305fc01abbd5"
+};
 
-  <section class="card">
-    <h3 style="margin-top:0">إعدادات السكر والجرعات</h3>
-    <div class="grid g2">
-      <div><label>الهدف (mmol/L)</label><input id="cTarget" type="number" step="0.1"></div>
-      <div><label>حد الهبوط (mmol/L)</label><input id="cLow" type="number" step="0.1"></div>
-      <div><label>حد الارتفاع (mmol/L)</label><input id="cHigh" type="number" step="0.1"></div>
-      <div><label>ICR (جم كارب/و. أنسولين)</label><input id="cICR" type="number" step="0.1"></div>
-      <div><label>جرعة الترسيبا</label><input id="cTresiba" type="number" step="0.1"></div>
-      <div><label>إجمالي الأنسولين/اليوم</label><input id="cTotalIns" type="number" step="0.1"></div>
-      <div><label>معامل التصحيح (mmol/L لكل 1U)</label><input id="cCorr" type="number" step="0.1"></div>
-    </div>
-  </section>
+// ✅ تهيئة التطبيقات
+const app     = initializeApp(firebaseConfig);
+const auth    = getAuth(app);
+const db      = getFirestore(app);
+const storage = getStorage(app);
 
-  <section class="card">
-    <div class="row" style="justify-content:flex-end">
-      <button id="save" class="btn primary">💾 حفظ</button>
-    </div>
-  </section>
-</main>
+// ===============================
+// مساعدين موحّدين
+// ===============================
 
-<script type="module">
-import { auth, db, ensureAuth, requireChildIdFromQuery, loadChildProfile, setChildAvatar } from './firebase-init.js';
-import { doc, setDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+/**
+ * يضمن وجود مستخدم مسجّل دخول (مجهولًا)
+ * - يرجع Promise يحلّ بـ {user, uid}
+ * - يخزّن uid في localStorage لاستخدامه بصفحات تانية
+ */
+async function ensureAuth() {
+  // لو فيه مستخدم جاهز نستخدمه
+  if (auth.currentUser) {
+    const uid = auth.currentUser.uid;
+    localStorage.setItem("userId", uid);
+    return { user: auth.currentUser, uid };
+  }
+  // نسمع لحالة تسجيل الدخول… وإن مفيش، نعمل Anonymous Sign-in
+  const user = await new Promise(async (resolve, reject) => {
+    const unsub = onAuthStateChanged(auth, (u) => {
+      if (u) {
+        unsub();
+        resolve(u);
+      }
+    }, reject);
+    try {
+      // نحاول تسجيل دخول مجهول فقط لو مفيش جلسة
+      await signInAnonymously(auth);
+    } catch (e) {
+      reject(e);
+    }
+  });
 
-let uid=null, childId=null, child=null;
-
-const $=s=>document.querySelector(s);
-
-(async function boot(){
-  ({uid}=await ensureAuth());
-  childId=requireChildIdFromQuery();
-  $('#lnkDash').href=`child-dashboard.html?child=${encodeURIComponent(childId)}`;
-  $('#lnkHome').href=`dashboard.html`;
-
-  child = await loadChildProfile(uid, childId);
-  setChildAvatar($('#avatar'), child.name, child.photoURL);
-  $('#kidName').textContent = child.name || '—';
-  $('#kidMeta').textContent = `${child.gender||'—'} • ${child.weight??'—'} كجم • ${child.height??'—'} سم`;
-
-  // تعبئة
-  $('#cName').value   = child.name||'';
-  $('#cGender').value = child.gender||'ذكر';
-  $('#cBirth').value  = child.birthDate||'';
-  $('#cCivilId').value= child.childCivilId||'';
-  $('#cWeight').value = child.weight??'';
-  $('#cHeight').value = child.height??'';
-  $('#cUnit').value   = child.preferredUnit||'mmol/L';
-  $('#cTarget').value = child.target??'';
-  $('#cLow').value    = child.lowThreshold??'';
-  $('#cHigh').value   = child.highThreshold??'';
-  $('#cICR').value    = child.icr??'';
-  $('#cTresiba').value= child.tresibaDose??'';
-  $('#cTotalIns').value= child.totalInsulin??'';
-  $('#cCorr').value   = child.correctionFactor??'';
-
-  $('#save').addEventListener('click', save);
-})();
-
-async function save(){
-  const data = {
-    name: $('#cName').value.trim(),
-    gender: $('#cGender').value,
-    birthDate: $('#cBirth').value || null,
-    childCivilId: $('#cCivilId').value.trim() || null,
-    weight: $('#cWeight').value? Number($('#cWeight').value): null,
-    height: $('#cHeight').value? Number($('#cHeight').value): null,
-    preferredUnit: $('#cUnit').value,
-    target: $('#cTarget').value? Number($('#cTarget').value): null,
-    lowThreshold: $('#cLow').value? Number($('#cLow').value): null,
-    highThreshold: $('#cHigh').value? Number($('#cHigh').value): null,
-    icr: $('#cICR').value? Number($('#cICR').value): null,
-    tresibaDose: $('#cTresiba').value? Number($('#cTresiba').value): null,
-    totalInsulin: $('#cTotalIns').value? Number($('#cTotalIns').value): null,
-    correctionFactor: $('#cCorr').value? Number($('#cCorr').value): null
-  };
-  await setDoc(doc(db,'users',uid,'children',childId), data, {merge:true});
-  alert('تم الحفظ ✅');
+  const uid = user.uid;
+  localStorage.setItem("userId", uid);
+  return { user, uid };
 }
-</script>
-</body>
-</html>
+
+/**
+ * تسجيل خروج سريع موحّد
+ */
+function logout() {
+  return signOut(auth).then(() => {
+    localStorage.removeItem("userId");
+  });
+}
+
+/**
+ * يرجّع childId من كويري سترينغ (?child=...)
+ * - يرمي خطأ واضح لو مش موجود
+ */
+function requireChildIdFromQuery() {
+  const params = new URLSearchParams(location.search);
+  const childId = params.get("child");
+  if (!childId) {
+    throw new Error("لم يتم تمرير childId في عنوان الصفحة (?child=...)");
+  }
+  return childId;
+}
+
+/**
+ * مسار صورة أفتراضية للطفل من مشروعك
+ * ضعي الصورة في: /images/avatar-default.png
+ */
+function defaultAvatarPath() {
+  return "images/avatar-default.png";
+}
+
+/**
+ * يضبط صورة الطفل في عنصر <img>:
+ * - لو فيه photoURL يستخدمه
+ * - غير كده يستخدم الصورة الافتراضية
+ * - لو حابة تضيفي Alt ديناميكي بالاسم
+ */
+function setChildAvatar(imgEl, childName, photoURL) {
+  if (!imgEl) return;
+  imgEl.alt = childName ? `صورة ${childName}` : "صورة الطفل";
+  imgEl.src = photoURL || defaultAvatarPath();
+}
+
+/**
+ * فورمات بسيط لتاريخ اليوم: YYYY-MM-DD
+ */
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/**
+ * تحويل Date إلى قيمة مناسبة لـ input[type=datetime-local]
+ */
+function toLocalDatetimeValue(d = new Date()) {
+  const x = new Date(d);
+  x.setMinutes(x.getMinutes() - x.getTimezoneOffset());
+  return x.toISOString().slice(0, 16);
+}
+
+/**
+ * تقريب إلى منزلة عشرية واحدة
+ */
+function round1(n) {
+  const v = Math.round(Number(n) * 10) / 10;
+  return Number.isFinite(v) ? v : null;
+}
+
+// ===============================
+// تصدير ما سنحتاجه في الصفحات
+// ===============================
+export {
+  app, auth, db, storage,
+  ensureAuth, logout,
+  requireChildIdFromQuery,
+  defaultAvatarPath, setChildAvatar,
+  todayISO, toLocalDatetimeValue, round1
+};
