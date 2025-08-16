@@ -1,189 +1,202 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>إدارة الأصناف</title>
-<link rel="stylesheet" href="styles.css">
 <style>
-.table-foods{width:100%;border-collapse:separate;border-spacing:0}
-.table-foods th,.table-foods td{border:1px solid var(--line);padding:8px;text-align:right;vertical-align:top}
-.table-foods thead th{background:#f0f9ff;font-weight:800}
-.unit-chip{display:inline-block;background:#eef6ff;color:#0369a1;padding:3px 8px;border-radius:999px;margin:2px 4px}
+:root{--brand:#0ea5e9;--line:#e5e7eb;--ink:#0f172a;--muted:#64748b;--bg:#f6fbff;--card:#fff}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif}
+.container{max-width:1100px;margin:auto;padding:14px}
+.topbar{position:sticky;top:0;background:linear-gradient(90deg,#0ea5e9,#6ee7b7);color:#fff;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;z-index:5}
+.btn{border:none;border-radius:10px;padding:9px 12px;font-weight:800;cursor:pointer}
+.btn.primary{background:var(--brand);color:#fff} .btn.gray{background:#eef2f7}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 6px 24px rgba(0,0,0,.04);margin-bottom:12px}
+.grid{display:grid;gap:10px}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:900px){.g3,.g2{grid-template-columns:1fr}}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.small{color:#64748b;font-size:12px}
+.table{width:100%;border-collapse:separate;border-spacing:0}
+.table th,.table td{border:1px solid var(--line);padding:8px;text-align:right}
+.table thead th{background:#f1f5f9;font-weight:800}
+.badge{display:inline-block;background:#eef6ff;color:#0369a1;border-radius:999px;padding:4px 8px;font-weight:800;font-size:12px}
 </style>
 </head>
 <body>
-<header class="topbar">
-  <a class="btn" href="dashboard.html">لوحة وليّ الأمر</a>
+
+<div class="topbar">
   <div>🗂️ إدارة الأصناف</div>
-</header>
+  <div>
+    <a id="backMeals" class="btn gray">الرجوع للوجبات</a>
+  </div>
+</div>
 
 <main class="container">
   <section class="card">
+    <h3 style="margin:0 0 8px">➕ إضافة / تعديل صنف</h3>
     <div class="grid g3">
-      <div><label>بحث</label><input id="q" placeholder="اسم/تصنيف…"></div>
-      <div><label>تصنيف</label><input id="cat" placeholder="(اختياري عند الإضافة)"></div>
-      <div class="row" style="align-items:end;justify-content:flex-end">
-        <button id="btnNew" class="btn gray">➕ إضافة صنف</button>
-        <input id="xlsx" type="file" accept=".xlsx,.xls" style="display:none">
-        <button id="btnImport" class="btn">⬆️ استيراد Excel</button>
+      <div><label>الاسم</label><input id="fName"></div>
+      <div><label>التصنيف</label><input id="fCat" placeholder="مثال: فاكهة / حبوب"></div>
+      <div><label>رابط الصورة (صغير)</label><input id="fImg" placeholder="https://...png"></div>
+
+      <div><label>كارب/100جم</label><input id="fCarb" type="number" step="0.1"></div>
+      <div><label>بروتين/100جم</label><input id="fProt" type="number" step="0.1"></div>
+      <div><label>دهون/100جم</label><input id="fFat" type="number" step="0.1"></div>
+
+      <div><label>سعرات/100جم</label><input id="fKcal" type="number" step="1"></div>
+      <div><label>وسوم (هاشتاج أو فاصلة)</label><input id="fTags" placeholder="#فطور, #حلو"></div>
+      <div><label>نشط؟</label>
+        <select id="fActive"><option value="1">نعم</option><option value="0">لا</option></select>
       </div>
+    </div>
+
+    <div class="small" style="margin:6px 0">
+      💡 السعرات التقريبية = (كارب×4) + (بروتين×4) + (دهون×9). 
+      <button id="btnCalcKcal" class="btn gray" type="button">حساب تلقائي</button>
+    </div>
+
+    <h4 style="margin:8px 0 6px">📏 وحدات منزلية</h4>
+    <div id="unitsBox" class="grid g2"></div>
+    <div><button id="btnAddUnit" class="btn gray" type="button">➕ إضافة وحدة</button></div>
+
+    <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
+      <button id="btnSave" class="btn primary">💾 حفظ</button>
+      <button id="btnReset" class="btn gray" type="button">مسح الحقول</button>
     </div>
   </section>
 
   <section class="card">
-    <table class="table-foods">
-      <thead><tr><th>الاسم</th><th>التصنيف</th><th>كارب/100جم</th><th>الوحدات المنزلية</th><th>إجراء</th></tr></thead>
-      <tbody id="rows"><tr><td colspan="5" class="note">جاري التحميل…</td></tr></tbody>
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <h3 style="margin:0">📋 الأصناف</h3>
+      <input id="q" placeholder="بحث بالاسم/الوسم" style="width:260px">
+    </div>
+    <table class="table" style="margin-top:8px">
+      <thead><tr><th>الاسم</th><th>تصنيف</th><th>ك/ب/د</th><th>سعرات</th><th>وحدات</th><th>وسوم</th><th>إجراء</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="7" class="small">تحميل...</td></tr></tbody>
     </table>
-  </section>
-
-  <!-- نموذج إضافة/تعديل -->
-  <section class="card" id="formBox" style="display:none">
-    <h4 style="margin:0 0 8px">صنف</h4>
-    <div class="grid g3">
-      <div><label>الاسم</label><input id="fName"></div>
-      <div><label>التصنيف</label><input id="fCat"></div>
-      <div><label>كارب/100جم</label><input id="fCarb" type="number" step="0.1" min="0"></div>
-      <div style="grid-column:1/-1">
-        <label>الوحدات المنزلية (قائمة JSON)</label>
-        <textarea id="fUnits" rows="3" placeholder='[{"unit":"كوب","grams":240},{"unit":"ملعقة كبيرة","grams":15}]'></textarea>
-        <div class="note">اتركيها فارغة لو غير متاح — سيتم افتراض (جرام 100).</div>
-      </div>
-    </div>
-    <div class="row" style="justify-content:flex-end;margin-top:8px">
-      <button id="btnSave" class="btn primary">💾 حفظ</button>
-      <button id="btnCancel" class="btn gray">إلغاء</button>
-    </div>
   </section>
 </main>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module">
-import { auth, db, ensureAuth } from './firebase-init.js';
-import { collection, getDocs, addDoc, doc, getDoc, updateDoc, deleteDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-
-await ensureAuth();
+import { db } from './firebase-init.js';
+import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const $=s=>document.querySelector(s);
-let foods=[], editing=null;
+const childId = new URL(location.href).searchParams.get('child');
+$('#backMeals').href = `meals.html?child=${encodeURIComponent(childId||'')}`;
 
-$("#btnNew").addEventListener('click',()=>{ editing=null; showForm(); });
-$("#btnCancel").addEventListener('click',()=> $("#formBox").style.display='none');
-$("#btnSave").addEventListener('click', saveFood);
-$("#q").addEventListener('input', render);
-$("#btnImport").addEventListener('click', ()=>$("#xlsx").click());
-$("#xlsx").addEventListener('change', importXLSX);
+let editId=null, foods=[];
 
-await loadFoods(); render();
+function addUnitRow(name='', grams=''){
+  const wrap=document.createElement('div');
+  wrap.innerHTML = `
+    <div class="row" style="align-items:center">
+      <input class="uName" placeholder="الوحدة (كوب/ملعقة/حبة…)" value="${name}">
+      <input class="uGrams" type="number" step="0.1" placeholder="جرام" value="${grams}">
+      <button class="btn gray rm" type="button">🗑️</button>
+    </div>`;
+  wrap.querySelector('.rm').onclick=()=>wrap.remove();
+  $('#unitsBox').appendChild(wrap);
+}
+$('#btnAddUnit').onclick=()=>addUnitRow();
+
+$('#btnCalcKcal').onclick=()=>{
+  const c=+($('#fCarb').value||0), p=+($('#fProt').value||0), f=+($('#fFat').value||0);
+  $('#fKcal').value = Math.round(c*4 + p*4 + f*9);
+};
+$('#btnReset').onclick=()=>{ editId=null; document.querySelectorAll('input').forEach(i=>{ if(i.id!=='q') i.value='';}); $('#unitsBox').innerHTML=''; addUnitRow(); };
+
+$('#btnSave').onclick = async ()=>{
+  const name=$('#fName').value.trim(); if(!name) return alert('أدخلي الاسم');
+  const item={
+    name,
+    category: $('#fCat').value.trim() || 'أخرى',
+    imageUrl: $('#fImg').value.trim() || '',
+    carbsPer100g: +($('#fCarb').value||0),
+    proteinPer100g: +($('#fProt').value||0),
+    fatPer100g: +($('#fFat').value||0),
+    kcalPer100g: +($('#fKcal').value||0),
+    tags: parseTags($('#fTags').value||''),
+    isActive: $('#fActive').value==='1',
+    servingUnits: collectUnits(),
+    updatedAt: serverTimestamp()
+  };
+  if(!item.servingUnits.length) item.servingUnits=[{unit:'جرام',grams:1}];
+
+  if(editId){
+    await updateDoc(doc(db,'foods',editId), item);
+  }else{
+    const id = String(Date.now());
+    await setDoc(doc(db,'foods',id), { ...item, createdAt: serverTimestamp() });
+  }
+  alert('✅ تم الحفظ');
+  await loadFoods();
+  $('#btnReset').click();
+};
+
+function parseTags(txt){
+  return txt.split(/[,#\s]+/).map(s=>s.trim()).filter(Boolean);
+}
+function collectUnits(){
+  const arr=[];
+  $('#unitsBox').querySelectorAll('.row').forEach(r=>{
+    const n=r.querySelector('.uName').value.trim();
+    const g=+(r.querySelector('.uGrams').value||0);
+    if(n && g>0) arr.push({unit:n, grams:g});
+  });
+  return arr;
+}
 
 async function loadFoods(){
-  const qy=query(collection(db,'foods'), orderBy('name','asc'));
-  const qs=await getDocs(qy);
-  foods=[]; qs.forEach(s=>{
-    const d=s.data();
-    foods.push({
-      id:s.id,
-      name:d.name||'',
-      category:d.category||'أخرى',
-      carbsPer100g:Number(d.carbsPer100g)||0,
-      servingUnits:Array.isArray(d.servingUnits)&&d.servingUnits.length?d.servingUnits:[{unit:'جرام',grams:100}],
-      isActive: d.isActive!==false
-    });
-  });
+  foods=[]; const qs=await getDocs(collection(db,'foods'));
+  qs.forEach(s=>foods.push({id:s.id,...(s.data()||{})}));
+  renderRows();
 }
-
-function render(){
-  const tb=$("#rows"); tb.innerHTML='';
-  const q=($("#q").value||'').toLowerCase();
-  const filtered=foods.filter(f=>{
-    return (!q || f.name.toLowerCase().includes(q) || (f.category||'').toLowerCase().includes(q));
-  });
-  if(!filtered.length){ tb.innerHTML='<tr><td colspan="5" class="note">لا نتائج.</td></tr>'; return; }
-  filtered.forEach(f=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td>${esc(f.name)}</td>
-      <td>${esc(f.category)}</td>
-      <td>${f.carbsPer100g}</td>
-      <td>${f.servingUnits.map(u=>`<span class="unit-chip">${esc(u.unit)} (${u.grams}جم)</span>`).join('')}</td>
+function renderRows(){
+  const tbody=$('#rows'); const q=($('#q').value||'').toLowerCase().trim();
+  const list=foods.filter(f=> !q || (f.name||'').toLowerCase().includes(q) || (Array.isArray(f.tags)&&f.tags.some(t=>String(t).toLowerCase().includes(q))));
+  if(!list.length){ tbody.innerHTML='<tr><td colspan="7" class="small">لا نتائج.</td></tr>'; return; }
+  tbody.innerHTML = list.map(f=>{
+    const units=(f.servingUnits||[]).map(u=>`${u.unit}(${u.grams}جم)`).join('، ');
+    const kbd=`${+f.carbsPer100g||0}/${+f.proteinPer100g||0}/${+f.fatPer100g||0}`;
+    const tags=(Array.isArray(f.tags)?f.tags:[]).map(t=>`<span class="badge">#${t}</span>`).join(' ');
+    return `<tr>
+      <td>${escapeHTML(f.name)}</td>
+      <td>${escapeHTML(f.category||'—')}</td>
+      <td>${kbd}</td>
+      <td>${+f.kcalPer100g||0}</td>
+      <td>${units||'—'}</td>
+      <td>${tags||'—'}</td>
       <td>
-        <button class="btn gray" data-act="edit" data-id="${f.id}">✏️</button>
-        <button class="btn danger" data-act="del" data-id="${f.id}">🗑️</button>
+        <button class="btn gray" data-act="edit" data-id="${f.id}">✏️ تعديل</button>
+        <button class="btn gray" data-act="del" data-id="${f.id}">🗑️ حذف</button>
       </td>
-    `;
-    tb.appendChild(tr);
+    </tr>`;
+  }).join('');
+
+  tbody.querySelectorAll('button[data-act]').forEach(btn=>{
+    const id=btn.dataset.id, act=btn.dataset.act;
+    btn.onclick = async ()=>{
+      if(act==='edit'){
+        editId=id;
+        const f=foods.find(x=>x.id===id); if(!f) return;
+        $('#fName').value=f.name||''; $('#fCat').value=f.category||''; $('#fImg').value=f.imageUrl||'';
+        $('#fCarb').value=f.carbsPer100g||''; $('#fProt').value=f.proteinPer100g||''; $('#fFat').value=f.fatPer100g||'';
+        $('#fKcal').value=f.kcalPer100g||''; $('#fTags').value=(Array.isArray(f.tags)?f.tags.join(', '):'');
+        $('#fActive').value=f.isActive===false?'0':'1';
+        $('#unitsBox').innerHTML=''; (f.servingUnits||[]).forEach(u=>addUnitRow(u.unit,u.grams));
+        if(!(f.servingUnits||[]).length) addUnitRow();
+        window.scrollTo({top:0,behavior:'smooth'});
+      }else if(act==='del'){
+        if(confirm('حذف الصنف؟')){ await deleteDoc(doc(db,'foods',id)); await loadFoods(); }
+      }
+    };
   });
-  tb.querySelectorAll('button[data-act]').forEach(b=>{
-    const id=b.dataset.id, act=b.dataset.act;
-    b.addEventListener('click',()=>{ if(act==='edit') editFood(id); else delFood(id); });
-  });
 }
+const escapeHTML=s=>String(s||'').replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 
-function showForm(f){
-  $("#formBox").style.display='block';
-  $("#fName").value=f?.name||'';
-  $("#fCat").value=f?.category||($("#cat").value||'');
-  $("#fCarb").value=f?.carbsPer100g??'';
-  $("#fUnits").value=f?.servingUnits? JSON.stringify(f.servingUnits) : '';
-}
-
-async function saveFood(){
-  const name=$("#fName").value.trim(); if(!name) return alert('اكتبي اسم الصنف');
-  const cat=$("#fCat").value.trim()||'أخرى';
-  const carb=Number($("#fCarb").value)||0;
-  let units=[]; const raw=$("#fUnits").value.trim();
-  if(raw){ try{ units=JSON.parse(raw); }catch{ return alert('صيغة الوحدات المنزلية غير صحيحة'); } }
-  if(!Array.isArray(units) || !units.every(u=>u.unit && Number(u.grams)>0)) return alert('الوحدات يجب أن تكون [{unit,grams}]');
-
-  const base={name, category:cat, carbsPer100g:carb, servingUnits:units, isActive:true};
-  if(!editing){
-    await addDoc(collection(db,'foods'), base);
-  }else{
-    await updateDoc(doc(db,'foods',editing), base);
-  }
-  $("#formBox").style.display='none';
-  await loadFoods(); render();
-  alert('✅ تم الحفظ');
-}
-
-async function editFood(id){
-  editing=id;
-  const s=await getDoc(doc(db,'foods',id));
-  const f=s.data();
-  showForm(f);
-}
-
-async function delFood(id){
-  if(!confirm('حذف الصنف؟')) return;
-  await deleteDoc(doc(db,'foods',id));
-  await loadFoods(); render();
-}
-
-async function importXLSX(e){
-  const file=e.target.files?.[0]; if(!file) return;
-  const wb=await file.arrayBuffer().then(buf=>window.XLSX.read(buf,{type:'array'}));
-  const ws=wb.Sheets[wb.SheetNames[0]];
-  const rows=window.XLSX.utils.sheet_to_json(ws,{defval:''});
-  // أعمدة متوقعة: name, category, carbsPer100g, units_json
-  // مثال units_json: [{"unit":"كوب","grams":240},{"unit":"ملعقة كبيرة","grams":15}]
-  let added=0;
-  for(const r of rows){
-    if(!r.name) continue;
-    let units=[];
-    if(r.units_json){ try{ units=JSON.parse(r.units_json); }catch{ units=[]; } }
-    if(!Array.isArray(units) || !units.length) units=[{unit:'جرام',grams:100}];
-    await addDoc(collection(db,'foods'), {
-      name:String(r.name), category: r.category||'أخرى',
-      carbsPer100g:Number(r.carbsPer100g)||0,
-      servingUnits:units, isActive:true
-    });
-    added++;
-  }
-  await loadFoods(); render();
-  alert('✅ تم استيراد '+added+' صنف/أصناف');
-}
-
-function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));}
+$('#q').addEventListener('input', renderRows);
+await loadFoods();
 </script>
 </body>
 </html>
