@@ -4,18 +4,36 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>لوحة الطفل</title>
+  <!-- مظهر عام موحّد للمشروع -->
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* إضافات خفيفة فوق styles.css */
+    .tiles{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
+    @media(min-width:900px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    .tile{display:flex;flex-direction:column;gap:8px;background:var(--card);border:1px solid var(--line);
+      border-radius:14px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+    .tile h3{margin:0;font-size:18px}
+    .tile .actions{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap}
+    .kpis{display:grid;gap:10px;grid-template-columns:repeat(3,minmax(0,1fr))}
+    .kpis .box{background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:10px}
+    .kpis .label{font-size:12px;color:var(--muted)}
+    .kpis .value{font-weight:800}
+    .child-nav{display:flex;gap:8px;flex-wrap:wrap}
+    .child-banner{text-align:center;padding:12px 8px;display:none}
+    .child-banner .avatar{width:84px;height:84px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+    .small{font-size:12px;color:var(--muted)}
+  </style>
 </head>
 <body>
 
-  <!-- ✅ بنر الطفل (قبل التوب بار) -->
-  <div id="childBanner" style="text-align:center; padding:12px 8px; display:none">
-    <img id="bannerAvatar" src="images/avatar-default.png" alt="صورة الطفل" class="avatar" style="width:84px;height:84px">
-    <div style="margin-top:6px; font-weight:800" id="bannerName">—</div>
-    <div class="note" id="bannerMeta">—</div>
+  <!-- ✅ بنر الطفل أعلى الصفحة -->
+  <div id="childBanner" class="child-banner">
+    <img id="bannerAvatar" class="avatar" src="images/avatar-default.png" alt="صورة الطفل">
+    <div style="margin-top:6px;font-weight:800" id="bannerName">—</div>
+    <div class="small" id="bannerMeta">—</div>
   </div>
 
-  <!-- ✅ Topbar -->
+  <!-- ✅ شريط علوي -->
   <div class="topbar">
     <div>📊 لوحة الطفل</div>
     <div class="row">
@@ -24,161 +42,180 @@
     </div>
   </div>
 
-  <!-- ✅ روابط تنقل داخلية -->
   <main class="container">
+
+    <!-- ✅ تنقّل صفحات الطفل (مهم: تمت إضافة تقرير الطبيب) -->
     <div class="card">
-      <div class="row" id="childNav" style="flex-wrap:wrap"></div>
+      <div id="childNav" class="child-nav"></div>
     </div>
 
-    <!-- ✅ بيانات الطفل -->
+    <!-- ✅ لمحة سريعة + KPIs اليوم -->
     <section class="card">
-      <h3 class="section-title">🧒 بيانات الطفل</h3>
-      <div class="grid g2">
-        <div><label>الاسم</label><input id="cName"></div>
-        <div><label>النوع</label>
-          <select id="cGender"><option>ذكر</option><option>أنثى</option></select>
-        </div>
-        <div><label>الرقم المدني</label><input id="cCivilId"></div>
-        <div><label>تاريخ الميلاد</label><input id="cBirth" type="date"></div>
-        <div><label>الوزن (كجم)</label><input id="cWeight" type="number" step="0.1"></div>
-        <div><label>الطول (سم)</label><input id="cHeight" type="number" step="0.1"></div>
+      <h3 class="section-title">ملخص اليوم</h3>
+      <div class="kpis" id="kpiRow">
+        <div class="box"><div class="label">قراءات اليوم</div><div id="k_today" class="value">—</div></div>
+        <div class="box"><div class="label">متوسط اليوم</div><div id="k_avg" class="value">—</div></div>
+        <div class="box"><div class="label">% داخل النطاق</div><div id="k_tir" class="value">—%</div></div>
       </div>
-
-      <div class="sep" style="height:8px"></div>
-      <h4 class="section-title">⚙️ إعدادات السكر</h4>
-      <div class="grid g3">
-        <div><label>الوحدة المفضلة</label>
-          <select id="cUnit"><option value="mmol/L">mmol/L</option><option value="mg/dL">mg/dL</option></select>
-        </div>
-        <div><label>الهدف</label><input id="cTarget" type="number" step="0.1"></div>
-        <div><label>حد الهبوط</label><input id="cLow" type="number" step="0.1"></div>
-        <div><label>حد الارتفاع</label><input id="cHigh" type="number" step="0.1"></div>
-        <div><label>جرعة الترسيبا</label><input id="cTresiba" type="number" step="0.1"></div>
-        <div><label>الأنسولين اليومي</label><input id="cTotalInsulin" type="number" step="0.1"></div>
-        <div><label>معامل التصحيح (mmol/L لكل 1U)</label><input id="cCorrectionFactor" type="number" step="0.1"></div>
-        <div><label>ICR (جرام كارب/1U)</label><input id="cICR" type="number" step="0.1"></div>
-      </div>
-
-      <div class="sep" style="height:8px"></div>
-      <h4 class="section-title">📷 صورة الطفل</h4>
-      <div class="row">
-        <input type="file" id="cPhoto" accept="image/*">
-        <div id="uploadProg" style="height:8px;background:#e5e7eb;border-radius:999px;overflow:hidden;display:none;min-width:160px">
-          <span style="display:block;height:100%;background:linear-gradient(90deg,#22c55e,#06b6d4);width:0%"></span>
-        </div>
-      </div>
-
-      <div class="row" style="justify-content:flex-end;margin-top:10px">
-        <button id="saveInfo" class="btn primary">💾 حفظ البيانات</button>
-      </div>
+      <div class="small" id="limitsBadge" style="margin-top:6px">—</div>
     </section>
+
+    <!-- ✅ بلاطات أقسام سريعة -->
+    <section class="tiles">
+      <article class="tile">
+        <h3>🧪 قياسات السكر</h3>
+        <p class="small">تسجيل قراءة جديدة واستعراض قراءات اليوم.</p>
+        <div class="actions">
+          <a id="goMeasures" class="btn primary">افتح قياسات السكر</a>
+        </div>
+      </article>
+
+      <article class="tile">
+        <h3>🍽️ الوجبات</h3>
+        <p class="small">اختيار الأصناف وحساب الكارب والجرعة المقترحة.</p>
+        <div class="actions">
+          <a id="goMeals" class="btn primary">افتح الوجبات</a>
+        </div>
+      </article>
+
+      <article class="tile">
+        <h3>📄 التقارير</h3>
+        <p class="small">تقرير أسبوع/شهر ونسخة للطباعة.</p>
+        <div class="actions">
+          <a id="goReports" class="btn primary">افتح التقارير</a>
+        </div>
+      </article>
+
+      <article class="tile">
+        <h3>🧑‍⚕️ تقرير الطبيب</h3>
+        <p class="small">تحليل القياسات + رسوم (خط/دونات/توزيع) وPDF.</p>
+        <div class="actions">
+          <!-- 👇 هذا هو الزر المطلوب لفتح صفحة تقرير الطبيب -->
+          <a id="goDoctorReport" class="btn primary">افتح تقرير الطبيب</a>
+        </div>
+      </article>
+
+      <article class="tile">
+        <h3>📅 الزيارات الطبية</h3>
+        <p class="small">سجل الزيارات والمرفقات والطباعة.</p>
+        <div class="actions">
+          <a id="goVisits" class="btn primary">افتح الزيارات</a>
+        </div>
+      </article>
+
+      <article class="tile">
+        <h3>🧒 بيانات الطفل</h3>
+        <p class="small">تعديل البيانات والصورة والإعدادات.</p>
+        <div class="actions">
+          <a id="goProfile" class="btn primary">افتح البيانات</a>
+        </div>
+      </article>
+    </section>
+
   </main>
 
-  <!-- ✅ Toast + Loader -->
   <div id="toast" class="toast"></div>
   <div id="loader" class="loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
 
-  <!-- ✅ Script -->
   <script type="module">
-    import { auth, db, storage, ensureAuth, logout, requireChildIdFromQuery, setChildAvatar } from './firebase-init.js';
+    import {
+      auth, db, ensureAuth, requireChildIdFromQuery, setChildAvatar
+    } from './firebase-init.js';
+
     import { signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-    import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-    import { ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
+    import {
+      doc, getDoc, collection, getDocs
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-    const toast = (m)=>{ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
-    const showLoader=(on)=>{ const l=document.getElementById('loader'); l.style.display=on?'flex':'none'; }
+    const $ = s=>document.querySelector(s);
+    const toast=(m)=>{const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2000)}
+    const showLoader=(on)=>{$("#loader").style.display=on?'flex':'none'}
 
-    let uid=null, childId=null, child=null;
+    const z2=n=>String(n).padStart(2,'0');
+    const todayISO=()=>{const d=new Date();return `${d.getFullYear()}-${z2(d.getMonth()+1)}-${z2(d.getDate())}`;}
 
-    // روابط تنقل موحّدة
-    function buildNav(){
-      const base = [
-        ['dashboard.html','الرئيسية'],
+    let uid=null, childId=null, child={};
+
+    // 🔁 بدء اللوحة
+    (async function boot(){
+      showLoader(true);
+      const {uid:U}=await ensureAuth(); uid=U;
+      childId = requireChildIdFromQuery();
+
+      // روابط أعلى الصفحة
+      $("#lnkHome").href=`dashboard.html`;
+      $("#btnLogout").addEventListener('click', ()=>signOut(auth).then(()=>location.href='index.html'));
+
+      // تنقّل بين صفحات الطفل (يشمل تقرير الطبيب)
+      buildChildNav();
+
+      // تحميل بيانات الطفل + ملخص اليوم
+      await loadChild();
+      await loadTodayKPI();
+
+      // ربط أزرار البلاطات
+      $("#goMeasures").href = `measures.html?child=${encodeURIComponent(childId)}`;
+      $("#goMeals").href    = `meals.html?child=${encodeURIComponent(childId)}`;
+      $("#goReports").href  = `reports.html?child=${encodeURIComponent(childId)}`;
+      $("#goDoctorReport").href = `doctor-report.html?child=${encodeURIComponent(childId)}`; // ✅ زر تقرير الطبيب
+      $("#goVisits").href   = `visits.html?child=${encodeURIComponent(childId)}`;
+      $("#goProfile").href  = `child-profile.html?child=${encodeURIComponent(childId)}`;
+    })().finally(()=>showLoader(false));
+
+    // 🧭 تنقّل أعلى الصفحة
+    function buildChildNav(){
+      const row=$("#childNav"); row.innerHTML='';
+      [
+        ['child-dashboard.html','الرئيسية'],
         ['measures.html','قياسات السكر'],
         ['meals.html','الوجبات'],
         ['reports.html','التقارير'],
+        ['doctor-report.html','تقرير الطبيب'], // ✅ تمت إضافة تقرير الطبيب
         ['visits.html','الزيارات الطبية']
-      ];
-      const row = document.getElementById('childNav');
-      row.innerHTML = '';
-      base.forEach(([href,label])=>{
-        const a = document.createElement('a');
+      ].forEach(([h,t])=>{
+        const a=document.createElement('a');
         a.className='btn gray';
-        a.href = `${href}?child=${encodeURIComponent(childId)}`;
-        a.textContent = label;
+        a.href=`${h}?child=${encodeURIComponent(childId)}`;
+        a.textContent=t;
         row.appendChild(a);
       });
-      // زر الرئيسية أعلى أيضًا
-      document.getElementById('lnkHome').href = `child-dashboard.html?child=${encodeURIComponent(childId)}`;
     }
 
+    // 👶 تحميل بيانات الطفل وعرضها في البنر
     async function loadChild(){
-      const snap = await getDoc(doc(db,'users',uid,'children',childId));
-      if(!snap.exists()){ toast('الطفل غير موجود'); return; }
-      child = snap.data();
-      // بنر
-      setChildAvatar(document.getElementById('bannerAvatar'), child.name, child.photoURL);
-      document.getElementById('bannerName').textContent = child.name || '—';
-      document.getElementById('bannerMeta').textContent =
-        `${child.gender||'—'} • ${child.weight||'—'} كجم • ${child.height||'—'} سم`;
-      document.getElementById('childBanner').style.display='block';
-
-      // ملء الفورم
-      cName.value = child.name||''; cGender.value = child.gender||'ذكر';
-      cCivilId.value = child.childCivilId||''; cBirth.value = child.birthDate||'';
-      cWeight.value = child.weight??''; cHeight.value = child.height??'';
-      cUnit.value = child.unit||'mmol/L'; cTarget.value = child.target??'';
-      cLow.value = child.lowThreshold??''; cHigh.value = child.highThreshold??'';
-      cTresiba.value = child.tresibaDose??''; cTotalInsulin.value = child.totalInsulin??'';
-      cCorrectionFactor.value = child.correctionFactor??''; cICR.value = child.icr??'';
+      const s=await getDoc(doc(db,'users',uid,'children',childId));
+      if(!s.exists()){ toast('الطفل غير موجود'); return; }
+      child=s.data()||{};
+      setChildAvatar($('#bannerAvatar'), child.name, child.photoURL);
+      $('#bannerName').textContent = child.name || '—';
+      $('#bannerMeta').textContent = `${child.gender||'—'} • ${child.weight??'—'} كجم • ${child.height??'—'} سم`;
+      $('#childBanner').style.display='block';
+      $('#limitsBadge').textContent = `الوحدة: mmol/L • حدود: ${child.lowThreshold??'—'} — ${child.highThreshold??'—'}`;
     }
 
-    // حفظ
-    saveInfo.addEventListener('click', async ()=>{
-      showLoader(true);
-      const data = {
-        name:cName.value.trim(), gender:cGender.value, childCivilId:cCivilId.value.trim(),
-        birthDate:cBirth.value||null, weight: cWeight.value? Number(cWeight.value):null,
-        height: cHeight.value? Number(cHeight.value):null, unit: cUnit.value,
-        target: cTarget.value? Number(cTarget.value):null,
-        lowThreshold: cLow.value? Number(cLow.value):null,
-        highThreshold: cHigh.value? Number(cHigh.value):null,
-        tresibaDose: cTresiba.value? Number(cTresiba.value):null,
-        totalInsulin: cTotalInsulin.value? Number(cTotalInsulin.value):null,
-        correctionFactor: cCorrectionFactor.value? Number(cCorrectionFactor.value):null,
-        icr: cICR.value? Number(cICR.value):null
-      };
-      await setDoc(doc(db,'users',uid,'children',childId), data, {merge:true});
-      toast('✅ تم الحفظ'); showLoader(false);
-    });
+    // 📅 ملخص اليوم من مجموعة measurements
+    async function loadTodayKPI(){
+      const today = todayISO();
+      const ref = doc(db,'users',uid,'children',childId,'measurements',today);
+      const s = await getDoc(ref);
+      const readings = (s.data()||{}).readings || {};
+      const values = Object.values(readings).map(r=> Number(r?.valueMmol ?? r?.value)).filter(v=>Number.isFinite(v));
+      const total = values.length;
+      const avg   = total? (values.reduce((a,b)=>a+b,0)/total):null;
 
-    // رفع صورة
-    cPhoto.addEventListener('change', async (e)=>{
-      const f = e.target.files[0]; if(!f) return;
-      const bar = document.getElementById('uploadProg'); const fill = bar.querySelector('span');
-      bar.style.display='block'; fill.style.width='0%';
-      const path = `users/${uid}/children/${childId}/avatar/${Date.now()}_${f.name}`;
-      const task = uploadBytesResumable(ref(storage,path), f);
-      await new Promise((res,rej)=> task.on('state_changed', s=>{ fill.style.width=(s.bytesTransferred/s.totalBytes*100)+'%'; }, rej, res));
-      const url = await getDownloadURL(task.snapshot.ref);
-      await setDoc(doc(db,'users',uid,'children',childId), {photoURL:url}, {merge:true});
-      setChildAvatar(document.getElementById('bannerAvatar'), cName.value.trim(), url);
-      toast('📷 تم رفع الصورة'); bar.style.display='none';
-    });
+      let ok=0, low=0, high=0;
+      const lo=Number(child.lowThreshold), hi=Number(child.highThreshold);
+      values.forEach(v=>{
+        if(isFinite(lo)&&v<lo) low++;
+        else if(isFinite(hi)&&v>hi) high++;
+        else ok++;
+      });
+      const tir = total? Math.round((ok/total)*100) : 0;
 
-    // خروج
-    btnLogout.addEventListener('click', ()=> signOut(auth).then(()=>location.href='index.html'));
-
-    // Boot
-    (async function(){
-      showLoader(true);
-      const session = await ensureAuth(); uid = session.uid;
-      childId = requireChildIdFromQuery();
-      buildNav();
-      await loadChild();
-      showLoader(false);
-    })();
+      $('#k_today').textContent = total || 0;
+      $('#k_avg').textContent   = avg!=null? avg.toFixed(1) : '—';
+      $('#k_tir').textContent   = tir + '%';
+    }
   </script>
 </body>
 </html>
-
