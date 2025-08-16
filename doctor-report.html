@@ -1,545 +1,254 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>تقرير الطبيب — متابعة سكر الطفل</title>
-  <!-- مظهر موحّد -->
-  <link rel="stylesheet" href="styles.css">
-
-  <style>
-  /* إضافات بسيطة فوق styles.css */
-
-  .kpi {display:grid;gap:10px;grid-template-columns:repeat(7,minmax(0,1fr))}
-  .kpi .box{background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:10px}
-  .kpi .box .v{font-weight:800}
-
-  .table-report{width:100%;border-collapse:separate;border-spacing:0}
-  .table-report th,.table-report td{border:1px solid var(--line);padding:8px;text-align:right;vertical-align:top}
-  .table-report thead th{background:#f1f5f9;font-weight:800}
-  .table-report td.date{background:#fbfdff;white-space:nowrap;font-weight:800}
-
-  .cell{display:flex;flex-direction:column;gap:4px}
-  .state{display:inline-block;padding:2px 8px;border-radius:999px;font-weight:700}
-  .state.ok{background:#ecfdf5;color:#16a34a}
-  .state.low{background:#fff7ed;color:#b45309}
-  .state.high{background:#fee2e2;color:#dc2626}
-  .icon-plate{font-size:14px}
-
-  .chart-wrap{display:grid;gap:14px;grid-template-columns:2fr 2fr 1.2fr}
-  @media(max-width:900px){.chart-wrap{grid-template-columns:1fr}}
-
-  .chart-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
-
-  .chart-donut-box{position:relative;max-width:320px}
-  .tir-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;font-weight:800;pointer-events:none}
-  .tir-big{font-size:22px}
-  .tir-small{font-size:11px;color:#475569}
-
-  .insights li{margin:4px 0}
-
-  /* طباعة */
-  @media print{
-    @page{ size: A4; margin: 10mm }
-    header,.no-print,.topbar,.child-nav,.toast,.loader{display:none!important}
-    body{background:#fff}
-    .container{padding:0}
-    .chart-wrap{grid-template-columns:1fr 1fr}
-    .table-report th,.table-report td{padding:6px}
-  }
-  </style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تقرير الطبيب</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+.table thead th{white-space:nowrap}
+.chart-box{position:relative;width:280px;max-width:100%}
+.tir-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;font-weight:800}
+.tir-big{font-size:22px}
+.tir-small{font-size:11px;color:#475569}
+@media print{
+  @page{ size:A4; margin:10mm }
+  .chart-box{width:240px}
+}
+</style>
 </head>
 <body>
-
-  <!-- بنر الطفل أعلى الصفحة (موحّد) -->
-  <div id="childBanner" style="text-align:center; padding:12px 8px; display:none">
-    <img id="bannerAvatar" class="avatar" style="width:84px;height:84px" src="images/avatar-default.png" alt="صورة الطفل">
-    <div style="margin-top:6px;font-weight:800" id="bannerName">—</div>
-    <div class="note" id="bannerMeta">—</div>
+<div class="topbar">
+  <div>📊 تقرير الطبيب</div>
+  <div class="row">
+    <a id="lnkDash" class="btn gray">لوحة الطفل</a>
+    <button id="btnPrint" class="btn">🖨️ طباعة</button>
+    <button id="btnBlank" class="btn">📝 تقرير فارغ (7 أيام)</button>
   </div>
+</div>
 
-  <!-- شريط علوي -->
-  <div class="topbar">
-    <div>📑 تقرير الطبيب</div>
-    <div class="row">
-      <a id="lnkHome" class="btn gray">الرئيسية</a>
-      <button id="btnPrint" class="btn">🖨️ طباعة PDF</button>
-      <button id="btnBlank" class="btn">📝 تقرير فارغ (7 أيام)</button>
-      <button id="btnLogout" class="btn">خروج</button>
+<main class="container">
+  <section class="card">
+    <div class="row" style="gap:12px;align-items:center">
+      <img id="avatar" class="avatar" style="width:64px;height:64px" src="images/avatar-default.png" alt="">
+      <div>
+        <div id="kidName" style="font-weight:800">—</div>
+        <div id="kidMeta" class="note">—</div>
+      </div>
+      <span class="badge-soft" id="kidSetup">—</span>
     </div>
-  </div>
+  </section>
 
-  <main class="container">
+  <section class="card">
+    <div class="grid g4">
+      <div><label>الفترة السريعة</label>
+        <select id="preset">
+          <option value="7">آخر 7 أيام</option>
+          <option value="14">آخر 14 يومًا</option>
+          <option value="30">آخر 30 يومًا</option>
+          <option value="custom">مخصص…</option>
+        </select>
+      </div>
+      <div><label>من</label><input id="from" type="date"></div>
+      <div><label>إلى</label><input id="to" type="date"></div>
+      <div class="row" style="align-items:end">
+        <button id="run" class="btn primary" style="width:100%">عرض</button>
+      </div>
+    </div>
+    <div id="periodMeta" class="note" style="margin-top:6px">—</div>
+  </section>
 
-    <!-- تنقل صفحات الطفل -->
-    <div class="card"><div class="row child-nav" id="childNav"></div></div>
+  <section class="card">
+    <div class="kpi" style="display:grid;gap:10px;grid-template-columns:repeat(7,minmax(0,1fr))">
+      <div class="box"><div class="small">عدد القراءات</div><div id="k_total" class="v" style="font-weight:800">—</div></div>
+      <div class="box"><div class="small">منخفض</div><div id="k_low" class="v" style="font-weight:800">—</div></div>
+      <div class="box"><div class="small">طبيعي</div><div id="k_ok" class="v" style="font-weight:800">—</div></div>
+      <div class="box"><div class="small">مرتفع</div><div id="k_high" class="v" style="font-weight:800">—</div></div>
+      <div class="box"><div class="small">% داخل النطاق</div><div id="k_tir" class="v" style="font-weight:800">—%</div></div>
+      <div class="box"><div class="small">متوسط القراءة</div><div id="k_avg" class="v" style="font-weight:800">—</div></div>
+      <div class="box"><div class="small">أعلى/أقل</div><div id="k_minmax" class="v" style="font-weight:800">—</div></div>
+    </div>
+  </section>
 
-    <!-- فلاتر -->
-    <section class="card">
-      <div class="grid g4">
-        <div>
-          <label>الفترة السريعة</label>
-          <select id="preset">
-            <option value="7">آخر 7 أيام</option>
-            <option value="14">آخر 14 يومًا</option>
-            <option value="30">آخر 30 يومًا</option>
-            <option value="custom">مخصص…</option>
-          </select>
-        </div>
-        <div>
-          <label>من</label>
-          <input id="from" type="date">
-        </div>
-        <div>
-          <label>إلى</label>
-          <input id="to" type="date">
-        </div>
-        <div>
-          <label>نوع الوجبة (لتحليل التأثير)</label>
-          <select id="mealFilter">
-            <option value="*">الكل</option>
-            <option value="breakfast">فطور</option>
-            <option value="lunch">غداء</option>
-            <option value="dinner">عشاء</option>
-            <option value="snack">سناك</option>
-            <option value="other">أخرى</option>
-          </select>
-        </div>
-      </div>
-      <div class="row" style="justify-content:flex-end;margin-top:8px">
-        <button id="run" class="btn primary">عرض التقرير</button>
-      </div>
-      <div id="periodMeta" class="small" style="margin-top:6px">—</div>
-    </section>
+  <section class="card">
+    <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:6px">
+      <h3 style="margin:0">📋 جدول القياسات</h3>
+      <div class="small">يعرض القراءة (بسهم) ثم الجرعات ثم الملاحظات و🍽️ لو فيه وجبة</div>
+    </div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>التاريخ</th>
+          <th>الاستيقاظ</th><th>قبل الإفطار</th><th>بعد الإفطار</th>
+          <th>قبل الغداء</th><th>بعد الغداء</th>
+          <th>قبل العشاء</th><th>بعد العشاء</th>
+          <th>قبل النوم</th><th>أثناء النوم</th>
+        </tr>
+      </thead>
+      <tbody id="rows"><tr><td colspan="10" class="note">—</td></tr></tbody>
+    </table>
+  </section>
 
-    <!-- بيانات الطفل المختصرة + الإعدادات -->
-    <section class="card">
-      <div class="row" style="gap:14px;flex-wrap:wrap">
-        <span class="badge-soft">الوحدة: <b id="unitNow">mmol/L</b></span>
-        <span class="badge-soft">الحدود: <b id="limitsNow">—</b></span>
-        <span class="badge-soft">ICR: <b id="icrNow">—</b> g/U</span>
-        <span class="badge-soft">تصحيحي: <b id="cfNow">—</b> mmol/L لكل 1U</span>
-      </div>
-    </section>
-
-    <!-- KPIs -->
-    <section class="card">
-      <div class="kpi">
-        <div class="box"><div class="small">عدد القراءات</div><div id="k_total" class="v">—</div></div>
-        <div class="box"><div class="small">منخفض</div><div id="k_low" class="v">—</div></div>
-        <div class="box"><div class="small">طبيعي</div><div id="k_ok" class="v">—</div></div>
-        <div class="box"><div class="small">مرتفع</div><div id="k_high" class="v">—</div></div>
-        <div class="box"><div class="small">% داخل النطاق</div><div id="k_tir" class="v">—%</div></div>
-        <div class="box"><div class="small">متوسط القراءة</div><div id="k_avg" class="v">—</div></div>
-        <div class="box"><div class="small">أعلى / أقل</div><div id="k_minmax" class="v">—</div></div>
-      </div>
-    </section>
-
-    <!-- الرسوم -->
-    <section class="chart-wrap">
-      <div class="chart-card">
-        <div class="small">📈 خط زمني للقراءات (mmol/L)</div>
-        <canvas id="chartLine" height="180"></canvas>
-      </div>
-      <div class="chart-card">
-        <div class="small">📊 توزيع القراءات (Histogram)</div>
-        <canvas id="chartHist" height="180"></canvas>
-      </div>
-      <div class="chart-card chart-donut-box">
-        <div class="small">🍩 نسب Low / OK / High</div>
+  <section class="card">
+    <h3 style="margin:0 0 6px">🍩 توزيع القراءات</h3>
+    <div class="row" style="gap:18px;align-items:center;flex-wrap:wrap">
+      <div class="chart-box">
         <canvas id="chartDonut" width="280" height="280"></canvas>
         <div class="tir-center">
           <div id="tirBig" class="tir-big">—%</div>
           <div class="tir-small">داخل النطاق</div>
         </div>
       </div>
-    </section>
+      <div class="note" id="donutMeta">—</div>
+    </div>
+  </section>
+</main>
 
-    <!-- جدول أفقي -->
-    <section class="card">
-      <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:6px">
-        <h3 style="margin:0">📋 جدول القياسات (أفقي)</h3>
-        <div class="small">كل خانة: القياس (رمز الحالة) ثم الجرعات والملاحظات و🍽️ إنْ وُجدت وجبة نفس اليوم</div>
-      </div>
-      <table class="table-report">
-        <thead>
-          <tr>
-            <th>التاريخ</th>
-            <th>الاستيقاظ</th>
-            <th>قبل الإفطار</th><th>بعد الإفطار</th>
-            <th>قبل الغداء</th><th>بعد الغداء</th>
-            <th>قبل العشاء</th><th>بعد العشاء</th>
-            <th>قبل النوم</th><th>أثناء النوم</th>
-          </tr>
-        </thead>
-        <tbody id="rows">
-          <tr><td colspan="10" class="small">اختاري فترة لعرض البيانات.</td></tr>
-        </tbody>
-      </table>
-    </section>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script type="module">
+import { auth, db, ensureAuth, requireChildIdFromQuery, loadChildProfile, setChildAvatar, todayISO } from './firebase-init.js';
+import { collection, getDocs, doc, getDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-    <!-- تحليلات ذكية مختصرة -->
-    <section class="card">
-      <h3 style="margin:0 0 6px">🤖 ملاحظات ذكية (مبدئية)</h3>
-      <ul id="insights" class="insights small" style="margin:6px 0 0 0"></ul>
-    </section>
+const $=s=>document.querySelector(s);
+let uid=null, childId=null, child=null, donut=null;
 
-  </main>
+const labels={
+  uponWake:'الاستيقاظ', preBreakfast:'قبل الإفطار', postBreakfast:'بعد الإفطار',
+  preLunch:'قبل الغداء', postLunch:'بعد الغداء',
+  preDinner:'قبل العشاء', postDinner:'بعد العشاء',
+  beforeSleep:'قبل النوم', duringSleep:'أثناء النوم'
+};
+const order=['uponWake','preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep'];
 
-  <div id="toast" class="toast"></div>
-  <div id="loader" class="loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+function z2(n){return String(n).padStart(2,'0')}
+function addDays(iso,n){const d=new Date(iso); d.setDate(d.getDate()+n); return `${d.getFullYear()}-${z2(d.getMonth()+1)}-${z2(d.getDate())}`;}
+function enumerateDates(from,to){const out=[];let d=new Date(from),e=new Date(to);while(d<=e){out.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1)}return out;}
+function round1(x){return Math.round(Number(x)*10)/10}
+function stateBy(v,low,high){ if(v==null||isNaN(v))return'ok'; if(isFinite(low)&&v<low)return'low'; if(isFinite(high)&&v>high)return'high'; return 'ok'; }
+function iconBy(st){return st==='low'?'⬇️':st==='high'?'⬆️':'🟢'}
 
-  <!-- مكتبة Charts -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+(async function boot(){
+  ({uid}=await ensureAuth());
+  childId=requireChildIdFromQuery();
+  $('#lnkDash').href=`child-dashboard.html?child=${encodeURIComponent(childId)}`;
 
-  <script type="module">
-    import {
-      auth, db, ensureAuth, requireChildIdFromQuery, setChildAvatar
-    } from './firebase-init.js';
+  child=await loadChildProfile(uid, childId);
+  setChildAvatar($('#avatar'), child.name, child.photoURL);
+  $('#kidName').textContent=child.name||'—';
+  $('#kidMeta').textContent=`${child.gender||'—'} • ${child.weight??'—'} كجم • ${child.height??'—'} سم`;
+  $('#kidSetup').textContent=`الوحدة: mmol/L • حدود: ${child.lowThreshold??'—'} — ${child.highThreshold??'—'}`;
 
-    import { signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-    import {
-      doc, getDoc, collection, getDocs, query, where, orderBy
-    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+  const to=todayISO(), from=addDays(to,-6);
+  $('#from').value=from; $('#to').value=to;
+  updatePeriodMeta();
 
-    /* ===== Helpers ===== */
-    const $ = s => document.querySelector(s);
-    const toast=(m)=>{const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2000)}
-    const showLoader=(on)=>{$("#loader").style.display=on?'flex':'none'}
+  $('#preset').addEventListener('change',()=>{
+    if($('#preset').value==='custom') return;
+    const n=Number($('#preset').value); const to=todayISO(), from=addDays(to,-(n-1));
+    $('#from').value=from; $('#to').value=to; updatePeriodMeta();
+  });
+  $('#run').addEventListener('click',build);
+  $('#btnPrint').addEventListener('click',()=>window.print());
+  $('#btnBlank').addEventListener('click',makeBlank7);
 
-    const z2 = n => String(n).padStart(2,'0');
-    const todayISO = ()=>{ const d=new Date(); return `${d.getFullYear()}-${z2(d.getMonth()+1)}-${z2(d.getDate())}`; };
-    const addDays=(iso,n)=>{const d=new Date(iso); d.setDate(d.getDate()+n); return `${d.getFullYear()}-${z2(d.getMonth()+1)}-${z2(d.getDate())}`;};
-    const enumerateDates=(from,to)=>{const out=[]; let d=new Date(from), end=new Date(to); while(d<=end){out.push(d.toISOString().slice(0,10)); d.setDate(d.getDate()+1)} return out;}
-    const round1=x=>Math.round(Number(x)*10)/10;
-    const stateBy=(v,low,high)=> (v==null||isNaN(v))?'ok':(isFinite(low)&&v<low?'low':(isFinite(high)&&v>high?'high':'ok'));
+  await build();
+})();
 
-    const labels = {
-      uponWake:'الاستيقاظ',
-      preBreakfast:'قبل الإفطار', postBreakfast:'بعد الإفطار',
-      preLunch:'قبل الغداء',     postLunch:'بعد الغداء',
-      preDinner:'قبل العشاء',    postDinner:'بعد العشاء',
-      beforeSleep:'قبل النوم',   duringSleep:'أثناء النوم'
-    };
-    const orderSlots = ['uponWake','preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep'];
+function updatePeriodMeta(){
+  $('#periodMeta').textContent = `الفترة: ${$('#from').value||'—'} → ${$('#to').value||'—'}`;
+}
 
-    // أوقات تقريبية لوضع نقاط الخط الزمني
-    const slotTime = {
-      uponWake:'06:30', preBreakfast:'07:45', postBreakfast:'09:30',
-      preLunch:'13:00', postLunch:'15:00',
-      preDinner:'19:00', postDinner:'21:00',
-      beforeSleep:'23:00', duringSleep:'03:00'
-    };
+async function getMealsPresenceByDate(from,to){
+  const map=new Map();
+  const snap=await getDocs(collection(db,'users',uid,'children',childId,'meals'));
+  snap.forEach(s=>{
+    const d=(String((s.data().time||'')).slice(0,10));
+    if(d>=from&&d<=to) map.set(d,true);
+  });
+  return map;
+}
 
-    let uid=null, childId=null, child={}, donutChart=null, lineChart=null, histChart=null;
+async function build(){
+  updatePeriodMeta();
+  const from=$('#from').value, to=$('#to').value; if(!from||!to){alert('حددي الفترة'); return;}
+  const col=collection(db,'users',uid,'children',childId,'measurements');
+  const qs=await getDocs(query(col, where('date','>=',from), where('date','<=',to), orderBy('date','asc')));
 
-    /* ===== Boot ===== */
-    (async function(){
-      showLoader(true);
-      const {uid:U} = await ensureAuth(); uid=U;
-      childId = requireChildIdFromQuery();
+  const mapByDate=new Map();
+  qs.forEach(s=>{ const d=s.data()||{}; mapByDate.set(d.date, d.readings||{}) });
 
-      // Nav + ليدينج
-      buildChildNav();
-      $('#lnkHome').href=`child-dashboard.html?child=${encodeURIComponent(childId)}`;
+  const mealsMap = await getMealsPresenceByDate(from,to);
 
-      await loadChild();
-      initFilters();
-      await buildReport();
+  const dates=enumerateDates(from,to);
+  const tbody=$('#rows'); tbody.innerHTML='';
 
-      $('#btnPrint').addEventListener('click', ()=>window.print());
-      $('#btnBlank').addEventListener('click', makeBlank7);
-      $('#btnLogout').addEventListener('click', ()=>signOut(auth).then(()=>location.href='index.html'));
-    })().finally(()=>showLoader(false));
+  let total=0, cLow=0, cOk=0, cHigh=0, sum=0, minV=Infinity, maxV=-Infinity, minD='—', maxD='—';
 
-    /* ===== UI: Child header & nav ===== */
-    async function loadChild(){
-      const s=await getDoc(doc(db,'users',uid,'children',childId));
-      child=s.data()||{};
-      setChildAvatar($('#bannerAvatar'), child.name, child.photoURL);
-      $('#bannerName').textContent = child.name || '—';
-      $('#bannerMeta').textContent = `${child.gender||'—'} • ${child.weight??'—'} كجم • ${child.height??'—'} سم`;
-      $('#childBanner').style.display='block';
+  dates.forEach(date=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="date">${date}</td>`;
+    const readings=mapByDate.get(date)||{};
+    const hasMeal=mealsMap.get(date)===true;
 
-      $('#unitNow').textContent = 'mmol/L';
-      $('#limitsNow').textContent = `${child.lowThreshold??'—'} — ${child.highThreshold??'—'}`;
-      $('#icrNow').textContent = child.icr??'—';
-      $('#cfNow').textContent  = child.correctionFactor??'—';
-    }
+    order.forEach(slot=>{
+      const r=readings[slot];
+      const td=document.createElement('td');
+      if(!r || (r.valueMmol==null && r.value==null)){ td.textContent='—'; tr.appendChild(td); return; }
+      const v=round1(r.valueMmol ?? r.value);
+      const st=stateBy(v, Number(child.lowThreshold), Number(child.highThreshold));
+      const doses = [
+        r.mealDose!=null? `وجبة: ${r.mealDose}U` : '',
+        r.correctionGiven!=null? `تصحيح: ${r.correctionGiven}U` : ''
+      ].filter(Boolean).join(' • ');
+      const note = [r.note||'', r.raisedWith||''].filter(Boolean).join(' — ');
+      const plate = hasMeal? ' 🍽️' : '';
+      td.innerHTML = `
+        <div class="cell">
+          <div class="line"><b>${v.toFixed(1)} mmol/L</b> ${iconBy(st)}</div>
+          ${doses? `<div class="line small">${doses}</div>`:''}
+          ${(note||hasMeal)? `<div class="line note">${note||''}${plate}</div>`:''}
+        </div>`;
+      tr.appendChild(td);
 
-    function buildChildNav(){
-      const row = $('#childNav'); row.innerHTML='';
-      [
-        ['child-dashboard.html','الرئيسية'],
-        ['measures.html','قياسات السكر'],
-        ['meals.html','الوجبات'],
-        ['reports.html','التقارير'],
-        ['doctor-report.html','تقرير الطبيب'],
-        ['visits.html','الزيارات الطبية']
-      ].forEach(([h,t])=>{
-        const a=document.createElement('a');
-        a.className='btn gray';
-        a.href=`${h}?child=${encodeURIComponent(childId)}`;
-        a.textContent=t;
-        row.appendChild(a);
-      });
-    }
+      total++; sum+=v;
+      if(st==='low') cLow++; else if(st==='high') cHigh++; else cOk++;
+      if(v<minV){minV=v;minD=date;} if(v>maxV){maxV=v;maxD=date;}
+    });
 
-    /* ===== Filters ===== */
-    function initFilters(){
-      const to=todayISO(), from=addDays(to,-6);
-      $('#from').value=from; $('#to').value=to; $('#preset').value='7';
-      $('#preset').addEventListener('change', ()=>{
-        const v=$('#preset').value;
-        if(v==='custom') return;
-        const to=todayISO(); const from=addDays(to, -(Number(v)-1));
-        $('#from').value=from; $('#to').value=to; updatePeriodMeta();
-      });
-      $('#run').addEventListener('click', buildReport);
-      $('#mealFilter').addEventListener('change', buildReport);
-      updatePeriodMeta();
-    }
-    function updatePeriodMeta(){
-      $('#periodMeta').textContent = `الفترة: ${$('#from').value||'—'} → ${$('#to').value||'—'} • نوع الوجبة: ${($('#mealFilter').selectedOptions[0]||{}).textContent||'الكل'}`;
-    }
+    tbody.appendChild(tr);
+  });
 
-    /* ===== Data fetch ===== */
-    async function fetchMeasures(from,to){
-      const col=collection(db,'users',uid,'children',childId,'measurements');
-      const qy=query(col, where('date','>=',from), where('date','<=',to), orderBy('date','asc'));
-      const qs=await getDocs(qy);
-      const byDate=new Map();
-      qs.forEach(s=>{
-        const d=s.data()||{}; byDate.set(d.date, d.readings||{});
-      });
-      return byDate;
-    }
-    async function fetchMeals(from,to, type='*'){
-      const col=collection(db,'users',uid,'children',childId,'meals');
-      const qs=await getDocs(col);
-      const arr=[];
-      qs.forEach(s=>{
-        const m=s.data()||{}; if(!m.time) return;
-        const d=String(m.time).slice(0,10);
-        if(d>=from && d<=to){
-          if(type==='*' || m.type===type) arr.push(m);
-        }
-      });
-      return arr;
-    }
+  $('#k_total').textContent=total; $('#k_low').textContent=cLow; $('#k_ok').textContent=cOk; $('#k_high').textContent=cHigh;
+  const tir = total? Math.round((cOk/total)*100) : 0;
+  $('#k_tir').textContent = tir+'%';
+  $('#k_avg').textContent = total? (sum/total).toFixed(1)+' mmol/L' : '—';
+  $('#k_minmax').textContent = (isFinite(minV)&&isFinite(maxV))? `${minV.toFixed(1)} / ${maxV.toFixed(1)} mmol/L (${minD} — ${maxD})` : '—';
 
-    /* ===== Build report ===== */
-    async function buildReport(){
-      try{
-        showLoader(true);
-        updatePeriodMeta();
-        const from=$('#from').value, to=$('#to').value;
-        if(!from || !to){ toast('حددي من/إلى'); return; }
+  renderDonut(cLow,cOk,cHigh,total,tir);
+}
 
-        const measures = await fetchMeasures(from,to);
-        const meals    = await fetchMeals(from,to, $('#mealFilter').value);
-        const mealsPresence = new Map(meals.map(m=>[String(m.time).slice(0,10), true]));
+function renderDonut(low,ok,high,total,tir){
+  const ctx=document.getElementById('chartDonut').getContext('2d');
+  if(donut) donut.destroy();
+  donut=new Chart(ctx,{
+    type:'doughnut',
+    data:{labels:['منخفض','طبيعي','مرتفع'],datasets:[{data:[low,ok,high],backgroundColor:['#f59e0b','#22c55e','#ef4444'],borderWidth:2,borderColor:'#fff'}]},
+    options:{plugins:{legend:{display:true,position:'bottom'}},cutout:'65%'}
+  });
+  $('#tirBig').textContent = (isFinite(tir)?tir:0)+'%';
+  $('#donutMeta').textContent = `الإجمالي: ${total} • منخفض: ${low} • طبيعي: ${ok} • مرتفع: ${high}`;
+}
 
-        // جدول
-        buildTable(from,to, measures, mealsPresence);
-
-        // إحصاءات + رسوم
-        const flat = flattenReadingsForCharts(from,to, measures);
-        buildKPIs(flat, from, to);
-        drawLine(flat);
-        drawHist(flat);
-        drawDonut(flat);
-
-        // Insights
-        buildInsights(flat, meals);
-      }finally{
-        showLoader(false);
-      }
-    }
-
-    function buildTable(from,to, measuresMap, mealsPresence){
-      const dates=enumerateDates(from,to);
-      const tbody=$('#rows'); tbody.innerHTML='';
-
-      dates.forEach(date=>{
-        const tr=document.createElement('tr');
-        const tdDate=document.createElement('td'); tdDate.className='date'; tdDate.textContent=date; tr.appendChild(tdDate);
-
-        const readings = measuresMap.get(date)||{};
-        const hasMeal  = mealsPresence.get(date)===true;
-
-        orderSlots.forEach(slot=>{
-          const td=document.createElement('td');
-          const r=readings[slot];
-          if(!r || (r.valueMmol==null && r.value==null)){ td.textContent='—'; }
-          else{
-            const v=round1(Number(r.valueMmol ?? r.value));
-            const st=stateBy(v, Number(child.lowThreshold), Number(child.highThreshold));
-            const icon = st==='low'?'⬇️':(st==='high'?'⬆️':'🟢');
-            const doses = [
-              r.mealDose!=null ? `وجبة: ${r.mealDose}U` : '',
-              r.correctionGiven!=null ? `تصحيح: ${r.correctionGiven}U` : ''
-            ].filter(Boolean).join(' • ');
-            const note = [r.note||'', r.raisedWith||''].filter(Boolean).join(' — ');
-            const plate = hasMeal? ' <span class="icon-plate" title="وجبة في هذا اليوم">🍽️</span>' : '';
-            td.innerHTML = `
-              <div class="cell">
-                <div><b>${v.toFixed(1)} mmol/L</b> ${icon}</div>
-                ${doses? `<div class="small">${doses}</div>`:''}
-                ${(note||hasMeal)? `<div class="note small">${note||''}${plate}</div>`:''}
-              </div>`;
-          }
-          tr.appendChild(td);
-        });
-
-        tbody.appendChild(tr);
-      });
-    }
-
-    /* ===== Flatten for charts/KPIs ===== */
-    function flattenReadingsForCharts(from,to, measuresMap){
-      const out=[]; // {t:Date, v: number, slot: key, date:'YYYY-MM-DD'}
-      enumerateDates(from,to).forEach(date=>{
-        const r=measuresMap.get(date)||{};
-        orderSlots.forEach(slot=>{
-          const obj=r[slot];
-          if(obj && (obj.valueMmol!=null || obj.value!=null)){
-            const v = round1(Number(obj.valueMmol ?? obj.value));
-            const hhmm = slotTime[slot] || '12:00';
-            const dt = new Date(`${date}T${hhmm}:00`);
-            out.push({t:dt, v, slot, date});
-          }
-        });
-      });
-      return out.sort((a,b)=>a.t-b.t);
-    }
-
-    function buildKPIs(flat, from, to){
-      let total=0,cLow=0,cOk=0,cHigh=0,sum=0,minV=Infinity,maxV=-Infinity,minD='—',maxD='—';
-      flat.forEach(p=>{
-        const v=p.v; total++; sum+=v;
-        if(v<Number(child.lowThreshold)) cLow++;
-        else if(v>Number(child.highThreshold)) cHigh++;
-        else cOk++;
-        if(v<minV){minV=v;minD=p.date}
-        if(v>maxV){maxV=v;maxD=p.date}
-      });
-      $('#k_total').textContent=total||0;
-      $('#k_low').textContent=cLow; $('#k_ok').textContent=cOk; $('#k_high').textContent=cHigh;
-      const tir= total? Math.round((cOk/total)*100):0; $('#k_tir').textContent=tir+'%';
-      $('#tirBig').textContent = tir+'%';
-      $('#k_avg').textContent = total? (sum/total).toFixed(1)+' mmol/L' : '—';
-      $('#k_minmax').textContent = (isFinite(minV)&&isFinite(maxV))? `${minV.toFixed(1)} / ${maxV.toFixed(1)} mmol/L (${minD} — ${maxD})` : '—';
-    }
-
-    /* ===== Charts ===== */
-    function drawLine(flat){
-      const ctx=$('#chartLine');
-      if(lineChart) lineChart.destroy();
-      lineChart=new Chart(ctx,{
-        type:'line',
-        data:{
-          labels: flat.map(p=>p.t),
-          datasets:[{
-            label:'السكر (mmol/L)',
-            data: flat.map(p=>p.v),
-            borderColor:'#0ea5e9',
-            backgroundColor:'rgba(14,165,233,.12)',
-            tension:.3,
-            spanGaps:true,
-            pointRadius:2
-          }]
-        },
-        options:{
-          parsing:false,
-          scales:{
-            x:{type:'time', time:{unit:'day'}, ticks:{autoSkip:true,maxTicksLimit:10}},
-            y:{beginAtZero:false}
-          },
-          plugins:{legend:{display:false}}
-        }
-      });
-    }
-
-    function drawHist(flat){
-      // حاويات بسيطة: <4 | 4–6.9 | 7–9.9 | 10–12.9 | >=13
-      const bins=[{k:'<4',from:-Infinity,to:4},{k:'4–6.9',from:4,to:7},{k:'7–9.9',from:7,to:10},{k:'10–12.9',from:10,to:13},{k:'≥13',from:13,to:Infinity}];
-      const cnt=bins.map(()=>0);
-      flat.forEach(p=>{
-        for(let i=0;i<bins.length;i++){
-          const b=bins[i]; if(p.v>=b.from && p.v< b.to){ cnt[i]++; break; }
-        }
-      });
-      const ctx=$('#chartHist');
-      if(histChart) histChart.destroy();
-      histChart=new Chart(ctx,{
-        type:'bar',
-        data:{labels:bins.map(b=>b.k),datasets:[{label:'عدد القراءات',data:cnt,backgroundColor:'#6ee7b7',borderColor:'#10b981'}]},
-        options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
-      });
-    }
-
-    function drawDonut(flat){
-      let low=0,ok=0,high=0,total=flat.length;
-      flat.forEach(p=>{
-        if(p.v<Number(child.lowThreshold)) low++;
-        else if(p.v>Number(child.highThreshold)) high++;
-        else ok++;
-      });
-      const ctx=$('#chartDonut').getContext('2d');
-      if(donutChart) donutChart.destroy();
-      donutChart=new Chart(ctx,{
-        type:'doughnut',
-        data:{labels:['منخفض','طبيعي','مرتفع'],datasets:[{data:[low,ok,high],backgroundColor:['#f59e0b','#22c55e','#ef4444'],borderWidth:2,borderColor:'#fff'}]},
-        options:{plugins:{legend:{display:true,position:'bottom'}},cutout:'65%'}
-      });
-    }
-
-    /* ===== Insights ===== */
-    function buildInsights(flat, meals){
-      const ul = $('#insights'); ul.innerHTML='';
-      if(!flat.length){ ul.innerHTML='<li>لا توجد بيانات كافية.</li>'; return; }
-
-      const add=(txt)=>{ const li=document.createElement('li'); li.textContent=txt; ul.appendChild(li); };
-
-      // TIR
-      const low = flat.filter(p=>p.v<Number(child.lowThreshold)).length;
-      const high= flat.filter(p=>p.v>Number(child.highThreshold)).length;
-      const ok  = flat.length - low - high;
-      const tir = flat.length? Math.round((ok/flat.length)*100):0;
-      if(tir<60) add('TIR أقل من 60% — يُنصح بمراجعة الجرعات/الكارب (استشارة الطبيب).');
-
-      // أنماط حسب الأوقات (متوسط كل خانة)
-      const bySlot=new Map();
-      orderSlots.forEach(s=>bySlot.set(s,[]));
-      flat.forEach(p=>bySlot.get(p.slot)?.push(p.v));
-      const avgSlot={}; orderSlots.forEach(s=>{ const arr=bySlot.get(s)||[]; avgSlot[s]=arr.length? (arr.reduce((a,b)=>a+b,0)/arr.length):null; });
-
-      if(avgSlot.postDinner!=null && avgSlot.postDinner > Number(child.highThreshold||10))
-        add('ارتفاع بعد العشاء متكرر — راجعي جرعة الوجبة/توقيت البلعة.');
-      if(avgSlot.uponWake!=null && avgSlot.uponWake < Number(child.lowThreshold||4))
-        add('انخفاضات عند الاستيقاظ — قد يلزم ضبط الجرعة القاعدية (استشارة الطبيب).');
-
-      // تأثير الوجبات (تقريبي)
-      if(meals && meals.length){
-        add(`تم تسجيل ${meals.length} وجبة في الفترة المحددة.`);
-      }
-    }
-
-    /* ===== Blank 7 days ===== */
-    function makeBlank7(){
-      const today=todayISO();
-      const days=Array.from({length:7},(_,i)=>addDays(today,i));
-      const tbody=$('#rows');
-      tbody.innerHTML = days.map(d=>{
-        const empties = Array(orderSlots.length).fill('<td>—</td>').join('');
-        return `<tr><td class="date">${d}</td>${empties}</tr>`;
-      }).join('');
-      // تصفير الكي بي آيز والرسوم
-      $('#k_total').textContent='0'; $('#k_low').textContent='0'; $('#k_ok').textContent='0'; $('#k_high').textContent='0';
-      $('#k_tir').textContent='0%'; $('#k_avg').textContent='—'; $('#k_minmax').textContent='—';
-      drawDonut([]); // صفرية
-    }
-  </script>
+function makeBlank7(){
+  const to=todayISO(); const from=addDays(to,-6);
+  $('#from').value=from; $('#to').value=to; updatePeriodMeta();
+  const dates=enumerateDates(from,to);
+  const tbody=$('#rows');
+  tbody.innerHTML= dates.map(d=>{
+    const empty = '<td>—</td>'.repeat(order.length);
+    return `<tr><td class="date">${d}</td>${empty}</tr>`;
+  }).join('');
+  renderDonut(0,0,0,0,0);
+}
+</script>
 </body>
 </html>
