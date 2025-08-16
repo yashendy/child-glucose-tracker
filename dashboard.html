@@ -6,234 +6,238 @@
   <title>لوحة التحكم — متابعة سكر الأطفال</title>
 
   <style>
-    :root {
-      --brand: #0ea5e9;
-      --brand2: #6ee7b7;
-      --line: #e5e7eb;
-      --ink: #0f172a;
-      --muted: #6b7280;
-      --bg: #f6fbff;
-      --card: #fff;
+    :root{
+      --brand:#0ea5e9; --brand2:#6ee7b7; --line:#e5e7eb; --ink:#0f172a; --muted:#6b7280; --bg:#f6fbff; --card:#fff;
     }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:'Tajawal',system-ui,-apple-system,Segoe UI,Roboto,'Noto Sans Arabic',sans-serif}
+    a{text-decoration:none;color:inherit}
 
-    body {
-      margin: 0;
-      font-family: 'Tajawal', sans-serif;
-      background: var(--bg);
-      color: var(--ink);
+    header{
+      position:sticky;top:0;z-index:10;
+      background:linear-gradient(90deg,var(--brand),var(--brand2));
+      color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center
     }
+    .btn{border:none;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
+    .btn.gray{background:#ffffff22;border:1px solid #ffffff55;color:#fff}
+    .btn.blue{background:#3b82f6;color:#fff}
+    .btn.wide{min-width:180px}
 
-    header {
-      position: sticky;
-      top: 0;
-      background: linear-gradient(90deg, var(--brand), var(--brand2));
-      color: #fff;
-      padding: 14px 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    main{max-width:1100px;margin:auto;padding:18px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.04);margin-bottom:16px}
+    .note{color:var(--muted);font-size:14px}
+    label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
+    input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+    .grid{display:grid;gap:12px}
+    .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    @media(max-width:800px){.g2{grid-template-columns:1fr}}
 
-    main {
-      max-width: 1100px;
-      margin: auto;
-      padding: 20px;
-    }
+    /* أطفال */
+    .kid-card{background:#e0f7fa;border:1px solid #d0eef2;border-radius:14px;padding:14px;margin-bottom:12px}
+    .kid-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .kid-avatar{width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.1)}
+    .kid-name{margin:0;font-weight:800}
+    .kid-meta{font-size:13px;color:#1f2937}
+    .kid-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 
-    .btn {
-      border: none;
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-weight: bold;
-      cursor: pointer;
-    }
+    /* Toast */
+    .toast{position:fixed;bottom:16px;left:16px;background:#111;color:#fff;padding:10px 14px;border-radius:10px;opacity:0;transform:translateY(8px);transition:.3s;z-index:9999}
+    .toast.show{opacity:1;transform:none}
 
-    .btn.gray { background: #ccc; }
-    .btn.blue { background: #3b82f6; color: white; }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      padding: 20px;
-      border-radius: 14px;
-      margin-bottom: 18px;
-      box-shadow: 0 1px 5px rgba(0,0,0,0.1);
-    }
-
-    .note {
-      font-size: 14px;
-      color: var(--muted);
-      text-align: center;
-    }
-
-    .kid-card {
-      background: #e0f7fa;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-
-    input {
-      padding: 10px;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      margin-bottom: 10px;
-      width: 100%;
-    }
-
-    .toast {
-      position: fixed;
-      bottom: 16px;
-      left: 16px;
-      background: #333;
-      color: #fff;
-      padding: 10px 14px;
-      border-radius: 8px;
-      opacity: 0;
-      transition: 0.3s ease;
-    }
-
-    .toast.show {
-      opacity: 1;
-    }
-
-    .kid-actions {
-      margin-top: 12px;
-    }
+    /* Helpers */
+    .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .right{display:flex;align-items:center;gap:8px}
+    .muted{color:var(--muted)}
   </style>
 </head>
-
 <body>
+
 <header>
   <div class="title">لوحة التحكم</div>
-  <div>
+  <div class="right">
     <a class="btn gray" href="index.html">الرئيسية</a>
-    <button id="btnLogout" class="btn gray">خروج</button>
+    <button id="btnLogout" class="btn gray" type="button">خروج</button>
   </div>
 </header>
 
 <main>
+  <!-- بيانات وليّ الأمر -->
   <section class="card">
-    <h2>👨‍👩‍👧 بيانات ولي الأمر</h2>
-    <div id="hello" class="note">جاري التحميل...</div>
-    <input id="guardianName" placeholder="👤 اسم ولي الأمر">
-    <input id="fullName" placeholder="👨‍💼 الاسم الكامل (اختياري)">
-    <input id="civilId" placeholder="🆔 الرقم المدني">
-    <input id="phone" placeholder="📱 رقم الهاتف">
-    <input id="email" disabled placeholder="📧 البريد الإلكتروني (للقراءة فقط)">
-    <button id="saveParent" class="btn blue">💾 حفظ التعديلات</button>
+    <h2 style="margin:0 0 10px">👨‍👩‍👧 بيانات وليّ الأمر</h2>
+    <div id="hello" class="note" style="margin-bottom:8px">جاري التحميل...</div>
+
+    <div class="grid g2">
+      <div>
+        <label for="guardianName">👤 اسم وليّ الأمر</label>
+        <input id="guardianName" placeholder="مثال: ياسر حمدي">
+      </div>
+      <div>
+        <label for="fullName">👨‍💼 الاسم الكامل (اختياري)</label>
+        <input id="fullName" placeholder="الاسم الكامل">
+      </div>
+      <div>
+        <label for="civilId">🆔 الرقم المدني</label>
+        <input id="civilId" placeholder="مثال: 281042603532">
+      </div>
+      <div>
+        <label for="phone">📱 رقم الهاتف</label>
+        <input id="phone" placeholder="مثال: 50534441">
+      </div>
+      <div>
+        <label for="email">📧 البريد الإلكتروني (للقراءة فقط)</label>
+        <input id="email" disabled placeholder="سيظهر تلقائيًا من الحساب">
+      </div>
+    </div>
+
+    <div class="row" style="justify-content:flex-end;margin-top:10px">
+      <button id="saveParent" class="btn blue">💾 حفظ التعديلات</button>
+    </div>
   </section>
 
+  <!-- أطفالي -->
   <section class="card">
-    <h2>🧒 أطفالي</h2>
-    <div id="kids" class="note">جاري التحميل...</div>
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <h2 style="margin:0">🧒 أطفالي</h2>
+      <a href="child.html" class="btn blue">➕ إضافة طفل</a>
+    </div>
+    <div id="kids" class="note" style="margin-top:8px">جاري التحميل...</div>
   </section>
 </main>
 
 <div id="toast" class="toast"></div>
 
 <script type="module">
+  // ✅ نستخدم التهيئة الموحدة
   import { db, auth } from './firebase-init.js';
-  import {
-    doc,
-    getDoc,
-    updateDoc,
-    collection,
-    getDocs
-  } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
   import {
-    onAuthStateChanged,
-    signOut
+    doc, getDoc, setDoc, collection, getDocs
+  } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+  import {
+    onAuthStateChanged, signOut
   } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
-  const $ = selector => document.querySelector(selector);
-  const toast = (msg) => {
-    const t = $("#toast");
-    t.textContent = msg;
-    t.classList.add("show");
-    setTimeout(() => t.classList.remove("show"), 2000);
+  /* ========== Helpers ========== */
+  const $ = (s)=>document.querySelector(s);
+  const toast = (msg, ms=2200)=>{
+    const t=$("#toast"); t.textContent=msg; t.classList.add("show");
+    setTimeout(()=>t.classList.remove("show"), ms);
   };
+  const fallbackAvatarDataURL =
+    'data:image/svg+xml;utf8,'+
+    encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6ee7b7"/><stop offset="1" stop-color="#0ea5e9"/></linearGradient></defs>
+      <rect width="100%" height="100%" fill="url(#g)"/>
+      <circle cx="64" cy="52" r="24" fill="#fff" opacity=".9"/>
+      <rect x="26" y="84" width="76" height="30" rx="15" fill="#fff" opacity=".9"/>
+    </svg>`);
 
   let uid = null;
 
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) return location.href = "index.html";
+  /* ========== Auth Init ========== */
+  onAuthStateChanged(auth, async (user)=>{
+    if(!user){ location.href = "index.html"; return; }
     uid = user.uid;
     $("#hello").textContent = `مرحبًا ${user.displayName || ""} — UID: ${user.uid}`;
+    $("#email").value = user.email || "";
     await loadParent();
     await loadKids();
   });
 
-  async function loadParent() {
-    const ref = doc(db, "users", uid);
-    const snap = await getDoc(ref);
-    const data = (snap.data() || {}).parentInfo || {};
-
-    $("#guardianName").value = data.guardianName || "";
-    $("#fullName").value = data.name || "";
-    $("#civilId").value = data.civilId || "";
-    $("#phone").value = data.phone || "";
-    $("#email").value = data.email || "";
-  }
-
-  async function loadKids() {
-    const container = $("#kids");
-    container.innerHTML = "";
-    const query = await getDocs(collection(db, "users", uid, "children"));
-
-    if (query.empty) {
-      container.innerHTML = `
-        <div class="note">لا يوجد أطفال بعد — اضغط على “إضافة طفل” لبدء المتابعة.</div>
-        <div style="text-align:center; margin-top:12px;">
-          <a href="child.html" class="btn blue">➕ إضافة طفل</a>
-        </div>`;
-      return;
+  /* ========== Load/Save Parent Info ========== */
+  async function loadParent(){
+    try{
+      const ref = doc(db,"users",uid);
+      const snap = await getDoc(ref);
+      const data = (snap.data() || {}).parentInfo || {};
+      $("#guardianName").value = data.guardianName || "";
+      $("#fullName").value     = data.name || "";
+      $("#civilId").value      = data.civilId || "";
+      $("#phone").value        = data.phone || "";
+      // الإيميل يظهر من الحساب
+    }catch(e){
+      console.error(e);
+      toast("⚠️ تعذر تحميل بيانات وليّ الأمر");
     }
-
-    query.forEach(docSnap => {
-      const c = docSnap.data();
-      const id = docSnap.id;
-
-      const card = document.createElement("div");
-      card.className = "kid-card";
-
-      card.innerHTML = `
-        <h3>👧 ${c.name || "بدون اسم"}</h3>
-        <div>
-          🧾 الرقم المدني: ${c.childCivilId ?? "—"}<br>
-          ⚖️ الوزن: ${c.weight ?? "—"} كجم<br>
-          📏 الطول: ${c.height ?? "—"} سم
-        </div>
-        <div class="kid-actions">
-          <a href="child-dashboard.html?child=${id}" class="btn blue">📋 دخول للبيانات</a>
-        </div>
-      `;
-
-      container.appendChild(card);
-    });
   }
 
-  $("#saveParent").addEventListener("click", async () => {
-    const ref = doc(db, "users", uid);
-
-    const updatedInfo = {
-      guardianName: $("#guardianName").value.trim(),
-      name: $("#fullName").value.trim(),
-      civilId: $("#civilId").value.trim(),
-      phone: $("#phone").value.trim(),
-      email: $("#email").value.trim()
-    };
-
-    await updateDoc(ref, {
-      parentInfo: updatedInfo
-    });
-
-    toast("✅ تم حفظ التعديلات بنجاح");
+  $("#saveParent").addEventListener("click", async ()=>{
+    try{
+      const ref = doc(db,"users",uid);
+      const updatedInfo = {
+        guardianName: $("#guardianName").value.trim() || null,
+        name:         $("#fullName").value.trim()     || null,
+        civilId:      $("#civilId").value.trim()      || null,
+        phone:        $("#phone").value.trim()        || null,
+        email:        $("#email").value.trim()        || (auth.currentUser?.email ?? null)
+      };
+      await setDoc(ref, { parentInfo: updatedInfo }, { merge:true });
+      toast("✅ تم حفظ التعديلات بنجاح");
+    }catch(e){
+      console.error(e);
+      toast("⚠️ تعذر الحفظ");
+    }
   });
 
-  $("#btnLogout").addEventListener("click", () => {
-    signOut(auth).then(() => location.href = "index.html");
+  /* ========== Load Kids ========== */
+  async function loadKids(){
+    const container = $("#kids");
+    container.innerHTML = `<div class="note">جاري التحميل...</div>`;
+    try{
+      const qs = await getDocs(collection(db,"users",uid,"children"));
+      if(qs.empty){
+        container.innerHTML = `
+          <div class="note" style="text-align:center">لا يوجد أطفال بعد — اضغطي “إضافة طفل”.</div>
+          <div style="text-align:center;margin-top:8px">
+            <a class="btn blue" href="child.html">➕ إضافة طفل</a>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = "";
+      qs.forEach(docSnap=>{
+        const c = docSnap.data();
+        const id = docSnap.id;
+        const avatar = c.photoURL || "images/avatar-default.png";
+
+        const card = document.createElement("div");
+        card.className = "kid-card";
+        card.innerHTML = `
+          <div class="kid-head">
+            <img class="kid-avatar" src="${avatar}"
+                 alt="صورة الطفل"
+                 onerror="this.onerror=null;this.src='${fallbackAvatarDataURL}'">
+            <div>
+              <h3 class="kid-name">👧 ${c.name || "بدون اسم"}</h3>
+              <div class="kid-meta">
+                🧾 ${c.childCivilId ?? "—"} • ⚖️ ${c.weight ?? "—"} كجم • 📏 ${c.height ?? "—"} سم
+              </div>
+            </div>
+          </div>
+          <div class="kid-actions">
+            <button class="btn blue wide" data-open="child" data-id="${encodeURIComponent(id)}">📋 دخول للبيانات</button>
+            <a class="btn gray" target="_blank" href="child-dashboard.html?child=${encodeURIComponent(id)}">🔎 فتح في تبويب جديد</a>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }catch(e){
+      console.error(e);
+      container.innerHTML = `<div class="note">⚠️ تعذر تحميل الأطفال.</div>`;
+    }
+  }
+
+  // تفويض حدث لزر "دخول للبيانات"
+  $("#kids").addEventListener("click", (e)=>{
+    const btn = e.target.closest('button[data-open="child"]');
+    if(!btn) return;
+    const childId = btn.getAttribute("data-id");
+    location.href = `child-dashboard.html?child=${childId}`;
+  });
+
+  // خروج
+  $("#btnLogout").addEventListener("click", ()=>{
+    signOut(auth).then(()=> location.href="index.html");
   });
 </script>
 </body>
