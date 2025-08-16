@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>وجبات الطفل</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ✅ بنر الطفل -->
+  <div id="childBanner" style="text-align:center; padding:12px 8px; display:none">
+    <img id="bannerAvatar" class="avatar" style="width:84px;height:84px" src="images/avatar-default.png" alt="صورة الطفل">
+    <div style="margin-top:6px;font-weight:800" id="bannerName">—</div>
+    <div class="note" id="bannerMeta">—</div>
+  </div>
+
+  <!-- ✅ Topbar -->
+  <div class="topbar">
+    <div>🍽️ الوجبات</div>
+    <div class="row">
+      <a id="lnkHome" class="btn gray">الرئيسية</a>
+      <button id="btnLogout" class="btn">خروج</button>
+    </div>
+  </div>
+
+  <main class="container">
+    <!-- ✅ Nav -->
+    <div class="card"><div class="row" id="childNav"></div></div>
+
+    <section class="card">
+      <div class="row" style="justify-content:space-between; align-items:center">
+        <h3 class="section-title">اختيار الأصناف</h3>
+        <div class="row"><span class="badge-soft">ICR الحالي: <b id="icrNow">—</b> g/U</span></div>
+      </div>
+
+      <div class="grid g3" style="margin-bottom:10px">
+        <div><label>نوع الوجبة</label>
+          <select id="mealType">
+            <option value="breakfast">فطور</option>
+            <option value="lunch">غداء</option>
+            <option value="dinner">عشاء</option>
+            <option value="snack">سناك</option>
+            <option value="other">أخرى</option>
+          </select>
+        </div>
+        <div><label>وقت الأكل</label><input id="mealTime" type="datetime-local"></div>
+        <div><label>ملاحظة</label><input id="mealNote" placeholder="اختياري"></div>
+      </div>
+
+      <div class="layout">
+        <!-- التصنيفات -->
+        <aside class="sidebar">
+          <input id="foodSearch" placeholder="ابحث عن صنف..." />
+          <div id="catList" class="col"></div>
+        </aside>
+
+        <!-- شبكة + سلة -->
+        <div class="col">
+          <div id="foodsGrid" class="foods-grid"><div class="note">جاري التحميل...</div></div>
+
+          <div class="card">
+            <div class="row" style="justify-content:space-between">
+              <h4 style="margin:0">🧺 سلة الوجبة</h4>
+              <div class="badge-soft">إجمالي الكارب: <b id="totalCarbs">0.0</b> جم</div>
+            </div>
+
+            <div class="basket" style="margin-top:8px; overflow:auto">
+              <table>
+                <thead><tr><th>الصنف</th><th>الوحدة</th><th>الكمية</th><th>الكارب (جم)</th><th>إجراء</th></tr></thead>
+                <tbody id="basketBody"><tr><td colspan="5" class="note">لا توجد عناصر بعد.</td></tr></tbody>
+                <tfoot><tr><td colspan="3"><b>الإجمالي</b></td><td id="totalCarbsCell">0.0</td><td></td></tr></tfoot>
+              </table>
+            </div>
+
+            <div class="grid g3" style="margin-top:10px">
+              <div><label>جرعة مقترحة</label><input id="doseSuggestedMeal" readonly></div>
+              <div><label>جرعة فعلية (اختياري)</label><input id="doseGivenMeal" type="number" step="0.1"></div>
+              <div class="row" style="align-items:flex-end; justify-content:flex-end">
+                <button id="saveMealBtn" class="btn primary">💾 حفظ الوجبة</button>
+              </div>
+            </div>
+            <div class="note">الحساب: (جرام الوحدة × الكمية × كارب/100g) ÷ 100 — الجرعة = إجمالي الكارب ÷ ICR (تقريب 0.1U).</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+  <div id="loader" class="loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+
+  <script type="module">
+    import { auth, db, ensureAuth, requireChildIdFromQuery, setChildAvatar, toLocalDatetimeValue } from './firebase-init.js';
+    import { signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    import { collection, getDocs, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+    const toast=(m)=>{const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
+    const showLoader=(on)=>{document.getElementById('loader').style.display=on?'flex':'none'}
+
+    let uid=null, childId=null, child=null, foodsAll=[], basket=[], currentCategory='*';
+
+    function buildNav(){
+      const row=document.getElementById('childNav'); row.innerHTML='';
+      [['child-dashboard.html','الرئيسية'],['measures.html','قياسات السكر'],['meals.html','الوجبات'],['reports.html','التقارير'],['visits.html','الزيارات الطبية']]
+      .forEach(([h,t])=>{ const a=document.createElement('a'); a.className='btn gray'; a.href=`${h}?child=${encodeURIComponent(childId)}`; a.textContent=t; row.appendChild(a);});
+      document.getElementById('lnkHome').href=`child-dashboard.html?child=${encodeURIComponent(childId)}`;
+    }
+
+    async function loadChild(){
+      const s=await getDoc(doc(db,'users',uid,'children',childId));
+      child=s.data()||{};
+      setChildAvatar(document.getElementById('bannerAvatar'), child.name, child.photoURL);
+      bannerName.textContent=child.name||'—';
+      bannerMeta.textContent=`${child.gender||'—'} • ${child.weight||'—'} كجم • ${child.height||'—'} سم`;
+      childBanner.style.display='block';
+      document.getElementById('icrNow').textContent = child.icr||'—';
+      mealTime.value = toLocalDatetimeValue(new Date());
+    }
+
+    async function loadFoods(){
+      foodsAll=[];
+      const qs=await getDocs(collection(db,'foods'));
+      qs.forEach(s=>{
+        const d=s.data(); if(d.isActive===false) return;
+        foodsAll.push({
+          id:s.id, name:d.name||'بدون اسم', category:d.category||'أخرى',
+          carbsPer100g: Number(d.carbsPer100g)||0,
+          imageUrl: d.imageUrl||'https://cdn-icons-png.flaticon.com/512/1046/1046784.png',
+          servingUnits: Array.isArray(d.servingUnits)&&d.servingUnits.length? d.servingUnits : [{unit:'جرام', grams:100}]
+        });
+      });
+      buildCategories(); renderFoods();
+    }
+
+    function buildCategories(){
+      const set=new Set(['*']); foodsAll.forEach(f=>set.add(f.category||'أخرى'));
+      const box=document.getElementById('catList'); box.innerHTML='';
+      [...set].forEach(cat=>{
+        const b=document.createElement('a'); b.className='side-link'+(cat===currentCategory?' active':''); b.textContent=cat==='*'?'كل الأصناف':cat; b.href='javascript:void(0)';
+        b.addEventListener('click',()=>{ currentCategory=cat; buildCategories(); renderFoods(); });
+        box.appendChild(b);
+      });
+    }
+
+    function renderFoods(){
+      const grid=document.getElementById('foodsGrid'); grid.innerHTML='';
+      const q=(foodSearch.value||'').trim().toLowerCase();
+      const list=foodsAll.filter(f=> (currentCategory==='*'||f.category===currentCategory) && (!q || f.name.toLowerCase().includes(q)));
+      if(!list.length){ grid.innerHTML='<div class="note">لا توجد أصناف.</div>'; return; }
+      list.forEach(f=>{
+        const card=document.createElement('div'); card.className='food';
+        const options=f.servingUnits.map(u=>`<option value="${u.grams}">${u.unit} (${u.grams}جم)</option>`).join('');
+        card.innerHTML=`
+          <img src="${f.imageUrl}" alt="${escapeHTML(f.name)}">
+          <div class="name">${escapeHTML(f.name)}</div>
+          <div class="note">الكارب/100جم: <b>${f.carbsPer100g}</b></div>
+          <div class="row" style="justify-content:center;margin-top:6px">
+            <select class="uSel">${options}</select>
+            <input class="qty" type="number" min="0.1" step="0.1" value="1" style="width:88px">
+          </div>
+          <div class="row" style="justify-content:space-between;margin-top:6px">
+            <button class="btn gray addBtn">➕ أضف</button>
+            <span class="badge-soft">${escapeHTML(f.category)}</span>
+          </div>
+        `;
+        const uSel=card.querySelector('.uSel'), qty=card.querySelector('.qty');
+        card.querySelector('.addBtn').addEventListener('click', ()=>{
+          const gramsPerUnit = Number(uSel.value)||100;
+          const qv = Number(qty.value)||0; if(qv<=0) return toast('ادخلي كمية صحيحة');
+          const totalCarbs = +( (gramsPerUnit*qv*f.carbsPer100g)/100 ).toFixed(1);
+          basket.push({ foodId:f.id, name:f.name, unit: unitName(f.servingUnits, gramsPerUnit), gramsPerUnit, qty:qv, carbsPer100g:f.carbsPer100g, totalCarbs });
+          renderBasket();
+        });
+        grid.appendChild(card);
+      });
+    }
+
+    function unitName(units, grams){ const u=(units||[]).find(x=>Number(x.grams)===Number(grams)); return u? `${u.unit} (${u.grams}جم)`:`جرام (${grams})`}
+    function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]))}
+
+    function renderBasket(){
+      const tb=document.getElementById('basketBody'); if(!basket.length){tb.innerHTML='<tr><td colspan="5" class="note">لا توجد عناصر بعد.</td></tr>'; totalCarbs.textContent='0.0'; totalCarbsCell.textContent='0.0'; doseSuggestedMeal.value=''; return;}
+      tb.innerHTML=''; let sum=0;
+      basket.forEach((it,idx)=>{
+        sum+=it.totalCarbs;
+        const tr=document.createElement('tr');
+        tr.innerHTML=`
+          <td>${escapeHTML(it.name)}</td>
+          <td>${escapeHTML(it.unit)}</td>
+          <td><input class="qtyRow" type="number" min="0.1" step="0.1" value="${it.qty}" style="width:88px"></td>
+          <td class="carbCell">${it.totalCarbs.toFixed(1)}</td>
+          <td><button class="btn gray rm">🗑️ حذف</button></td>
+        `;
+        tr.querySelector('.qtyRow').addEventListener('input', e=>{
+          it.qty = Number(e.target.value)||0;
+          it.totalCarbs = +((it.gramsPerUnit*it.qty*it.carbsPer100g)/100).toFixed(1);
+          tr.querySelector('.carbCell').textContent = it.totalCarbs.toFixed(1);
+          recomputeTotals();
+        });
+        tr.querySelector('.rm').addEventListener('click', ()=>{ basket.splice(idx,1); renderBasket(); });
+        tb.appendChild(tr);
+      });
+      totalCarbs.textContent=sum.toFixed(1); totalCarbsCell.textContent=sum.toFixed(1);
+      const icr=Number(child?.icr)||0; doseSuggestedMeal.value = (icr>0&&sum>0)? (Math.round((sum/icr)*10)/10).toFixed(1):'';
+    }
+    function recomputeTotals(){
+      let sum=0; basket.forEach(it=>sum+=it.totalCarbs);
+      totalCarbs.textContent=sum.toFixed(1); totalCarbsCell.textContent=sum.toFixed(1);
+      const icr=Number(child?.icr)||0; doseSuggestedMeal.value=(icr>0&&sum>0)?(Math.round((sum/icr)*10)/10).toFixed(1):'';
+    }
+
+    saveMealBtn.addEventListener('click', async ()=>{
+      if(!basket.length) return toast('السلة فارغة');
+      const when = mealTime.value; if(!when) return toast('حددي وقت الأكل');
+      const payload={
+        type: mealType.value,
+        time: when,
+        note: mealNote.value||null,
+        icrUsed: child?.icr||null,
+        totalCarbs: Number(totalCarbs.textContent)||0,
+        doseSuggested: doseSuggestedMeal.value? Number(doseSuggestedMeal.value):null,
+        doseGiven: doseGivenMeal.value? Number(doseGivenMeal.value):null,
+        items: basket,
+        createdAt: serverTimestamp()
+      };
+      const id = String(Date.now());
+      await setDoc(doc(db,'users',uid,'children',childId,'meals',id), payload);
+      toast('✅ تم حفظ الوجبة');
+      basket=[]; renderBasket();
+    });
+
+    // Boot
+    (async function(){
+      const {uid:U}=await ensureAuth(); uid=U;
+      childId=requireChildIdFromQuery();
+      // nav
+      const nav=document.getElementById('childNav'); nav.innerHTML='';
+      [['child-dashboard.html','الرئيسية'],['measures.html','قياسات السكر'],['meals.html','الوجبات'],['reports.html','التقارير'],['visits.html','الزيارات الطبية']]
+      .forEach(([h,t])=>{ const a=document.createElement('a'); a.className='btn gray'; a.href=`${h}?child=${encodeURIComponent(childId)}`; a.textContent=t; nav.appendChild(a);});
+      document.getElementById('lnkHome').href=`child-dashboard.html?child=${encodeURIComponent(childId)}`;
+
+      await loadChild();
+      await loadFoods();
+
+      btnLogout.addEventListener('click', ()=>signOut(auth).then(()=>location.href='index.html'));
+      foodSearch.addEventListener('input', renderFoods);
+    })();
+  </script>
+</body>
+</html>

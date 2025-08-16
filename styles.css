@@ -1,0 +1,167 @@
+/* ===============================
+   styles.css — ستايل موحّد لكل الصفحات
+   ألوان طفولية لطيفة + جداول وبطاقات
+   =============================== */
+
+:root{
+  --brand:#0ea5e9;     /* أزرق رئيسي */
+  --brand2:#6ee7b7;    /* أخضر فيروزي */
+  --ink:#0f172a;       /* نص */
+  --muted:#6b7280;     /* نص خافت */
+  --bg:#f6fbff;        /* خلفية عامة */
+  --card:#ffffff;      /* بطاقات */
+  --line:#e5e7eb;      /* حدود */
+  --ok:#16a34a;        /* أخضر */
+  --low:#b45309;       /* بني منخفض */
+  --high:#dc2626;      /* أحمر مرتفع */
+  --okbg:#ecfdf5;
+  --lowbg:#fff7ed;
+  --highbg:#fee2e2;
+}
+
+*{ box-sizing: border-box }
+html{ scroll-behavior: smooth }
+body{
+  margin:0;
+  color:var(--ink);
+  background:var(--bg);
+  font: 15px/1.65 system-ui, "Tajawal", "Noto Sans Arabic", sans-serif;
+}
+a{ color:inherit; text-decoration:none }
+
+/* ===== Topbar ===== */
+.topbar{
+  position:sticky; top:0; z-index:20;
+  background: linear-gradient(90deg,var(--brand),var(--brand2));
+  color:#fff; padding:10px 14px;
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+}
+.topbar .btn{
+  background:#ffffff22; color:#fff; border:1px solid #ffffff66;
+}
+
+/* ===== Layout ===== */
+.container{ max-width:1200px; margin:auto; padding:14px }
+.row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap }
+.col{ display:flex; flex-direction:column; gap:8px }
+
+/* ===== Cards ===== */
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:14px;
+  box-shadow:0 6px 24px rgba(0,0,0,.04);
+  margin-bottom:12px;
+}
+.section-title{ margin:0 0 8px; color:var(--brand) }
+
+/* ===== Buttons ===== */
+.btn{
+  border:none; border-radius:10px;
+  padding:10px 14px; font-weight:800; cursor:pointer;
+}
+.btn.primary{ background:var(--brand); color:#fff }
+.btn.green{ background:#10b981; color:#fff }
+.btn.orange{ background:#f97316; color:#fff }
+.btn.gray{ background:#eef2f7; color:#111 }
+.btn.red{ background:#fee2e2; color:#b91c1c }
+.btn:disabled{ opacity:.6; cursor:not-allowed }
+
+/* ===== Typography ===== */
+.note{ color:var(--muted); font-size:13px }
+.badge{
+  display:inline-block; background:#eef6ff; color:#0369a1;
+  padding:6px 10px; border-radius:999px; font-weight:800; font-size:12px;
+}
+.badge-soft{
+  display:inline-block; background:#ecfeff; color:#075985; border:1px solid #bae6fd;
+  padding:4px 8px; border-radius:999px; font-weight:800; font-size:12px;
+}
+
+/* ===== Inputs ===== */
+label{ display:block; color:var(--muted); font-size:12px; margin-bottom:4px }
+input, select, textarea{
+  width:100%; padding:10px; border:1px solid var(--line); border-radius:10px; background:#fff;
+}
+textarea{ resize: vertical }
+
+/* ===== Grid helpers ===== */
+.grid{ display:grid; gap:10px }
+.g2{ grid-template-columns:repeat(2,minmax(0,1fr)) }
+.g3{ grid-template-columns:repeat(3,minmax(0,1fr)) }
+.g4{ grid-template-columns:repeat(4,minmax(0,1fr)) }
+@media (max-width:1000px){ .g3, .g4{ grid-template-columns:1fr 1fr } }
+@media (max-width:720px){ .g2, .g3, .g4{ grid-template-columns:1fr } }
+
+/* ===== Tables ===== */
+.table{ width:100%; border-collapse:separate; border-spacing:0 }
+.table th, .table td{
+  border:1px solid var(--line);
+  padding:8px;
+  text-align:center;
+  vertical-align:top;
+  background:#fff;
+}
+.table thead th{ background:#f0f9ff; font-weight:800 }
+.table td.date{ background:#fbfdff; font-weight:800; white-space:nowrap }
+.center{ text-align:center }
+
+/* حالات القراءة */
+.state{
+  display:inline-block; padding:2px 8px; border-radius:999px; font-weight:700;
+}
+.state.ok{ background:var(--okbg); color:var(--ok) }
+.state.low{ background:var(--lowbg); color:var(--low) }
+.state.high{ background:var(--highbg); color:var(--high) }
+
+/* ===== Avatars / Kid header ===== */
+.child-head{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap }
+.kid{ display:flex; align-items:center; gap:12px }
+.avatar{
+  width:64px; height:64px; border-radius:50%;
+  object-fit:cover; border:3px solid #fff; box-shadow:0 2px 8px rgba(0,0,0,.12);
+}
+
+/* ===== Sidebar (للصفحات ذات قائمة يمين/يسار) ===== */
+.layout{
+  display:grid; gap:14px;
+  grid-template-columns: 240px 1fr;
+}
+.sidebar{
+  position:sticky; top:70px;
+  display:flex; flex-direction:column; gap:8px;
+}
+.side-link{
+  display:block; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:#fff; font-weight:800;
+}
+.side-link.active, .side-link:hover{ background:#e6f7ff; border-color:#b3e5ff }
+
+/* ===== Toast + Loader ===== */
+.toast{
+  position:fixed; bottom:16px; left:16px; z-index:9999;
+  background:#111; color:#fff; padding:10px 14px; border-radius:10px;
+  opacity:0; transform:translateY(8px); transition:.3s;
+}
+.toast.show{ opacity:1; transform:none }
+
+.loader{
+  display:none; position:fixed; inset:0; z-index:9998;
+  background:rgba(255,255,255,.6);
+  align-items:center; justify-content:center;
+}
+.loader .dot{
+  width:10px; height:10px; margin:0 4px; border-radius:50%;
+  background:var(--brand); animation:b .9s infinite alternate;
+}
+.loader .dot:nth-child(2){ animation-delay:.15s }
+.loader .dot:nth-child(3){ animation-delay:.3s }
+@keyframes b{ to{ transform:translateY(-6px); background:#06b6d4 } }
+
+/* ===== Print ===== */
+@media print{
+  .topbar, .sidebar, .toast, .loader{ display:none !important }
+  body{ background:#fff; color:#000 }
+  .card{ border:0; box-shadow:none; padding:0; margin:0 }
+  .table th, .table td{ padding:4px; font-size:12px }
+}

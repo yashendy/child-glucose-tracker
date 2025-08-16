@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>الزيارات الطبية</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>@media print{ .no-print{display:none!important} }</style>
+</head>
+<body>
+
+  <!-- ✅ بنر الطفل -->
+  <div id="childBanner" style="text-align:center; padding:12px 8px; display:none">
+    <img id="bannerAvatar" class="avatar" style="width:84px;height:84px" src="images/avatar-default.png" alt="صورة الطفل">
+    <div style="margin-top:6px;font-weight:800" id="bannerName">—</div>
+    <div class="note" id="bannerMeta">—</div>
+  </div>
+
+  <!-- ✅ Topbar -->
+  <div class="topbar">
+    <div>🧑‍⚕️ الزيارات الطبية</div>
+    <div class="row">
+      <a id="lnkHome" class="btn gray">الرئيسية</a>
+      <button id="btnLogout" class="btn">خروج</button>
+    </div>
+  </div>
+
+  <main class="container">
+    <!-- ✅ Nav -->
+    <div class="card"><div class="row" id="childNav"></div></div>
+
+    <section class="card">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h3 class="section-title">سجل الزيارات</h3>
+        <button id="btnVisitNew" class="btn no-print">➕ زيارة جديدة</button>
+      </div>
+
+      <!-- فورم -->
+      <div id="visitFormBox" class="card no-print" style="display:none; margin-top:8px">
+        <h4 style="margin:0 0 6px">إضافة / تعديل زيارة</h4>
+        <div class="grid g3">
+          <div><label>تاريخ الزيارة</label><input id="vDate" type="date"></div>
+          <div><label>اسم الطبيب</label><input id="vDoctor" placeholder="مثال: د. أحمد"></div>
+          <div><label>العيادة / المستشفى</label><input id="vClinic" placeholder="مثال: مستشفى الأطفال"></div>
+          <div style="grid-column:1/-1"><label>السبب / الشكوى</label><input id="vReason" placeholder="صداع / ضبط جرعات / متابعة دورية ..."></div>
+          <div style="grid-column:1/-1"><label>ملاحظات</label><textarea id="vNotes" rows="2"></textarea></div>
+          <div style="grid-column:1/-1">
+            <label>مرفقات (صور أو PDF)</label>
+            <input id="vFiles" type="file" accept="image/*,application/pdf" multiple>
+          </div>
+        </div>
+        <div class="row" style="justify-content:flex-end; margin-top:8px">
+          <button id="btnVisitSave" class="btn primary">💾 حفظ</button>
+          <button id="btnVisitCancel" class="btn gray">إلغاء</button>
+        </div>
+      </div>
+
+      <!-- جدول -->
+      <div style="margin-top:10px">
+        <table class="table">
+          <thead><tr><th>التاريخ</th><th>الطبيب</th><th>العيادة</th><th>السبب</th><th>مرفقات</th><th class="no-print">إجراءات</th></tr></thead>
+        <tbody id="visitsRows"><tr><td colspan="6" class="center note">لا توجد زيارات.</td></tr></tbody>
+        </table>
+      </div>
+
+      <!-- طباعة زيارة -->
+      <div id="visitPrintArea" class="card" style="display:none; margin-top:10px">
+        <h4 style="margin:0 0 6px">ملخص زيارة</h4>
+        <div id="printBody"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+  <div id="loader" class="loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+
+  <script type="module">
+    import { auth, db, storage, ensureAuth, requireChildIdFromQuery, setChildAvatar } from './firebase-init.js';
+    import { signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    import { collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+    import { ref as sRef, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
+
+    const toast=(m)=>{const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
+    const showLoader=(on)=>{document.getElementById('loader').style.display=on?'flex':'none'}
+
+    let uid=null, childId=null, child=null, editVisitId=null;
+
+    function buildNav(){
+      const row=document.getElementById('childNav'); row.innerHTML='';
+      [['child-dashboard.html','الرئيسية'],['measures.html','قياسات السكر'],['meals.html','الوجبات'],['reports.html','التقارير'],['visits.html','الزيارات الطبية']]
+      .forEach(([h,t])=>{ const a=document.createElement('a'); a.className='btn gray'; a.href=`${h}?child=${encodeURIComponent(childId)}`; a.textContent=t; row.appendChild(a);});
+      document.getElementById('lnkHome').href=`child-dashboard.html?child=${encodeURIComponent(childId)}`;
+    }
+
+    async function loadChild(){
+      const s=await getDoc(doc(db,'users',uid,'children',childId));
+      child=s.data()||{};
+      setChildAvatar(document.getElementById('bannerAvatar'), child.name, child.photoURL);
+      bannerName.textContent=child.name||'—';
+      bannerMeta.textContent=`${child.gender||'—'} • ${child.weight||'—'} كجم • ${child.height||'—'} سم`;
+      childBanner.style.display='block';
+    }
+
+    function clearVisitForm(){ ['vDate','vDoctor','vClinic','vReason','vNotes'].forEach(id=>document.getElementById(id).value=''); vFiles.value=''; }
+
+    function bindForm(){
+      btnVisitCancel.addEventListener('click', ()=>{ visitFormBox.style.display='none'; clearVisitForm(); editVisitId=null; });
+      btnVisitNew.addEventListener('click', ()=>{ clearVisitForm(); editVisitId=null; vDate.value=new Date().toISOString().slice(0,10); visitFormBox.style.display='block'; });
+      btnVisitSave.addEventListener('click', saveVisit);
+    }
+
+    async function saveVisit(){
+      const date=vDate.value, doctor=vDoctor.value.trim(), clinic=vClinic.value.trim(), reason=vReason.value.trim(), notes=vNotes.value.trim();
+      if(!date){ return toast('أدخلي تاريخ الزيارة'); }
+      showLoader(true);
+      if(!editVisitId){
+        const ref = await addDoc(collection(db,'users',uid,'children',childId,'visits'), { date, doctor:doctor||null, clinic:clinic||null, reason:reason||null, notes:notes||null, files:[], createdAt:serverTimestamp(), updatedAt:serverTimestamp() });
+        editVisitId = ref.id;
+      }else{
+        await updateDoc(doc(db,'users',uid,'children',childId,'visits',editVisitId), { date, doctor:doctor||null, clinic:clinic||null, reason:reason||null, notes:notes||null, updatedAt:serverTimestamp() });
+      }
+      // رفع ملفات
+      const files = Array.from(vFiles.files||[]);
+      if(files.length){
+        const uploaded=[];
+        for(const f of files){
+          const path=`users/${uid}/children/${childId}/visits/${editVisitId}/files/${Date.now()}_${f.name.replace(/[^\w.\-]+/g,'_')}`;
+          const task = uploadBytesResumable(sRef(storage, path), f, {contentType:f.type});
+          await new Promise((res,rej)=> task.on('state_changed', ()=>{}, rej, res));
+          const url = await getDownloadURL(task.snapshot.ref);
+          uploaded.push({name:f.name, url, type:f.type, size:f.size});
+        }
+        const vRef=doc(db,'users',uid,'children',childId,'visits',editVisitId);
+        const cur=(await getDoc(vRef)).data()||{};
+        const curFiles=Array.isArray(cur.files)?cur.files:[];
+        await updateDoc(vRef, { files: curFiles.concat(uploaded) });
+      }
+      toast('✅ تم حفظ الزيارة'); visitFormBox.style.display='none'; clearVisitForm(); editVisitId=null; await loadVisits();
+      showLoader(false);
+    }
+
+    async function loadVisits(){
+      const tb=document.getElementById('visitsRows');
+      const qs=await getDocs(query(collection(db,'users',uid,'children',childId,'visits'), orderBy('date','desc')));
+      if(qs.empty){ tb.innerHTML='<tr><td colspan="6" class="center note">لا توجد زيارات.</td></tr>'; return; }
+      const rows=[];
+      qs.forEach(s=>{
+        const v=s.data(), files=Array.isArray(v.files)? v.files : [];
+        rows.push(`<tr>
+          <td><b>${escapeHTML(v.date||'—')}</b></td>
+          <td>${escapeHTML(v.doctor||'—')}</td>
+          <td>${escapeHTML(v.clinic||'—')}</td>
+          <td>${escapeHTML(v.reason||'—')}</td>
+          <td>${ files.length? files.map(f=>`<span class="badge-soft" title="${escapeHTML(f.name)}">${f.type.startsWith('image/')?'🖼️':'📄'} ${short(f.name)}</span>`).join(' ') : '—' }</td>
+          <td class="no-print">
+            <button class="btn gray" data-act="view" data-id="${s.id}">👁️ عرض/طباعة</button>
+            <button class="btn gray" data-act="edit" data-id="${s.id}">✏️ تعديل</button>
+            <button class="btn red"  data-act="del"  data-id="${s.id}">🗑️ حذف</button>
+          </td>
+        </tr>`);
+      });
+      tb.innerHTML=rows.join('');
+      tb.querySelectorAll('button[data-act]').forEach(btn=>{
+        const id=btn.dataset.id, act=btn.dataset.act;
+        btn.addEventListener('click',()=> act==='view'? viewVisit(id) : act==='edit'? editVisit(id) : delVisit(id));
+      });
+    }
+
+    function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]))}
+    function short(n){ return (n&&n.length>18)? (n.slice(0,16)+'…') : (n||'ملف'); }
+
+    async function viewVisit(id){
+      const ref=doc(db,'users',uid,'children',childId,'visits',id);
+      const snap=await getDoc(ref); if(!snap.exists()) return;
+      const v=snap.data(); const files=Array.isArray(v.files)?v.files:[];
+      printBody.innerHTML = `
+        <div><b>الطفل:</b> ${escapeHTML(child?.name||'—')}</div>
+        <div><b>التاريخ:</b> ${escapeHTML(v.date||'—')}</div>
+        <div><b>الطبيب:</b> ${escapeHTML(v.doctor||'—')}</div>
+        <div><b>العيادة:</b> ${escapeHTML(v.clinic||'—')}</div>
+        <div><b>السبب:</b> ${escapeHTML(v.reason||'—')}</div>
+        <div><b>ملاحظات:</b> ${escapeHTML(v.notes||'—')}</div>
+        <div><b>مرفقات:</b> ${ files.length? files.map(f=>`<div>• ${f.type.startsWith('image/')?'🖼️':'📄'} <a href="${f.url}" target="_blank">${escapeHTML(f.name)}</a></div>`).join('') : '—' }</div>
+      `;
+      visitPrintArea.style.display='block';
+      window.print();
+    }
+    async function editVisit(id){
+      const ref=doc(db,'users',uid,'children',childId,'visits',id);
+      const s=await getDoc(ref); if(!s.exists()) return;
+      const v=s.data();
+      editVisitId=id;
+      vDate.value=v.date||''; vDoctor.value=v.doctor||''; vClinic.value=v.clinic||''; vReason.value=v.reason||''; vNotes.value=v.notes||'';
+      visitFormBox.style.display='block';
+    }
+    async function delVisit(id){
+      if(!confirm('حذف هذه الزيارة؟')) return;
+      await deleteDoc(doc(db,'users',uid,'children',childId,'visits',id));
+      toast('🗑️ تم الحذف'); await loadVisits();
+    }
+
+    // Boot
+    (async function(){
+      const {uid:U}=await ensureAuth(); uid=U; childId=requireChildIdFromQuery();
+      // nav
+      const nav=document.getElementById('childNav'); nav.innerHTML='';
+      [['child-dashboard.html','الرئيسية'],['measures.html','قياسات السكر'],['meals.html','الوجبات'],['reports.html','التقارير'],['visits.html','الزيارات الطبية']]
+      .forEach(([h,t])=>{ const a=document.createElement('a'); a.className='btn gray'; a.href=`${h}?child=${encodeURIComponent(childId)}`; a.textContent=t; nav.appendChild(a);});
+      document.getElementById('lnkHome').href=`child-dashboard.html?child=${encodeURIComponent(childId)}`;
+
+      await loadChild();
+      bindForm();
+      await loadVisits();
+
+      btnLogout.addEventListener('click', ()=> signOut(auth).then(()=>location.href='index.html'));
+    })();
+  </script>
+</body>
+</html>

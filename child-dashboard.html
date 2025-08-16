@@ -1,1190 +1,183 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>لوحة الطفل</title>
-<style>
-:root{
-  --brand:#0ea5e9; --brand2:#6ee7b7; --line:#e5e7eb; --ink:#0f172a; --muted:#6b7280;
-  --bg:#f6fbff; --card:#fff; --ok:#16a34a; --low:#b45309; --high:#dc2626;
-  --okbg:#ecfdf5; --lowbg:#fff7ed; --highbg:#fee2e2;
-}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,"Tajawal","Noto Sans Arabic",sans-serif}
-a{text-decoration:none;color:inherit}
-.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.btn{border:none;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
-.btn.primary{background:var(--brand);color:#fff}
-.btn.gray{background:#eef2f7}
-.btn.red{background:#fee2e2;color:#b91c1c}
-.note{color:var(--muted);font-size:13px}
-
-/* Header */
-.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;
-  padding:10px 14px;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;position:sticky;top:0;z-index:50}
-.topbar .btn{background:#ffffff22;border:1px solid #ffffff66;color:#fff}
-
-/* Layout with sidebar */
-.shell{display:grid;grid-template-columns:230px 1fr;gap:14px;max-width:1200px;margin:auto;padding:14px}
-@media(max-width:980px){.shell{grid-template-columns:1fr}}
-.sidenav{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;position:sticky;top:62px;height:max-content}
-.sidenav .navitem{display:flex;align-items:center;gap:8px;width:100%;text-align:right;border:1px solid var(--line);
-  background:#fff;border-radius:12px;padding:10px;font-weight:800;margin-bottom:8px;cursor:pointer}
-.sidenav .navitem.active{background:#e6f7ff;border-color:#b3e5ff}
-.content{min-width:0}
-
-/* cards */
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 6px 24px rgba(0,0,0,.04);margin-bottom:12px}
-
-/* child header */
-.child-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
-.kid{display:flex;align-items:center;gap:12px}
-.avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.12),0 0 0 2px #e2e8f0}
-.kid .name{font-weight:800}
-.badge{display:inline-block;background:#eef6ff;color:#0369a1;padding:6px 10px;border-radius:999px;font-weight:800}
-
-/* inputs polished */
-.field{margin-bottom:10px}
-.field label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
-.input-wrap{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:6px 10px}
-.input-wrap input,.input-wrap select{border:none;outline:none;background:transparent;width:100%;font:inherit;color:inherit}
-.input-note{font-size:12px;color:var(--muted);margin-top:4px}
-.form-grid{display:grid;gap:10px;grid-template-columns:repeat(3,minmax(0,1fr))}
-.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
-.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
-@media(max-width:900px){.form-grid,.g2,.g3{grid-template-columns:1fr}}
-.sep{height:1px;background:var(--line);margin:10px 0}
-.badge-soft{display:inline-block;background:#eef6ff;color:#0369a1;border-radius:999px;padding:4px 8px;font-weight:800;font-size:12px}
-
-/* tables */
-.table{width:100%;border-collapse:separate;border-spacing:0}
-.table th,.table td{border:1px solid var(--line);padding:8px;text-align:right;vertical-align:top}
-.table thead th{background:#f0f9ff;font-weight:800}
-.center{text-align:center}
-.state{display:inline-block;padding:2px 8px;border-radius:999px}
-.state.ok{background:var(--okbg);color:var(--ok)}
-.state.low{background:var(--lowbg);color:var(--low)}
-.state.high{background:var(--highbg);color:var(--high)}
-
-/* upload progress */
-#uploadProg{height:8px;background:#e5e7eb;border-radius:999px;overflow:hidden;display:none}
-#uploadProg span{display:block;height:100%;background:linear-gradient(90deg,#22c55e,#06b6d4);width:0%}
-
-/* Meals */
-.meals-wrap{display:grid;grid-template-columns:240px 1fr;gap:12px}
-@media(max-width:900px){.meals-wrap{grid-template-columns:1fr}}
-.cats{display:flex;flex-direction:column;gap:8px}
-.cat-btn{border:none;border-radius:12px;padding:10px;background:#ffffff;cursor:pointer;text-align:right;
-  box-shadow:0 1px 6px rgba(0,0,0,.06);border:1px solid var(--line);font-weight:800}
-.cat-btn.active,.cat-btn:hover{background:#e6f7ff;border-color:#b3e5ff}
-.foods-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
-.food{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.04)}
-.food img{width:80px;height:80px;object-fit:contain}
-.food .name{font-weight:800;margin-top:6px}
-.food .carb{color:#0f766e;font-weight:700;font-size:13px}
-.input-mini{width:120px}
-
-.basket table{width:100%;border-collapse:separate;border-spacing:0}
-.basket th,.basket td{border:1px solid var(--line);padding:8px;text-align:center}
-.basket thead th{background:#f0f9ff}
-
-/* Doctor report table */
-.table-report{width:100%;border-collapse:collapse}
-.table-report th,.table-report td{border:1px solid var(--line);padding:6px;text-align:center;vertical-align:top}
-.table-report thead th{background:#f1f5f9;font-weight:800}
-.report-meta{font-size:13px;margin-bottom:8px;color:var(--muted)}
-.pdf-container{page-break-after:always;padding:10mm;background:#fff;color:#000}
-.state-icon{font-weight:bold}
-.state-icon.low{color:#b45309}
-.state-icon.high{color:#dc2626}
-.state-icon.ok{color:#16a34a}
-
-/* Visits */
-.visits-form .grid{display:grid;gap:10px}
-.visits-form .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
-@media(max-width:900px){.visits-form .g3{grid-template-columns:1fr}}
-.table-visits{width:100%;border-collapse:separate;border-spacing:0}
-.table-visits th,.table-visits td{border:1px solid var(--line);padding:8px;text-align:right;vertical-align:top}
-.table-visits thead th{background:#f0f9ff;font-weight:800}
-.chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{display:inline-flex;align-items:center;gap:6px;background:#eef6ff;color:#0369a1;border-radius:999px;padding:4px 8px;font-weight:800;font-size:12px}
-.actions .btn{padding:6px 10px}
-.print-visit{display:none;background:#fff;color:#000;padding:12px;border:1px dashed var(--line);margin-top:10px}
-.print-visit h4{margin:0 0 6px}
-
-/* Loader + Toast */
-.loader{display:none;position:fixed;inset:0;background:rgba(255,255,255,.6);z-index:9999;align-items:center;justify-content:center}
-.loader .dot{width:10px;height:10px;border-radius:50%;margin:0 4px;background:#0ea5e9;animation:b .9s infinite alternate}
-.loader .dot:nth-child(2){animation-delay:.15s}.loader .dot:nth-child(3){animation-delay:.3s}
-@keyframes b{to{transform:translateY(-6px);background:#06b6d4}}
-.toast{position:fixed;bottom:16px;left:16px;background:#111;color:#fff;padding:10px 14px;border-radius:10px;opacity:0;transform:translateY(8px);transition:.3s;z-index:99999}
-.toast.show{opacity:1;transform:none}
-
-/* Print */
-@media print{
-  @page{ size: A4; margin: 10mm }
-  header,.sidenav,.no-print{display:none!important}
-  body{background:#fff;color:#000}
-  .shell{display:block;padding:0;max-width:none}
-  .card{box-shadow:none;border:1px solid #ddd}
-}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>لوحة الطفل</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<header class="topbar">
-  <div class="row">
-    <a class="btn" href="dashboard.html">لوحة وليّ الأمر</a>
-    <button id="btnLogout" class="btn" type="button">خروج</button>
+  <!-- ✅ بنر الطفل (قبل التوب بار) -->
+  <div id="childBanner" style="text-align:center; padding:12px 8px; display:none">
+    <img id="bannerAvatar" src="images/avatar-default.png" alt="صورة الطفل" class="avatar" style="width:84px;height:84px">
+    <div style="margin-top:6px; font-weight:800" id="bannerName">—</div>
+    <div class="note" id="bannerMeta">—</div>
   </div>
-  <div id="hello" class="row">مرحبًا…</div>
-</header>
 
-<div class="shell">
-  <!-- Sidebar -->
-  <nav class="sidenav no-print">
-    <button class="navitem active" data-target="infoCard">🏷️ بيانات الطفل</button>
-    <button class="navitem" data-target="measuresCard">🧪 قياسات السكر</button>
-    <button class="navitem" data-target="measuresToday">📅 قراءات اليوم</button>
-    <button class="navitem" data-target="mealsCard">🍽️ الوجبات</button>
-    <button class="navitem" data-target="doctorReports">📊 تقرير الطبيب</button>
-    <button class="navitem" data-target="visitsCard">🩺 الزيارات الطبية</button>
-  </nav>
+  <!-- ✅ Topbar -->
+  <div class="topbar">
+    <div>📊 لوحة الطفل</div>
+    <div class="row">
+      <a id="lnkHome" class="btn gray">الرئيسية</a>
+      <button id="btnLogout" class="btn">خروج</button>
+    </div>
+  </div>
 
-  <!-- Content -->
-  <main class="content">
+  <!-- ✅ روابط تنقل داخلية -->
+  <main class="container">
+    <div class="card">
+      <div class="row" id="childNav" style="flex-wrap:wrap"></div>
+    </div>
 
-    <!-- رأس الطفل -->
-    <section class="card child-head" id="headCard" style="display:none">
-      <div class="kid">
-        <img id="kidAvatar" class="avatar" alt="صورة الطفل"
-             src="data:image/svg+xml;utf8,<?xml version='1.0'?><svg xmlns='http://www.w3.org/2000/svg' width='128' height='128'><rect fill='%23e5f2ff' width='100%' height='100%'/><text x='50%' y='54%' font-size='24' text-anchor='middle' fill='%230f172a'>👧</text></svg>">
-        <div>
-          <div class="name" id="kidName">—</div>
-          <div class="note" id="kidMeta">—</div>
+    <!-- ✅ بيانات الطفل -->
+    <section class="card">
+      <h3 class="section-title">🧒 بيانات الطفل</h3>
+      <div class="grid g2">
+        <div><label>الاسم</label><input id="cName"></div>
+        <div><label>النوع</label>
+          <select id="cGender"><option>ذكر</option><option>أنثى</option></select>
         </div>
-      </div>
-      <span class="badge" id="unitBadge">الوحدة: mmol/L</span>
-    </section>
-
-    <!-- بيانات الطفل -->
-    <section class="card" id="infoCard" style="display:none">
-      <h3 style="margin:0 0 10px">🧒 بيانات الطفل</h3>
-
-      <div class="form-grid g2">
-        <div class="field">
-          <label>الاسم</label>
-          <div class="input-wrap"><input id="cName"></div>
-        </div>
-        <div class="field">
-          <label>النوع</label>
-          <div class="input-wrap">
-            <select id="cGender"><option>ذكر</option><option>أنثى</option></select>
-          </div>
-        </div>
-        <div class="field">
-          <label>الرقم المدني</label>
-          <div class="input-wrap"><input id="cCivilId"></div>
-        </div>
-        <div class="field">
-          <label>تاريخ الميلاد</label>
-          <div class="input-wrap"><input id="cBirth" type="date"></div>
-        </div>
-        <div class="field">
-          <label>الوزن (كجم)</label>
-          <div class="input-wrap"><input id="cWeight" type="number" step="0.1"></div>
-        </div>
-        <div class="field">
-          <label>الطول (سم)</label>
-          <div class="input-wrap"><input id="cHeight" type="number" step="0.1"></div>
-        </div>
+        <div><label>الرقم المدني</label><input id="cCivilId"></div>
+        <div><label>تاريخ الميلاد</label><input id="cBirth" type="date"></div>
+        <div><label>الوزن (كجم)</label><input id="cWeight" type="number" step="0.1"></div>
+        <div><label>الطول (سم)</label><input id="cHeight" type="number" step="0.1"></div>
       </div>
 
-      <div class="sep"></div>
-
-      <h4>⚙️ إعدادات السكر</h4>
-      <div class="form-grid g2">
-        <div class="field">
-          <label>الوحدة المفضلة</label>
-          <div class="input-wrap">
-            <select id="cUnit">
-              <option value="mmol/L">mmol/L</option>
-              <option value="mg/dL">mg/dL</option>
-            </select>
-          </div>
-          <div class="input-note">العرض في الجداول دائمًا mmol/L.</div>
+      <div class="sep" style="height:8px"></div>
+      <h4 class="section-title">⚙️ إعدادات السكر</h4>
+      <div class="grid g3">
+        <div><label>الوحدة المفضلة</label>
+          <select id="cUnit"><option value="mmol/L">mmol/L</option><option value="mg/dL">mg/dL</option></select>
         </div>
-        <div class="field">
-          <label>القياس الأمثل (Target)</label>
-          <div class="input-wrap"><input id="cTarget" type="number" step="0.1"></div>
-        </div>
-        <div class="field">
-          <label>حد الهبوط</label>
-          <div class="input-wrap"><input id="cLow" type="number" step="0.1"></div>
-        </div>
-        <div class="field">
-          <label>حد الارتفاع</label>
-          <div class="input-wrap"><input id="cHigh" type="number" step="0.1"></div>
-        </div>
+        <div><label>الهدف</label><input id="cTarget" type="number" step="0.1"></div>
+        <div><label>حد الهبوط</label><input id="cLow" type="number" step="0.1"></div>
+        <div><label>حد الارتفاع</label><input id="cHigh" type="number" step="0.1"></div>
+        <div><label>جرعة الترسيبا</label><input id="cTresiba" type="number" step="0.1"></div>
+        <div><label>الأنسولين اليومي</label><input id="cTotalInsulin" type="number" step="0.1"></div>
+        <div><label>معامل التصحيح (mmol/L لكل 1U)</label><input id="cCorrectionFactor" type="number" step="0.1"></div>
+        <div><label>ICR (جرام كارب/1U)</label><input id="cICR" type="number" step="0.1"></div>
       </div>
 
-      <div class="sep"></div>
-
-      <h4>💉 جرعات</h4>
-      <div class="form-grid g3">
-        <div class="field">
-          <label>جرعة الترسيبا</label>
-          <div class="input-wrap"><input id="cTresiba" type="number" step="0.1"></div>
-        </div>
-        <div class="field">
-          <label>جرعة الأنسولين اليومية</label>
-          <div class="input-wrap"><input id="cTotalInsulin" type="number" step="0.1"></div>
-        </div>
-        <div class="field">
-          <label>معامل التصحيح (mmol/L لكل 1U)</label>
-          <div class="input-wrap"><input id="cCorrectionFactor" type="number" step="0.1"></div>
-        </div>
-        <div class="field">
-          <label>ICR (جم كارب/وحدة)</label>
-          <div class="input-wrap"><input id="cICR" type="number" step="0.1"></div>
-        </div>
-      </div>
-
-      <div class="sep"></div>
-
-      <h4>📷 صورة الطفل</h4>
+      <div class="sep" style="height:8px"></div>
+      <h4 class="section-title">📷 صورة الطفل</h4>
       <div class="row">
         <input type="file" id="cPhoto" accept="image/*">
-        <div id="uploadProg" style="width:220px"><span></span></div>
+        <div id="uploadProg" style="height:8px;background:#e5e7eb;border-radius:999px;overflow:hidden;display:none;min-width:160px">
+          <span style="display:block;height:100%;background:linear-gradient(90deg,#22c55e,#06b6d4);width:0%"></span>
+        </div>
       </div>
 
       <div class="row" style="justify-content:flex-end;margin-top:10px">
         <button id="saveInfo" class="btn primary">💾 حفظ البيانات</button>
       </div>
     </section>
-
-    <!-- قياسات السكر -->
-    <section class="card" id="measuresCard" style="display:none">
-      <div class="row" style="justify-content:space-between;align-items:center">
-        <h3 style="margin:0">🧪 تسجيل القياسات</h3>
-        <span class="badge-soft">العرض في الجداول: <b>mmol/L</b></span>
-      </div>
-
-      <div class="form-grid g3" style="margin:10px 0">
-        <div class="field">
-          <label>التاريخ</label>
-          <div class="input-wrap"><input id="mDate" type="date"></div>
-        </div>
-        <div class="field">
-          <label>وقت القياس</label>
-          <div class="input-wrap">
-            <select id="mSlot">
-              <option value="">— اختاري —</option>
-              <option value="uponWake">الاستيقاظ</option>
-              <option value="preBreakfast">قبل الإفطار</option>
-              <option value="postBreakfast">بعد الإفطار</option>
-              <option value="preLunch">قبل الغداء</option>
-              <option value="postLunch">بعد الغداء</option>
-              <option value="preDinner">قبل العشاء</option>
-              <option value="postDinner">بعد العشاء</option>
-              <option value="beforeSleep">قبل النوم</option>
-              <option value="duringSleep">أثناء النوم</option>
-              <option value="beforeExercise">قبل التمرين</option>
-              <option value="afterExercise">بعد التمرين</option>
-              <option value="random">قياس عشوائي</option>
-              <option value="other">أخرى</option>
-            </select>
-          </div>
-        </div>
-        <div class="field">
-          <label>القراءة</label>
-          <div class="input-wrap">
-            <input id="mValue" type="number" step="0.1" min="0" placeholder="مثال: 7.8 أو 140">
-            <select id="mValueUnit">
-              <option value="mmol">mmol/L</option>
-              <option value="mgdl">mg/dL</option>
-            </select>
-          </div>
-          <div class="input-note">يتم التخزين والتقرير دائمًا بالـ mmol/L والتقريب لأقرب 0.1.</div>
-        </div>
-
-        <div class="field">
-          <label>كارب (جم)</label>
-          <div class="input-wrap"><input id="mCarbs" type="number" step="0.1" min="0"></div>
-        </div>
-        <div class="field">
-          <label>جرعة مقترحة (ICR)</label>
-          <div class="input-wrap"><input id="mDoseSuggested" readonly></div>
-        </div>
-        <div class="field">
-          <label>جرعة فعلية</label>
-          <div class="input-wrap"><input id="mDoseGiven" type="number" step="0.1" min="0"></div>
-        </div>
-
-        <div class="field" id="mCorrWrap" style="display:none">
-          <label>جرعة تصحيحية (تظهر عند الارتفاع)</label>
-          <div class="input-wrap"><input id="mCorrection" type="number" step="0.1" min="0"></div>
-        </div>
-
-        <div class="field" id="mRaiseWrap" style="display:none">
-          <label>رفع السكر (يظهر عند الهبوط)</label>
-          <div class="input-wrap"><input id="mRaisedWith" placeholder="عصير/تمر..."></div>
-        </div>
-
-        <div class="field" style="grid-column:1/-1">
-          <label>ملاحظة</label>
-          <div class="input-wrap"><input id="mNote" placeholder="اختياري"></div>
-        </div>
-      </div>
-
-      <div class="row" style="justify-content:space-between; gap:10px">
-        <button id="mSave" class="btn primary">💾 حفظ القياس</button>
-        <button id="mCancelEdit" class="btn gray" style="display:none">إلغاء التعديل</button>
-      </div>
-    </section>
-
-    <!-- قراءات اليوم -->
-    <section class="card" id="measuresToday" style="display:none">
-      <h4 style="margin:0 0 6px">📅 قراءات اليوم</h4>
-      <div class="note">يتم التقريب لأقرب 0.1 (مثال: 7.8).</div>
-      <table class="table">
-        <thead>
-          <tr>
-            <th>الوقت</th>
-            <th>القراءة</th>
-            <th>الحالة</th>
-            <th>جرعات</th>
-            <th>ملاحظات/إجراء</th>
-          </tr>
-        </thead>
-        <tbody id="mRows">
-          <tr><td colspan="5" class="note center">لا توجد قياسات.</td></tr>
-        </tbody>
-      </table>
-    </section>
-
-    <!-- الوجبات -->
-    <section class="card" id="mealsCard" style="display:none">
-      <div class="row" style="justify-content:space-between;align-items:center">
-        <h3 style="margin:0">🍽️ الوجبات</h3>
-        <div class="row"><span class="badge-soft">ICR الحالي: <b id="icrNow">—</b> g/U</span></div>
-      </div>
-
-      <div class="form-grid g3" style="margin:10px 0">
-        <div class="field"><label>نوع الوجبة</label>
-          <div class="input-wrap">
-            <select id="mealType">
-              <option value="breakfast">فطور</option>
-              <option value="lunch">غداء</option>
-              <option value="dinner">عشاء</option>
-              <option value="snack">سناك</option>
-              <option value="other">أخرى</option>
-            </select>
-          </div>
-        </div>
-        <div class="field"><label>وقت الأكل</label>
-          <div class="input-wrap"><input id="mealTime" type="datetime-local"></div>
-        </div>
-        <div class="field"><label>ملاحظة</label>
-          <div class="input-wrap"><input id="mealNote" placeholder="اختياري"></div>
-        </div>
-      </div>
-
-      <div class="meals-wrap">
-        <!-- التصنيفات -->
-        <div>
-          <input id="foodSearch" placeholder="ابحث عن صنف..." style="width:100%;margin-bottom:8px">
-          <div id="catList" class="cats"><button class="cat-btn active" data-cat="*">كل الأصناف</button></div>
-        </div>
-
-        <!-- شبكة الأصناف + السلة -->
-        <div>
-          <div id="foodsGrid" class="foods-grid"><div class="note">جاري التحميل...</div></div>
-
-          <div class="card" style="margin-top:12px">
-            <div class="row" style="justify-content:space-between">
-              <h4 style="margin:0">🧺 سلة الوجبة</h4>
-              <div class="badge-soft">إجمالي الكارب: <b id="totalCarbs">0.0</b> جم</div>
-            </div>
-            <div class="basket" style="margin-top:8px; overflow:auto">
-              <table>
-                <thead><tr><th>الصنف</th><th>الوضع/الوحدة</th><th>الكمية</th><th>الكارب (جم)</th><th>إجراء</th></tr></thead>
-                <tbody id="basketBody"><tr><td colspan="5" class="note">لا توجد عناصر بعد.</td></tr></tbody>
-                <tfoot><tr><td colspan="3"><b>الإجمالي</b></td><td id="totalCarbsCell">0.0</td><td></td></tr></tfoot>
-              </table>
-            </div>
-
-            <div class="form-grid g3" style="margin-top:10px">
-              <div class="field"><label>الجرعة المقترحة</label><div class="input-wrap"><input id="doseSuggestedMeal" readonly></div></div>
-              <div class="field"><label>جرعة فعلية (اختياري)</label><div class="input-wrap"><input id="doseGivenMeal" type="number" step="0.1"></div></div>
-              <div class="row" style="align-items:flex-end; justify-content:flex-end">
-                <button id="saveMealBtn" class="btn primary">💾 حفظ الوجبة</button>
-              </div>
-            </div>
-
-            <div class="note">الحساب: (جرام الوحدة × الكمية × كارب/100g) ÷ 100 — الجرعة المقترحة = إجمالي الكارب ÷ ICR (تقريب 0.1U).</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- تقارير الطبيب -->
-    <section class="card" id="doctorReports" style="display:none">
-      <div class="row" style="justify-content:space-between;align-items:center">
-        <h3 style="margin:0">📊 تقرير الطبيب</h3>
-        <div>
-          <button id="btnReportPDF" class="btn primary">📄 طباعة PDF</button>
-          <button id="btnReportBlank" class="btn gray">📝 تقرير فارغ (7 أيام)</button>
-        </div>
-      </div>
-      <div class="report-meta" id="reportMeta">—</div>
-      <div id="reportTableWrap">
-        <table class="table-report" id="reportTable">
-          <thead>
-            <tr>
-              <th>التاريخ</th>
-              <th>الاستيقاظ</th>
-              <th>قبل الإفطار</th><th>بعد الإفطار</th>
-              <th>قبل الغداء</th><th>بعد الغداء</th>
-              <th>قبل العشاء</th><th>بعد العشاء</th>
-              <th>قبل النوم</th><th>أثناء النوم</th>
-            </tr>
-          </thead>
-          <tbody id="reportRows">
-            <tr><td colspan="10" class="note">لا توجد بيانات بعد.</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- الزيارات الطبية -->
-    <section class="card" id="visitsCard" style="display:none">
-      <div class="row" style="justify-content:space-between;align-items:center">
-        <h3 style="margin:0">🩺 الزيارات الطبية</h3>
-        <div class="row no-print"><button id="btnVisitNew" class="btn">➕ زيارة جديدة</button></div>
-      </div>
-
-      <div class="visits-form" id="visitFormBox" style="display:none; margin-top:8px">
-        <h4 style="margin:0 0 6px">إضافة / تعديل زيارة</h4>
-        <div class="grid g3">
-          <div class="field"><label>تاريخ الزيارة</label><div class="input-wrap"><input id="vDate" type="date"></div></div>
-          <div class="field"><label>اسم الطبيب</label><div class="input-wrap"><input id="vDoctor" placeholder="مثال: د. أحمد"></div></div>
-          <div class="field"><label>العيادة / المستشفى</label><div class="input-wrap"><input id="vClinic" placeholder="مثال: مستشفى الأطفال"></div></div>
-          <div class="field" style="grid-column:1/-1"><label>السبب / الشكوى</label><div class="input-wrap"><input id="vReason" placeholder="صداع / ضبط جرعات / متابعة..."></div></div>
-          <div class="field" style="grid-column:1/-1"><label>ملاحظات</label><div class="input-wrap"><input id="vNotes" placeholder="ملاحظات الطبيب/التوصيات"></div></div>
-          <div class="field" style="grid-column:1/-1">
-            <label>مرفقات (صور أو PDF) — اختياري</label>
-            <input id="vFiles" type="file" accept="image/*,application/pdf" multiple>
-            <div class="note">يتم رفع المرفقات بعد حفظ الزيارة مباشرة.</div>
-          </div>
-        </div>
-        <div class="row" style="justify-content:flex-end; margin-top:8px">
-          <button id="btnVisitSave" class="btn primary">💾 حفظ الزيارة</button>
-          <button id="btnVisitCancel" class="btn gray">إلغاء</button>
-        </div>
-      </div>
-
-      <div style="margin-top:10px">
-        <table class="table-visits">
-          <thead>
-            <tr>
-              <th>التاريخ</th>
-              <th>الطبيب</th>
-              <th>العيادة</th>
-              <th>السبب</th>
-              <th>مرفقات</th>
-              <th class="no-print">إجراءات</th>
-            </tr>
-          </thead>
-          <tbody id="visitsRows">
-            <tr><td colspan="6" class="note">لا توجد زيارات بعد.</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div id="visitPrintArea" class="print-visit">
-        <h4>🧑‍⚕️ ملخص زيارة طبية</h4>
-        <div id="printBody"></div>
-      </div>
-    </section>
-
   </main>
-</div>
 
-<!-- Loader + Toast -->
-<div id="loader" class="loader" aria-hidden="true"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-<div id="toast" class="toast"></div>
+  <!-- ✅ Toast + Loader -->
+  <div id="toast" class="toast"></div>
+  <div id="loader" class="loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
 
-<!-- Firebase + App -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, addDoc, query, where, orderBy, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-import { getStorage, ref as sRef, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
+  <!-- ✅ Script -->
+  <script type="module">
+    import { auth, db, storage, ensureAuth, logout, requireChildIdFromQuery, setChildAvatar } from './firebase-init.js';
+    import { signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+    import { ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCOdrwdbw8b7YdWLPZ4TDdG2iS9kvvxQ7M",
-  authDomain: "child-glucose-tracker.firebaseapp.com",
-  projectId: "child-glucose-tracker",
-  storageBucket: "child-glucose-tracker.firebasestorage.app",
-  messagingSenderId: "294563325904",
-  appId: "1:294563325904:web:39562550bf305fc01abbd5"
-};
+    const toast = (m)=>{ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
+    const showLoader=(on)=>{ const l=document.getElementById('loader'); l.style.display=on?'flex':'none'; }
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
+    let uid=null, childId=null, child=null;
 
-const $ = s=>document.querySelector(s);
-function showToast(msg, ms=2200){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), ms); }
-function showLoader(on=true){ const x=$('#loader'); x.style.display = on? 'flex' : 'none'; x.setAttribute('aria-hidden', on? 'false':'true'); }
-function round1(n){ const v=Math.round(Number(n)*10)/10; return Number.isFinite(v)?v:null; }
-function toFixed1(n){ const v=round1(n); return v==null? '' : v.toFixed(1); }
-function escapeHTML(s){ return String(s||'').replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
-function todayISO(){ return new Date().toISOString().slice(0,10); }
-function mgdlToMmol(v){ return Number(v)/18; }
-function mmolToMgdl(v){ return Number(v)*18; }
-function stateBy(v, low, high){ if(v==null || isNaN(v)) return 'ok'; if(isFinite(low) && v<low) return 'low'; if(isFinite(high) && v>high) return 'high'; return 'ok'; }
-
-let uid=null, childId=null, child=null;
-
-/* Sidebar switching */
-document.querySelectorAll('.sidenav .navitem').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelectorAll('.sidenav .navitem').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    const target = btn.dataset.target;
-    document.querySelectorAll('.content > .card').forEach(sec=>{
-      sec.style.display = (sec.id===target || (target==='measuresCard' && sec.id==='headCard'))? 'block' : 'none';
-      if(sec.id==='headCard') sec.style.display='flex';
-    });
-  });
-});
-
-/* Auth + load child */
-onAuthStateChanged(auth, async (user)=>{
-  if(!user){ location.href='index.html'; return; }
-  uid=user.uid;
-  const p=new URLSearchParams(location.search);
-  childId=p.get('child');
-  if(!childId){ alert('لم يتم تحديد الطفل'); return; }
-  await loadChild();
-  // افتراضيًا افتح بيانات الطفل
-  document.querySelector('.sidenav .navitem[data-target="infoCard"]').click();
-});
-
-async function loadChild(){
-  showLoader(true);
-  try{
-    const snap = await getDoc(doc(db,'users',uid,'children',childId));
-    if(!snap.exists()){ alert('الطفل غير موجود'); return; }
-    child = snap.data();
-    $('#kidName').textContent = child.name || '—';
-    $('#kidMeta').textContent = `${child.gender||''} • ${child.weight??'—'}كجم • ${child.height??'—'}سم`;
-    $('#unitBadge').textContent = `الوحدة المفضلة: ${child.unit||'mmol/L'}`;
-    if(child.photoURL) $('#kidAvatar').src = child.photoURL;
-    $('#headCard').style.display='flex';
-    $('#infoCard').style.display='block';
-    fillInfoForm(child);
-    initMealsSection();
-    initMeasuresSection();
-    initDoctorReports(); // اليوم فقط (تقدري توسعيها لاحقًا للفترة)
-    initVisitsSection();
-  }finally{ showLoader(false); }
-}
-
-function fillInfoForm(c){
-  $('#cName').value    = c.name||'';
-  $('#cGender').value  = c.gender||'ذكر';
-  $('#cCivilId').value = c.childCivilId||'';
-  $('#cBirth').value   = c.birthDate||'';
-  $('#cWeight').value  = c.weight??'';
-  $('#cHeight').value  = c.height??'';
-  $('#cUnit').value    = c.unit||'mmol/L';
-  $('#cTarget').value  = c.target??'';
-  $('#cLow').value     = c.lowThreshold??'';
-  $('#cHigh').value    = c.highThreshold??'';
-  $('#cTresiba').value = c.tresibaDose??'';
-  $('#cTotalInsulin').value = c.totalInsulin??'';
-  $('#cCorrectionFactor').value = c.correctionFactor??'';
-  $('#cICR').value     = c.icr??'';
-}
-
-/* Save info */
-$('#saveInfo').addEventListener('click', async ()=>{
-  const data = {
-    name: $('#cName').value.trim() || null,
-    gender: $('#cGender').value,
-    childCivilId: $('#cCivilId').value.trim() || null,
-    birthDate: $('#cBirth').value || null,
-    weight: $('#cWeight').value===''? null : Number($('#cWeight').value),
-    height: $('#cHeight').value===''? null : Number($('#cHeight').value),
-    unit: $('#cUnit').value,
-    target: $('#cTarget').value===''? null : Number($('#cTarget').value),
-    lowThreshold: $('#cLow').value===''? null : Number($('#cLow').value),
-    highThreshold: $('#cHigh').value===''? null : Number($('#cHigh').value),
-    tresibaDose: $('#cTresiba').value===''? null : Number($('#cTresiba').value),
-    totalInsulin: $('#cTotalInsulin').value===''? null : Number($('#cTotalInsulin').value),
-    correctionFactor: $('#cCorrectionFactor').value===''? null : Number($('#cCorrectionFactor').value),
-    icr: $('#cICR').value===''? null : Number($('#cICR').value),
-    photoURL: child?.photoURL || null,
-    updatedAt: serverTimestamp()
-  };
-  await setDoc(doc(db,'users',uid,'children',childId), data, {merge:true});
-  showToast('✅ تم حفظ بيانات الطفل');
-});
-
-/* Upload photo */
-$('#cPhoto').addEventListener('change', async (e)=>{
-  const file=e.target.files?.[0]; if(!file) return;
-  const bar=$('#uploadProg'), fill=bar.querySelector('span');
-  bar.style.display='block'; fill.style.width='0%';
-  const path = `users/${uid}/children/${childId}/avatar/${Date.now()}_${file.name.replace(/[^\w.\-]+/g,'_')}`;
-  const ref  = sRef(storage, path);
-  const task = uploadBytesResumable(ref, file, {contentType:file.type});
-  task.on('state_changed', s=>{
-    const p=Math.round((s.bytesTransferred/s.totalBytes)*100);
-    fill.style.width=p+'%';
-  }, err=>{
-    bar.style.display='none';
-    alert('فشل رفع الصورة: '+err.message);
-  }, async ()=>{
-    const url = await getDownloadURL(task.snapshot.ref);
-    child.photoURL=url;
-    await updateDoc(doc(db,'users',uid,'children',childId), {photoURL:url, updatedAt:serverTimestamp()});
-    $('#kidAvatar').src=url; bar.style.display='none';
-    showToast('📷 تم تحديث الصورة');
-  });
-});
-
-/* ===== Meals ===== */
-let foodsAll=[], currentCategory='*', basket=[];
-
-async function initMealsSection(){
-  $('#mealsCard').style.display='block';
-  $('#icrNow').textContent = child?.icr ?? '—';
-  const now = new Date(); now.setMinutes(now.getMinutes()-now.getTimezoneOffset());
-  $('#mealTime').value = now.toISOString().slice(0,16);
-
-  await loadFoods();
-  buildCategories();
-  renderFoods();
-
-  $('#foodSearch').addEventListener('input', renderFoods);
-  $('#saveMealBtn').addEventListener('click', saveMeal);
-}
-
-async function loadFoods(){
-  foodsAll=[];
-  const qs = await getDocs(collection(db,'foods'));
-  qs.forEach(s=>{
-    const d=s.data(); if(d.isActive===false) return;
-    foodsAll.push({
-      id:s.id,
-      name:d.name||'بدون اسم',
-      category:d.category||'أخرى',
-      carbsPer100g:Number(d.carbsPer100g)||0,
-      imageUrl:d.imageUrl||'https://cdn-icons-png.flaticon.com/512/1046/1046784.png',
-      servingUnits:Array.isArray(d.servingUnits) && d.servingUnits.length ? d.servingUnits : [{unit:'جرام', grams:100}]
-    });
-  });
-}
-
-function buildCategories(){
-  const set=new Set(['*']); foodsAll.forEach(f=>set.add(f.category||'أخرى'));
-  const box=$('#catList'); box.innerHTML='';
-  [...set].forEach(cat=>{
-    const b=document.createElement('button');
-    b.className='cat-btn'+(cat===currentCategory?' active':'');
-    b.dataset.cat=cat; b.textContent=(cat==='*'?'كل الأصناف':cat);
-    b.addEventListener('click', ()=>{
-      currentCategory=cat;
-      box.querySelectorAll('.cat-btn').forEach(x=>x.classList.remove('active'));
-      b.classList.add('active'); renderFoods();
-    });
-    box.appendChild(b);
-  });
-}
-
-function renderFoods(){
-  const grid=$('#foodsGrid'); grid.innerHTML='';
-  const q=($('#foodSearch').value||'').trim().toLowerCase();
-  const list=foodsAll.filter(f=>{
-    const byCat=(currentCategory==='*' || f.category===currentCategory);
-    const byText=!q || f.name.toLowerCase().includes(q);
-    return byCat && byText;
-  });
-  if(!list.length){grid.innerHTML='<div class="note">لا توجد أصناف مطابقة.</div>'; return;}
-
-  list.forEach(f=>{
-    const card=document.createElement('div'); card.className='food';
-    const unitOptions = f.servingUnits.map(u=>`<option value="${u.grams}">${u.unit} (${u.grams} جم)</option>`).join('');
-    card.innerHTML=`
-      <img src="${f.imageUrl}" alt="${escapeHTML(f.name)}">
-      <div class="name">${escapeHTML(f.name)}</div>
-      <div class="carb">كارب / 100جم: <b>${f.carbsPer100g}</b></div>
-
-      <div class="row" style="justify-content:center; margin-top:6px">
-        <select class="modeSel input-mini">
-          <option value="unit">وحدة منزلية</option>
-          <option value="grams">جرامات مباشرة</option>
-        </select>
-      </div>
-
-      <div class="row mode-unit" style="justify-content:center; margin-top:6px">
-        <select class="unitSel input-mini">${unitOptions}</select>
-        <input class="qty input-mini" type="number" min="0.1" step="0.1" value="1" placeholder="الكمية">
-      </div>
-
-      <div class="row mode-grams" style="justify-content:center; margin-top:6px; display:none">
-        <input class="grams input-mini" type="number" min="1" step="1" placeholder="جرام">
-      </div>
-
-      <div class="row" style="justify-content:space-between;margin-top:8px">
-        <button class="btn gray addBtn">➕ أضف</button>
-        <span class="badge-soft">${escapeHTML(f.category)}</span>
-      </div>
-    `;
-    const modeSel=card.querySelector('.modeSel');
-    const unitBox=card.querySelector('.mode-unit'); const gramsBox=card.querySelector('.mode-grams');
-    modeSel.addEventListener('change', ()=>{
-      const m=modeSel.value; unitBox.style.display=(m==='unit')?'flex':'none'; gramsBox.style.display=(m==='grams')?'flex':'none';
-    });
-    const unitSel=card.querySelector('.unitSel'); const qtyInp=card.querySelector('.qty'); const gramsInp=card.querySelector('.grams');
-
-    card.querySelector('.addBtn').addEventListener('click', ()=>{
-      const mode=modeSel.value; let gramsTotal=0;
-      if(mode==='unit'){
-        const g=Number(unitSel.value)||100; const q=Number(qtyInp.value)||0;
-        if(q<=0) return alert('أدخلي كمية صحيحة'); gramsTotal=g*q;
-      }else{
-        const g=Number(gramsInp.value)||0; if(g<=0) return alert('أدخلي وزنًا بالجرام'); gramsTotal=g;
-      }
-      const totalCarbs=+((gramsTotal*f.carbsPer100g)/100).toFixed(1);
-      basket.push({
-        foodId:f.id,
-        name:f.name,
-        unit:(mode==='unit'? findUnitName(f.servingUnits, Number(unitSel.value)||100) + (qtyInp.value?` × ${qtyInp.value}`:'') : `جرامات (${gramsTotal}جم)`),
-        gramsPerUnit:(mode==='unit'?(Number(unitSel.value)||100):gramsTotal),
-        qty:(mode==='unit'? (Number(qtyInp.value)||0) : 1),
-        carbsPer100g:f.carbsPer100g,
-        totalCarbs
+    // روابط تنقل موحّدة
+    function buildNav(){
+      const base = [
+        ['child-dashboard.html','الرئيسية'],
+        ['measures.html','قياسات السكر'],
+        ['meals.html','الوجبات'],
+        ['reports.html','التقارير'],
+        ['visits.html','الزيارات الطبية']
+      ];
+      const row = document.getElementById('childNav');
+      row.innerHTML = '';
+      base.forEach(([href,label])=>{
+        const a = document.createElement('a');
+        a.className='btn gray';
+        a.href = `${href}?child=${encodeURIComponent(childId)}`;
+        a.textContent = label;
+        row.appendChild(a);
       });
-      renderBasket();
-    });
-
-    grid.appendChild(card);
-  });
-}
-
-function findUnitName(units, grams){
-  const u=(units||[]).find(x=>Number(x.grams)===Number(grams));
-  return u ? `${u.unit} (${u.grams}جم)` : `جرام (${grams})`;
-}
-
-function renderBasket(){
-  const tbody=$('#basketBody');
-  if(!basket.length){
-    tbody.innerHTML='<tr><td colspan="5" class="note">لا توجد عناصر بعد.</td></tr>';
-    $('#totalCarbs').textContent='0.0'; $('#totalCarbsCell').textContent='0.0'; $('#doseSuggestedMeal').value='';
-    return;
-  }
-  tbody.innerHTML=''; let total=0;
-  basket.forEach((it,idx)=>{
-    total+=it.totalCarbs;
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td>${escapeHTML(it.name)}</td>
-      <td>${escapeHTML(it.unit)}</td>
-      <td><input class="input-mini qtyRow" type="number" min="0.1" step="0.1" value="${it.qty}"></td>
-      <td class="carbCell">${it.totalCarbs.toFixed(1)}</td>
-      <td><button class="btn gray rmBtn">🗑️ حذف</button></td>
-    `;
-    tr.querySelector('.qtyRow').addEventListener('input',(e)=>{
-      const q=Number(e.target.value)||0; it.qty=q;
-      const gramsTotal = it.gramsPerUnit * (it.qty||1);
-      it.totalCarbs = +((gramsTotal*it.carbsPer100g)/100).toFixed(1);
-      tr.querySelector('.carbCell').textContent=it.totalCarbs.toFixed(1);
-      recomputeMealTotals();
-    });
-    tr.querySelector('.rmBtn').addEventListener('click',()=>{ basket.splice(idx,1); renderBasket(); });
-    tbody.appendChild(tr);
-  });
-  $('#totalCarbs').textContent=total.toFixed(1);
-  $('#totalCarbsCell').textContent=total.toFixed(1);
-  const icr=Number(child?.icr)||0;
-  $('#doseSuggestedMeal').value=(icr>0 && total>0) ? (Math.round((total/icr)*10)/10).toFixed(1) : '';
-}
-function recomputeMealTotals(){
-  let total=0; basket.forEach(it=> total+=it.totalCarbs);
-  $('#totalCarbs').textContent=total.toFixed(1);
-  $('#totalCarbsCell').textContent=total.toFixed(1);
-  const icr=Number(child?.icr)||0;
-  $('#doseSuggestedMeal').value=(icr>0 && total>0) ? (Math.round((total/icr)*10)/10).toFixed(1) : '';
-}
-
-async function saveMeal(){
-  if(!basket.length) return alert('السلة فارغة');
-  const time=$('#mealTime').value; if(!time) return alert('اختاري وقت الأكل');
-  const total=basket.reduce((a,b)=>a+b.totalCarbs,0);
-  const payload={
-    type:$('#mealType').value, time, note:$('#mealNote').value||null,
-    icrUsed:Number(child?.icr)||null, totalCarbs:+total.toFixed(1),
-    doseSuggested: $('#doseSuggestedMeal').value? Number($('#doseSuggestedMeal').value):null,
-    doseGiven: $('#doseGivenMeal').value? Number($('#doseGivenMeal').value):null,
-    items:basket, createdAt:serverTimestamp()
-  };
-  const id=String(Date.now());
-  await setDoc(doc(db,'users',uid,'children',childId,'meals',id), payload);
-  showToast('✅ تم حفظ الوجبة'); basket=[]; renderBasket();
-}
-
-/* ===== Measures ===== */
-const mLabels = {
-  uponWake:'الاستيقاظ',
-  preBreakfast:'قبل الإفطار', postBreakfast:'بعد الإفطار',
-  preLunch:'قبل الغداء',      postLunch:'بعد الغداء',
-  preDinner:'قبل العشاء',     postDinner:'بعد العشاء',
-  beforeSleep:'قبل النوم',    duringSleep:'أثناء النوم',
-  beforeExercise:'قبل التمرين', afterExercise:'بعد التمرين',
-  random:'قياس عشوائي', other:'أخرى'
-};
-const mOrder = ['uponWake','preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','beforeExercise','afterExercise','random','other'];
-
-let editCtx={active:false,date:null,slot:null};
-
-function onReadingInputChange(){
-  const unitSel=$('#mValueUnit').value; const raw=Number($('#mValue').value)||0;
-  const mmol = unitSel==='mgdl' ? mgdlToMmol(raw) : raw;
-  const low=Number(child?.lowThreshold), high=Number(child?.highThreshold);
-  const st=stateBy(mmol, low, high);
-  $('#mCorrWrap').style.display = (st==='high')? 'block':'none';
-  $('#mRaiseWrap').style.display = (st==='low') ? 'block':'none';
-}
-['mValue','mValueUnit'].forEach(id=> $('#'+id).addEventListener('input', onReadingInputChange));
-
-function recomputeSuggestedDose(){
-  const carbs=Number($('#mCarbs').value)||0;
-  const icr=Number(child?.icr)||0;
-  $('#mDoseSuggested').value = (icr>0 && carbs>0)? (Math.round((carbs/icr)*10)/10).toFixed(1) : '';
-}
-$('#mCarbs').addEventListener('input',recomputeSuggestedDose);
-
-async function initMeasuresSection(){
-  $('#measuresCard').style.display='block';
-  $('#measuresToday').style.display='block';
-  $('#mDate').value = todayISO();
-  $('#mDate').addEventListener('change', loadDay);
-  $('#mSave').addEventListener('click', saveMeasure);
-  $('#mCancelEdit').addEventListener('click', ()=>{
-    editCtx={active:false,date:null,slot:null};
-    $('#mCancelEdit').style.display='none';
-  });
-  await loadDay();
-}
-
-function extractReadings(d){
-  if(!d) return {};
-  if(d.readings) return d.readings;
-  const o={}; Object.keys(d).forEach(k=>{ if(mOrder.includes(k)) o[k]=d[k]; });
-  return o;
-}
-
-async function loadDay(){
-  const date=$('#mDate').value;
-  const ref=doc(db,'users',uid,'children',childId,'measurements',date);
-  const snap=await getDoc(ref); const data=snap.data()||{};
-  const readings=extractReadings(data);
-  const low=Number(child?.lowThreshold), high=Number(child?.highThreshold);
-  const tbody=$('#mRows'); let html='';
-
-  mOrder.forEach(key=>{
-    const r=readings[key]; if(!r || r.valueMmol==null) return;
-    const v=round1(Number(r.valueMmol)); const st=stateBy(v, low, high);
-    const doses=[ (r.mealDose!=null?`وجبة: ${r.mealDose}U`:''), (r.correctionGiven!=null?`تصحيح: ${r.correctionGiven}U`:'') ]
-      .filter(Boolean).join(' • ') || '—';
-    const note=r.note || r.raisedWith || '—';
-    html+=`
-      <tr>
-        <td><b>${mLabels[key]}</b></td>
-        <td>${v.toFixed(1)} mmol/L</td>
-        <td><span class="state ${st}">${st==='low'?'منخفض':st==='high'?'مرتفع':'طبيعي'}</span></td>
-        <td>${doses}</td>
-        <td>
-          ${escapeHTML(note)}
-          <div class="row" style="justify-content:flex-end; margin-top:6px">
-            <button class="btn gray btn-edit" data-slot="${key}" data-date="${date}">✏️ تعديل</button>
-          </div>
-        </td>
-      </tr>`;
-  });
-  tbody.innerHTML = html || `<tr><td colspan="5" class="note center">لا توجد قياسات.</td></tr>`;
-
-  tbody.querySelectorAll('.btn-edit').forEach(b=>{
-    b.addEventListener('click', ()=>{
-      const slot=b.dataset.slot; startEditReading(date, slot, readings[slot]);
-    });
-  });
-}
-
-function startEditReading(date, slot, r){
-  editCtx={active:true,date,slot};
-  $('#mDate').value=date; $('#mSlot').value=slot;
-  const unitSel=$('#mValueUnit').value;
-  const mmol=Number(r.valueMmol)||0;
-  $('#mValue').value = (unitSel==='mgdl'? toFixed1(mmolToMgdl(mmol)) : toFixed1(mmol));
-  $('#mCarbs').value = r.carbs??'';
-  $('#mDoseGiven').value = r.mealDose??'';
-  $('#mCorrection').value = r.correctionGiven??'';
-  $('#mRaisedWith').value = r.raisedWith??'';
-  $('#mNote').value = r.note??'';
-  $('#mCancelEdit').style.display='inline-block';
-  onReadingInputChange();
-}
-
-async function saveMeasure(){
-  const date=$('#mDate').value.trim();
-  const slot=$('#mSlot').value;
-  const unitSel=$('#mValueUnit').value;
-  const raw=Number($('#mValue').value||0);
-  if(!date || !slot){ alert('اختاري التاريخ ووقت القياس'); return; }
-  if(!(raw>0)){ alert('أدخلي قراءة صحيحة'); return; }
-
-  const mmol = round1(unitSel==='mgdl'? mgdlToMmol(raw): raw);
-  const carbs=$('#mCarbs').value===''? null:Number($('#mCarbs').value);
-  const mealDose=$('#mDoseGiven').value===''? null:Number($('#mDoseGiven').value);
-  const corr=$('#mCorrection').value===''? null:Number($('#mCorrection').value);
-  const raised=$('#mRaisedWith').value||null;
-  const note=$('#mNote').value||null;
-
-  const low=Number(child?.lowThreshold), high=Number(child?.highThreshold);
-  const st=stateBy(mmol, low, high);
-
-  const ref=doc(db,'users',uid,'children',childId,'measurements',date);
-  const snap=await getDoc(ref); const base=snap.data()||{date,readings:{}};
-  if(!base.readings) base.readings={};
-
-  // منع تكرار نفس الوقت لنفس اليوم إذا ليس تعديل
-  if(!editCtx.active && base.readings[slot] && base.readings[slot].valueMmol!=null){
-    alert('تم تسجيل هذا الوقت لهذا اليوم من قبل. استخدمي زر ✏️ تعديل.');
-    return;
-  }
-
-  base.readings[slot]={
-    valueMmol:mmol, status:st,
-    carbs, mealDose,
-    correctionGiven: (st==='high'? corr:null),
-    raisedWith: (st==='low'? raised:null),
-    note
-  };
-
-  await setDoc(ref, base, {merge:true});
-  showToast(editCtx.active? '✅ تم تعديل القياس' : '✅ تم حفظ القياس');
-  editCtx={active:false,date:null,slot:null};
-  $('#mCancelEdit').style.display='none';
-  await loadDay();
-}
-
-/* ===== Doctor report (weekly) ===== */
-async function initDoctorReports(){
-  $('#doctorReports').style.display='block';
-  buildDoctorReport(); // افتراضيًا أسبوع يبدأ من اليوم-6 إلى اليوم
-  $('#btnReportPDF').addEventListener('click', ()=>window.print());
-  $('#btnReportBlank').addEventListener('click', ()=> renderBlank7());
-}
-
-function endStart7(){
-  const end=new Date(); const start=new Date(); start.setDate(end.getDate()-6);
-  const to=end.toISOString().slice(0,10); const from=start.toISOString().slice(0,10);
-  return {from,to};
-}
-
-async function buildDoctorReport(){
-  if(!childId) return;
-  const {from,to}=endStart7();
-  $('#reportMeta').textContent =
-    `الاسم: ${child?.name||'—'} • الرقم المدني: ${child?.childCivilId||'—'} • الوزن: ${child?.weight??'—'} كجم • الطول: ${child?.height??'—'} سم • الفترة: ${from} → ${to}`;
-  const qy=query(collection(db,'users',uid,'children',childId,'measurements'),
-    where('date','>=',from), where('date','<=',to), orderBy('date','asc'));
-  const qs=await getDocs(qy);
-  const tbody=$('#reportRows'); let rows='';
-
-  const order=['uponWake','preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep'];
-  const labels = {
-    uponWake:'الاستيقاظ', preBreakfast:'قبل الإفطار',postBreakfast:'بعد الإفطار',
-    preLunch:'قبل الغداء',postLunch:'بعد الغداء',
-    preDinner:'قبل العشاء',postDinner:'بعد العشاء',
-    beforeSleep:'قبل النوم',duringSleep:'أثناء النوم'
-  };
-
-  if(qs.empty){ rows='<tr><td colspan="10" class="note">لا توجد بيانات.</td></tr>'; }
-  else{
-    qs.forEach(s=>{
-      const d=s.data(); const readings=d.readings||{};
-      const tds = order.map(sl=>{
-        const r=readings[sl];
-        if(r && r.valueMmol!=null){
-          const st=stateBy(r.valueMmol, child?.lowThreshold, child?.highThreshold);
-          const icon = st==='low'?'⬇️': (st==='high'?'⬆️':'🟢');
-          const note = r.note? `<br><small>${escapeHTML(r.note)}</small>` : '';
-          return `<td>${Number(r.valueMmol).toFixed(1)} ${icon}${note}</td>`;
-        }
-        return `<td>—</td>`;
-      }).join('');
-      rows += `<tr><td><b>${d.date}</b></td>${tds}</tr>`;
-    });
-  }
-  tbody.innerHTML=rows;
-}
-
-function renderBlank7(){
-  const today=new Date();
-  const days=Array.from({length:7},(_,i)=>{const d=new Date(today); d.setDate(today.getDate()+i); return d.toISOString().slice(0,10);});
-  const order=['uponWake','preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep'];
-  const tbody=$('#reportRows');
-  tbody.innerHTML = days.map(date=>{
-    const cols = order.map(()=>'<td>—</td>').join('');
-    return `<tr><td>${date}</td>${cols}</tr>`;
-  }).join('');
-}
-
-/* ===== Visits ===== */
-let editVisitId=null;
-function bindVisitFormUI(){
-  $('#btnVisitCancel').addEventListener('click', ()=>{
-    $('#visitFormBox').style.display='none'; clearVisitForm(); editVisitId=null;
-  });
-  $('#btnVisitNew').addEventListener('click', ()=>{
-    clearVisitForm(); editVisitId=null;
-    $('#vDate').value = todayISO(); $('#visitFormBox').style.display='block';
-  });
-  $('#btnVisitSave').addEventListener('click', saveVisit);
-}
-
-function clearVisitForm(){
-  ['vDate','vDoctor','vClinic','vReason','vNotes'].forEach(id=> $('#'+id).value=''); $('#vFiles').value='';
-}
-
-async function initVisitsSection(){
-  $('#visitsCard').style.display='block';
-  bindVisitFormUI();
-  await loadVisits();
-}
-
-async function loadVisits(){
-  const tbody=$('#visitsRows');
-  const qy=query(collection(db,'users',uid,'children',childId,'visits'), orderBy('date','desc'));
-  const qs=await getDocs(qy);
-  if(qs.empty){ tbody.innerHTML='<tr><td colspan="6" class="note">لا توجد زيارات بعد.</td></tr>'; return; }
-  const rows=[];
-  qs.forEach(s=>{
-    const v=s.data(); const files=Array.isArray(v.files)? v.files : [];
-    rows.push(`
-      <tr>
-        <td><b>${escapeHTML(v.date||'—')}</b></td>
-        <td>${escapeHTML(v.doctor||'—')}</td>
-        <td>${escapeHTML(v.clinic||'—')}</td>
-        <td>${escapeHTML(v.reason||'—')}</td>
-        <td>${files.length? files.map(f=>`<span class="chip" title="${escapeHTML(f.name)}">${f.type.startsWith('image/')?'🖼️':'📄'} ${escapeHTML(f.name.length>18? (f.name.slice(0,16)+'…'):f.name)}</span>`).join(' ') : '—'}</td>
-        <td class="actions no-print">
-          <button class="btn gray" data-act="view" data-id="${s.id}">👁️ عرض/طباعة</button>
-          <button class="btn gray" data-act="edit" data-id="${s.id}">✏️ تعديل</button>
-          <button class="btn red"  data-act="del"  data-id="${s.id}">🗑️ حذف</button>
-        </td>
-      </tr>
-    `);
-  });
-  tbody.innerHTML=rows.join('');
-  tbody.querySelectorAll('button[data-act]').forEach(btn=>{
-    const id=btn.dataset.id; const act=btn.dataset.act;
-    btn.addEventListener('click', ()=>{
-      if(act==='view') viewVisit(id);
-      else if(act==='edit') editVisit(id);
-      else if(act==='del') delVisit(id);
-    });
-  });
-}
-
-async function saveVisit(){
-  const date=$('#vDate').value;
-  if(!date){ alert('أدخلي تاريخ الزيارة'); return; }
-  const base={
-    date,
-    doctor: $('#vDoctor').value.trim()||null,
-    clinic: $('#vClinic').value.trim()||null,
-    reason: $('#vReason').value.trim()||null,
-    notes:  $('#vNotes').value.trim()||null,
-    updatedAt: serverTimestamp()
-  };
-  let vid=editVisitId;
-  if(!vid){
-    const ref=await addDoc(collection(db,'users',uid,'children',childId,'visits'), {...base, createdAt:serverTimestamp(), files:[]});
-    vid=ref.id;
-  }else{
-    await updateDoc(doc(db,'users',uid,'children',childId,'visits',vid), base);
-  }
-  // files
-  const files = $('#vFiles').files;
-  if(files && files.length){
-    const uploaded = await uploadVisitFiles(vid, files);
-    if(uploaded.length){
-      const refV=doc(db,'users',uid,'children',childId,'visits',vid);
-      const snap=await getDoc(refV); const cur=snap.data()||{}; const curFiles=Array.isArray(cur.files)? cur.files : [];
-      await updateDoc(refV, { files: curFiles.concat(uploaded) });
+      // زر الرئيسية أعلى أيضًا
+      document.getElementById('lnkHome').href = `child-dashboard.html?child=${encodeURIComponent(childId)}`;
     }
-  }
-  showToast('✅ تم حفظ الزيارة'); $('#visitFormBox').style.display='none'; clearVisitForm(); editVisitId=null; await loadVisits();
-}
 
-async function uploadVisitFiles(visitId, fileList){
-  const arr=Array.from(fileList||[]); const out=[];
-  for(const f of arr){
-    const path=`users/${uid}/children/${childId}/visits/${visitId}/files/${Date.now()}_${(f.name||'file').replace(/[^\w.\-]+/g,'_')}`;
-    const ref=sRef(storage, path);
-    const task=uploadBytesResumable(ref, f, {contentType:f.type});
-    await new Promise((res,rej)=> task.on('state_changed', ()=>{}, rej, res));
-    const url=await getDownloadURL(task.snapshot.ref);
-    out.push({name:f.name, url, type:f.type, size:f.size});
-  }
-  return out;
-}
+    async function loadChild(){
+      const snap = await getDoc(doc(db,'users',uid,'children',childId));
+      if(!snap.exists()){ toast('الطفل غير موجود'); return; }
+      child = snap.data();
+      // بنر
+      setChildAvatar(document.getElementById('bannerAvatar'), child.name, child.photoURL);
+      document.getElementById('bannerName').textContent = child.name || '—';
+      document.getElementById('bannerMeta').textContent =
+        `${child.gender||'—'} • ${child.weight||'—'} كجم • ${child.height||'—'} سم`;
+      document.getElementById('childBanner').style.display='block';
 
-async function viewVisit(id){
-  const ref=doc(db,'users',uid,'children',childId,'visits',id);
-  const snap=await getDoc(ref); if(!snap.exists()){ alert('الزيارة غير موجودة'); return; }
-  const v=snap.data(); const files=Array.isArray(v.files)? v.files : [];
-  const meta=`
-    <div><b>الطفل:</b> ${escapeHTML(child?.name||'—')}</div>
-    <div><b>التاريخ:</b> ${escapeHTML(v.date||'—')}</div>
-    <div><b>الطبيب:</b> ${escapeHTML(v.doctor||'—')}</div>
-    <div><b>العيادة:</b> ${escapeHTML(v.clinic||'—')}</div>
-    <div><b>السبب:</b> ${escapeHTML(v.reason||'—')}</div>
-    <div><b>ملاحظات:</b> ${escapeHTML(v.notes||'—')}</div>
-    <div><b>مرفقات:</b> ${files.length? files.map(f=>`<div>• ${f.type.startsWith('image/')?'🖼️':'📄'} <a href="${f.url}" target="_blank">${escapeHTML(f.name)}</a></div>`).join(''):'—'}</div>
-  `;
-  $('#printBody').innerHTML=meta; $('#visitPrintArea').style.display='block'; window.print();
-}
+      // ملء الفورم
+      cName.value = child.name||''; cGender.value = child.gender||'ذكر';
+      cCivilId.value = child.childCivilId||''; cBirth.value = child.birthDate||'';
+      cWeight.value = child.weight??''; cHeight.value = child.height??'';
+      cUnit.value = child.unit||'mmol/L'; cTarget.value = child.target??'';
+      cLow.value = child.lowThreshold??''; cHigh.value = child.highThreshold??'';
+      cTresiba.value = child.tresibaDose??''; cTotalInsulin.value = child.totalInsulin??'';
+      cCorrectionFactor.value = child.correctionFactor??''; cICR.value = child.icr??'';
+    }
 
-async function editVisit(id){
-  const ref=doc(db,'users',uid,'children',childId,'visits',id);
-  const snap=await getDoc(ref); if(!snap.exists()){ alert('الزيارة غير موجودة'); return; }
-  const v=snap.data(); editVisitId=id;
-  $('#vDate').value=v.date||''; $('#vDoctor').value=v.doctor||''; $('#vClinic').value=v.clinic||'';
-  $('#vReason').value=v.reason||''; $('#vNotes').value=v.notes||'';
-  $('#visitFormBox').style.display='block';
-}
+    // حفظ
+    saveInfo.addEventListener('click', async ()=>{
+      showLoader(true);
+      const data = {
+        name:cName.value.trim(), gender:cGender.value, childCivilId:cCivilId.value.trim(),
+        birthDate:cBirth.value||null, weight: cWeight.value? Number(cWeight.value):null,
+        height: cHeight.value? Number(cHeight.value):null, unit: cUnit.value,
+        target: cTarget.value? Number(cTarget.value):null,
+        lowThreshold: cLow.value? Number(cLow.value):null,
+        highThreshold: cHigh.value? Number(cHigh.value):null,
+        tresibaDose: cTresiba.value? Number(cTresiba.value):null,
+        totalInsulin: cTotalInsulin.value? Number(cTotalInsulin.value):null,
+        correctionFactor: cCorrectionFactor.value? Number(cCorrectionFactor.value):null,
+        icr: cICR.value? Number(cICR.value):null
+      };
+      await setDoc(doc(db,'users',uid,'children',childId), data, {merge:true});
+      toast('✅ تم الحفظ'); showLoader(false);
+    });
 
-async function delVisit(id){
-  if(!confirm('هل تريدين حذف هذه الزيارة؟')) return;
-  await deleteDoc(doc(db,'users',uid,'children',childId,'visits',id));
-  await loadVisits();
-}
+    // رفع صورة
+    cPhoto.addEventListener('change', async (e)=>{
+      const f = e.target.files[0]; if(!f) return;
+      const bar = document.getElementById('uploadProg'); const fill = bar.querySelector('span');
+      bar.style.display='block'; fill.style.width='0%';
+      const path = `users/${uid}/children/${childId}/avatar/${Date.now()}_${f.name}`;
+      const task = uploadBytesResumable(ref(storage,path), f);
+      await new Promise((res,rej)=> task.on('state_changed', s=>{ fill.style.width=(s.bytesTransferred/s.totalBytes*100)+'%'; }, rej, res));
+      const url = await getDownloadURL(task.snapshot.ref);
+      await setDoc(doc(db,'users',uid,'children',childId), {photoURL:url}, {merge:true});
+      setChildAvatar(document.getElementById('bannerAvatar'), cName.value.trim(), url);
+      toast('📷 تم رفع الصورة'); bar.style.display='none';
+    });
 
-/* Logout */
-$('#btnLogout')?.addEventListener('click', ()=> signOut(auth).then(()=> location.href='index.html') );
+    // خروج
+    btnLogout.addEventListener('click', ()=> signOut(auth).then(()=>location.href='index.html'));
 
-</script>
+    // Boot
+    (async function(){
+      showLoader(true);
+      const session = await ensureAuth(); uid = session.uid;
+      childId = requireChildIdFromQuery();
+      buildNav();
+      await loadChild();
+      showLoader(false);
+    })();
+  </script>
 </body>
 </html>

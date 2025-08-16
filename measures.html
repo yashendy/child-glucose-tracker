@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>قياسات الطفل</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ✅ بنر الطفل -->
+  <div id="childBanner" style="text-align:center; padding:12px 8px; display:none">
+    <img id="bannerAvatar" class="avatar" style="width:84px;height:84px" src="images/avatar-default.png" alt="صورة الطفل">
+    <div style="margin-top:6px;font-weight:800" id="bannerName">—</div>
+    <div class="note" id="bannerMeta">—</div>
+  </div>
+
+  <!-- ✅ Topbar -->
+  <div class="topbar">
+    <div>🧪 قياسات السكر</div>
+    <div class="row">
+      <a id="lnkHome" class="btn gray">الرئيسية</a>
+      <button id="btnLogout" class="btn">خروج</button>
+    </div>
+  </div>
+
+  <main class="container">
+    <!-- ✅ Nav -->
+    <div class="card"><div class="row" id="childNav"></div></div>
+
+    <!-- إدخال قياس -->
+    <section class="card">
+      <h3 class="section-title">إدخال قياس</h3>
+      <div class="grid g3">
+        <div><label>التاريخ</label><input id="mDate" type="date"></div>
+        <div><label>وقت القياس</label>
+          <select id="mSlot">
+            <option value="">— اختاري —</option>
+            <option value="uponWake">الاستيقاظ</option>
+            <option value="preBreakfast">قبل الإفطار</option>
+            <option value="postBreakfast">بعد الإفطار</option>
+            <option value="preLunch">قبل الغداء</option>
+            <option value="postLunch">بعد الغداء</option>
+            <option value="preDinner">قبل العشاء</option>
+            <option value="postDinner">بعد العشاء</option>
+            <option value="beforeSleep">قبل النوم</option>
+            <option value="duringSleep">أثناء النوم</option>
+            <option value="beforeExercise">قبل التمرين</option>
+            <option value="afterExercise">بعد التمرين</option>
+            <option value="random">قياس عشوائي</option>
+            <option value="other">أخرى</option>
+          </select>
+        </div>
+        <div><label>القراءة (mmol/L)</label><input id="mVal" type="number" step="0.1" min="0"></div>
+
+        <div><label>كارب (جم)</label><input id="mCarbs" type="number" step="0.1" min="0"></div>
+        <div><label>جرعة مقترحة للوجبة (ICR)</label><input id="doseMealSug" readonly></div>
+        <div><label>جرعة فعلية (وجبة)</label><input id="doseMealGiven" type="number" step="0.1" min="0"></div>
+
+        <div><label>جرعة تصحيحية (تظهر لو مرتفع)</label><input id="doseCorr" type="number" step="0.1" min="0" disabled></div>
+        <div><label>رفع السكر (لو منخفض)</label><input id="raisedWith" placeholder="عصير/تمر..." disabled></div>
+        <div><label>ملاحظة</label><input id="mNote" placeholder="اختياري"></div>
+      </div>
+
+      <div class="row" style="justify-content:flex-end">
+        <button id="btnSave" class="btn primary">💾 حفظ القياس</button>
+      </div>
+    </section>
+
+    <!-- قراءات اليوم -->
+    <section class="card">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h3 class="section-title">📅 قراءات اليوم</h3>
+        <div class="row">
+          <label style="margin:0">بحث بتاريخ</label>
+          <input id="searchDate" type="date">
+        </div>
+      </div>
+      <div class="note">التقريب لأقرب 0.1 (مثال 7.8)</div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>الوقت</th>
+            <th>القراءة</th>
+            <th>الحالة</th>
+            <th>جرعات</th>
+            <th>ملاحظات</th>
+            <th>تعديل</th>
+          </tr>
+        </thead>
+        <tbody id="rows"><tr><td colspan="6" class="center note">لا توجد قياسات.</td></tr></tbody>
+      </table>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+  <div id="loader" class="loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+
+  <script type="module">
+    import { auth, db, ensureAuth, requireChildIdFromQuery, setChildAvatar } from './firebase-init.js';
+    import { signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+    const toast=(m)=>{const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
+    const showLoader=(on)=>{document.getElementById('loader').style.display=on?'flex':'none'}
+    const labels={
+      uponWake:'الاستيقاظ',preBreakfast:'قبل الإفطار',postBreakfast:'بعد الإفطار',
+      preLunch:'قبل الغداء',postLunch:'بعد الغداء',
+      preDinner:'قبل العشاء',postDinner:'بعد العشاء',
+      beforeSleep:'قبل النوم',duringSleep:'أثناء النوم',
+      beforeExercise:'قبل التمرين',afterExercise:'بعد التمرين',random:'عشوائي',other:'أخرى'
+    };
+    const order=['uponWake','preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','beforeExercise','afterExercise','random','other'];
+
+    let uid=null, childId=null, child=null;
+
+    function buildNav(){
+      const row=document.getElementById('childNav'); row.innerHTML='';
+      [['child-dashboard.html','الرئيسية'],['measures.html','قياسات السكر'],['meals.html','الوجبات'],['reports.html','التقارير'],['visits.html','الزيارات الطبية']]
+      .forEach(([href,t])=>{
+        const a=document.createElement('a'); a.className='btn gray'; a.href=`${href}?child=${encodeURIComponent(childId)}`; a.textContent=t; row.appendChild(a);
+      });
+      document.getElementById('lnkHome').href=`child-dashboard.html?child=${encodeURIComponent(childId)}`;
+    }
+
+    function round1(n){const v=Math.round(Number(n)*10)/10;return Number.isFinite(v)?v:null}
+    function stateBy(v,lo,hi){ if(v==null) return 'ok'; if(isFinite(lo)&&v<lo) return 'low'; if(isFinite(hi)&&v>hi) return 'high'; return 'ok'; }
+
+    async function loadChild(){
+      const s=await getDoc(doc(db,'users',uid,'children',childId));
+      if(!s.exists()){ toast('الطفل غير موجود'); return; }
+      child=s.data();
+      setChildAvatar(document.getElementById('bannerAvatar'), child.name, child.photoURL);
+      bannerName.textContent=child.name||'—';
+      bannerMeta.textContent=`${child.gender||'—'} • ${child.weight||'—'} كجم • ${child.height||'—'} سم`;
+      childBanner.style.display='block';
+    }
+
+    async function loadDay(date){
+      const ref=doc(db,'users',uid,'children',childId,'measurements',date);
+      const snap=await getDoc(ref);
+      const data=snap.data()||{};
+      const readings=data.readings||{};
+      const lo=Number(child?.lowThreshold), hi=Number(child?.highThreshold);
+      const tb=document.getElementById('rows'); let html='';
+      order.forEach(k=>{
+        const r=readings[k]; if(!r||r.valueMmol==null) return;
+        const v=round1(r.valueMmol); const st=stateBy(v,lo,hi);
+        const doses=[r.mealDose!=null?`وجبة: ${r.mealDose}U`:'' , r.correctionGiven!=null?`تصحيح: ${r.correctionGiven}U`:'' ].filter(Boolean).join(' • ')||'—';
+        const note=r.note||r.raisedWith||'—';
+        html+=`<tr>
+          <td><b>${labels[k]}</b></td>
+          <td>${v.toFixed(1)}</td>
+          <td><span class="state ${st}">${st==='low'?'منخفض':st==='high'?'مرتفع':'طبيعي'}</span></td>
+          <td>${doses}</td>
+          <td>${escapeHTML(note)}</td>
+          <td><button class="btn gray" data-edit="${k}">✏️ تعديل</button></td>
+        </tr>`;
+      });
+      tb.innerHTML=html||`<tr><td colspan="6" class="center note">لا توجد قياسات.</td></tr>`;
+      // ربط التعديل
+      tb.querySelectorAll('button[data-edit]').forEach(btn=>{
+        btn.addEventListener('click',()=> {
+          mSlot.value = btn.dataset.edit;
+          mVal.focus();
+        });
+      });
+    }
+
+    function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]))}
+
+    // حسابات UI
+    function recomputeMealDose(){
+      const carbs = Number(mCarbs.value)||0;
+      const icr = Number(child?.icr)||0;
+      doseMealSug.value = (icr>0 && carbs>0) ? (Math.round((carbs/icr)*10)/10).toFixed(1) : '';
+    }
+    mCarbs?.addEventListener('input', recomputeMealDose);
+
+    // التحكم في الحقول بناءً على الحالة
+    function onValueChange(){
+      const v = Number(mVal.value)||null;
+      const lo=Number(child?.lowThreshold), hi=Number(child?.highThreshold);
+      const st = v!=null ? stateBy(v,lo,hi) : 'ok';
+      // جرعة التصحيح تظهر فقط عند ارتفاع
+      doseCorr.disabled = (st!=='high');
+      if(st!=='high') doseCorr.value='';
+      // رفع السكر يظهر فقط عند انخفاض
+      raisedWith.disabled = (st!=='low');
+      if(st!=='low') raisedWith.value='';
+    }
+    mVal?.addEventListener('input', onValueChange);
+
+    // حفظ القياس (مع منع تكرار نفس الوقت في نفس اليوم)
+    btnSave.addEventListener('click', async ()=>{
+      const date=mDate.value.trim(), slot=mSlot.value, val=round1(mVal.value);
+      if(!date||!slot||!(val>0)){ toast('أدخلي التاريخ/الوقت/القراءة'); return; }
+      showLoader(true);
+      const ref=doc(db,'users',uid,'children',childId,'measurements',date);
+      const snap=await getDoc(ref);
+      const base=snap.data()||{date, readings:{}};
+      if(base.readings?.[slot]?.valueMmol!=null){ showLoader(false); toast('⛔ مسجل بالفعل لهذا الوقت'); return; }
+      base.readings = base.readings||{};
+      base.readings[slot]={
+        valueMmol: val,
+        status: stateBy(val, Number(child?.lowThreshold), Number(child?.highThreshold)),
+        carbs: mCarbs.value? Number(mCarbs.value):null,
+        mealDose: doseMealGiven.value? Number(doseMealGiven.value):null,
+        correctionGiven: doseCorr.value? Number(doseCorr.value):null,
+        raisedWith: raisedWith.value||null,
+        note: mNote.value||null
+      };
+      await setDoc(ref, base, {merge:true});
+      toast('✅ تم الحفظ');
+      await loadDay(date);
+      showLoader(false);
+    });
+
+    // Boot
+    let today = new Date().toISOString().slice(0,10);
+    (async function(){
+      const {uid:U}=await ensureAuth(); uid=U;
+      childId=requireChildIdFromQuery();
+      document.getElementById('lnkHome').href=`child-dashboard.html?child=${encodeURIComponent(childId)}`;
+      // nav
+      const nav=document.getElementById('childNav'); nav.innerHTML='';
+      [['child-dashboard.html','الرئيسية'],['measures.html','قياسات السكر'],['meals.html','الوجبات'],['reports.html','التقارير'],['visits.html','الزيارات الطبية']]
+      .forEach(([h,t])=>{ const a=document.createElement('a'); a.className='btn gray'; a.href=`${h}?child=${encodeURIComponent(childId)}`; a.textContent=t; nav.appendChild(a);});
+
+      await loadChild();
+      mDate.value = today;
+      searchDate.value = today;
+      await loadDay(today);
+
+      searchDate.addEventListener('change', ()=> loadDay(searchDate.value||today));
+      btnLogout.addEventListener('click', ()=> signOut(auth).then(()=>location.href='index.html'));
+    })();
+  </script>
+</body>
+</html>
