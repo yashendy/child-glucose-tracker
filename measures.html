@@ -190,8 +190,9 @@ const labels={
   beforeSleep:'قبل النوم',   duringSleep:'أثناء النوم'
 };
 const order=['uponWake','preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep'];
+  // ✅ صحيح أيضًا
+let uid = null, childId = new URL(location.href).searchParams.get('child');
 
-let uid=null, childId=new URL(location.search).searchParams.get('child');
 let child=null;
 
 /* Auth & load child */
@@ -411,3 +412,4 @@ function fillFormForEdit(date,slot,r){
 </script>
 </body>
 </html>
+
