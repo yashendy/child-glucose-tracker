@@ -1,220 +1,621 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>الزيارات الطبية</title>
-  <link rel="stylesheet" href="styles.css">
-  <style>@media print{ .no-print{display:none!important} }</style>
+  <!-- يفترض وجود styles.css المستخدم في بقية الصفحات -->
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* إضافات خفيفة فوق styles.css */
+    .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+    .tab{border:1px solid var(--line,#e5e7eb);background:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
+    .tab.active{background:#e6f7ff;border-color:#b3e5ff}
+    .tab-pane{display:none}
+    .tab-pane.show{display:block}
+    .chips{display:flex;gap:6px;flex-wrap:wrap}
+    .chip{background:#eef6ff;color:#0369a1;border-radius:999px;padding:4px 8px;font-weight:700;font-size:12px}
+    .actions .btn{padding:6px 10px}
+    .print-visit{display:none;background:#fff;color:#000;padding:12px;border:1px dashed var(--line,#e5e7eb);margin-top:10px}
+    .print-visit h4{margin:0 0 6px}
+    .badge-soft{display:inline-block;background:#eef6ff;color:#0369a1;border-radius:999px;padding:4px 8px;font-weight:800;font-size:12px}
+    .kpi-mini{display:flex;gap:8px;flex-wrap:wrap}
+    .kpi-mini .box{background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;padding:8px 10px;font-size:12px}
+    .side-link.active{background:#e6f7ff;border-color:#b3e5ff}
+    .side-link{display:block;padding:8px 10px;border:1px solid #e5e7eb;border-radius:10px;margin-bottom:6px;background:#fff}
+    .grid.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .grid.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .grid.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .vital-row{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+    .table-visits{width:100%;border-collapse:separate;border-spacing:0}
+    .table-visits th,.table-visits td{border:1px solid #e5e7eb;padding:8px;text-align:right;vertical-align:top}
+    .table-visits thead th{background:#f0f9ff;font-weight:800}
+    @media print{
+      @page{ size: A4; margin: 10mm }
+      .topbar,.no-print{display:none!important}
+      body{background:#fff}
+      .print-visit{display:block!important}
+    }
+  </style>
 </head>
 <body>
 
-  <!-- ✅ بنر الطفل -->
+  <!-- بنر الطفل -->
   <div id="childBanner" style="text-align:center; padding:12px 8px; display:none">
     <img id="bannerAvatar" class="avatar" style="width:84px;height:84px" src="images/avatar-default.png" alt="صورة الطفل">
     <div style="margin-top:6px;font-weight:800" id="bannerName">—</div>
     <div class="note" id="bannerMeta">—</div>
   </div>
 
-  <!-- ✅ Topbar -->
+  <!-- الشريط العلوي -->
   <div class="topbar">
-    <div>🧑‍⚕️ الزيارات الطبية</div>
+    <div>🩺 الزيارات الطبية</div>
     <div class="row">
       <a id="lnkHome" class="btn gray">الرئيسية</a>
+      <button id="btnPrintVisit" class="btn gray no-print" title="طباعة الزيارة المفتوحة">طباعة الزيارة</button>
       <button id="btnLogout" class="btn">خروج</button>
     </div>
   </div>
 
   <main class="container">
-    <!-- ✅ Nav -->
+    <!-- تنقل الطفل -->
     <div class="card"><div class="row" id="childNav"></div></div>
 
+    <!-- فلاتر وخيارات -->
     <section class="card">
-      <div class="row" style="justify-content:space-between;align-items:center">
-        <h3 class="section-title">سجل الزيارات</h3>
-        <button id="btnVisitNew" class="btn no-print">➕ زيارة جديدة</button>
+      <div class="grid g4">
+        <div>
+          <label>بحث نصي</label>
+          <input id="qText" placeholder="طبيب، عيادة، سبب، ملاحظات…" />
+        </div>
+        <div>
+          <label>من تاريخ</label>
+          <input id="from" type="date" />
+        </div>
+        <div>
+          <label>إلى تاريخ</label>
+          <input id="to" type="date" />
+        </div>
+        <div class="row" style="align-items:end">
+          <button id="btnRun" class="btn primary" style="width:100%">عرض</button>
+        </div>
       </div>
 
-      <!-- فورم -->
-      <div id="visitFormBox" class="card no-print" style="display:none; margin-top:8px">
-        <h4 style="margin:0 0 6px">إضافة / تعديل زيارة</h4>
+      <div class="row no-print" style="margin-top:8px; justify-content:space-between">
+        <div class="kpi-mini">
+          <div class="box">إجمالي الزيارات: <b id="k_total">—</b></div>
+          <div class="box">آخر زيارة: <b id="k_last">—</b></div>
+        </div>
+        <div class="row">
+          <button id="btnNew" class="btn">➕ زيارة جديدة</button>
+          <button id="btnExport" class="btn gray">⬇️ تصدير CSV</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- نموذج الزيارة (تبويبات) -->
+    <section id="visitFormCard" class="card no-print" style="display:none">
+      <h3 style="margin:0 0 6px">إضافة / تعديل زيارة</h3>
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="basic">الأساسيات</button>
+        <button class="tab" data-tab="vitals">المؤشرات الحيوية</button>
+        <button class="tab" data-tab="doses">لقطة الجرعات</button>
+        <button class="tab" data-tab="files">المرفقات</button>
+        <button class="tab" data-tab="tasks">المهام</button>
+      </div>
+
+      <!-- الأساسيات -->
+      <div id="tab-basic" class="tab-pane show">
         <div class="grid g3">
-          <div><label>تاريخ الزيارة</label><input id="vDate" type="date"></div>
-          <div><label>اسم الطبيب</label><input id="vDoctor" placeholder="مثال: د. أحمد"></div>
-          <div><label>العيادة / المستشفى</label><input id="vClinic" placeholder="مثال: مستشفى الأطفال"></div>
-          <div style="grid-column:1/-1"><label>السبب / الشكوى</label><input id="vReason" placeholder="صداع / ضبط جرعات / متابعة دورية ..."></div>
-          <div style="grid-column:1/-1"><label>ملاحظات</label><textarea id="vNotes" rows="2"></textarea></div>
+          <div>
+            <label>تاريخ الزيارة</label>
+            <input id="vDate" type="date">
+          </div>
+          <div>
+            <label>اسم الطبيب</label>
+            <input id="vDoctor" placeholder="مثال: د. أحمد علي">
+          </div>
+          <div>
+            <label>العيادة / المستشفى</label>
+            <input id="vClinic" placeholder="مثال: مستشفى الأطفال">
+          </div>
           <div style="grid-column:1/-1">
-            <label>مرفقات (صور أو PDF)</label>
-            <input id="vFiles" type="file" accept="image/*,application/pdf" multiple>
+            <label>السبب / الشكوى</label>
+            <input id="vReason" placeholder="متابعة / ضبط جرعات / صداع…">
+          </div>
+          <div style="grid-column:1/-1">
+            <label>ملاحظات الطبيب</label>
+            <textarea id="vNotesDoctor" rows="2" placeholder="توصيات وتعديلات الطبيب"></textarea>
+          </div>
+          <div style="grid-column:1/-1">
+            <label>ملاحظات وليّ الأمر</label>
+            <textarea id="vNotesParent" rows="2" placeholder="أعراض ظهرت / استفسارات"></textarea>
+          </div>
+          <div style="grid-column:1/-1">
+            <label>وسوم (افصلي بعلامة # أو فاصلة)</label>
+            <input id="vTags" placeholder="#تحاليل, #وصفة">
           </div>
         </div>
-        <div class="row" style="justify-content:flex-end; margin-top:8px">
-          <button id="btnVisitSave" class="btn primary">💾 حفظ</button>
-          <button id="btnVisitCancel" class="btn gray">إلغاء</button>
+      </div>
+
+      <!-- المؤشرات الحيوية -->
+      <div id="tab-vitals" class="tab-pane">
+        <div class="vital-row">
+          <div><label>الوزن (كجم)</label><input id="vWt" type="number" step="0.1"></div>
+          <div><label>الطول (سم)</label><input id="vHt" type="number" step="0.1"></div>
+          <div><label>الحرارة (°C)</label><input id="vTemp" type="number" step="0.1"></div>
+          <div><label>ضغط (انقباضي)</label><input id="vSys" type="number"></div>
+          <div><label>ضغط (انبساطي)</label><input id="vDia" type="number"></div>
+          <div><label>النبض (bpm)</label><input id="vHR" type="number"></div>
         </div>
+        <div class="note" style="margin-top:6px">يُحسب BMI تلقائيًا عند إدخال الوزن والطول.</div>
       </div>
 
-      <!-- جدول -->
-      <div style="margin-top:10px">
-        <table class="table">
-          <thead><tr><th>التاريخ</th><th>الطبيب</th><th>العيادة</th><th>السبب</th><th>مرفقات</th><th class="no-print">إجراءات</th></tr></thead>
-        <tbody id="visitsRows"><tr><td colspan="6" class="center note">لا توجد زيارات.</td></tr></tbody>
-        </table>
+      <!-- لقطة الجرعات -->
+      <div id="tab-doses" class="tab-pane">
+        <div class="grid g3">
+          <div><label>جرعة الترسيبا (U)</label><input id="vTresiba" type="number" step="0.1"></div>
+          <div><label>ICR (جم/وحدة)</label><input id="vICR" type="number" step="0.1"></div>
+          <div><label>معامل التصحيح (mmol/L لكل 1U)</label><input id="vCorr" type="number" step="0.1"></div>
+        </div>
+        <div class="note" style="margin-top:6px">هذه لقطة للمرجع والتغيير—لن تغيّر إعدادات الطفل تلقائيًا إلا إذا حدّدتي ذلك لاحقًا.</div>
       </div>
 
-      <!-- طباعة زيارة -->
-      <div id="visitPrintArea" class="card" style="display:none; margin-top:10px">
-        <h4 style="margin:0 0 6px">ملخص زيارة</h4>
-        <div id="printBody"></div>
+      <!-- المرفقات -->
+      <div id="tab-files" class="tab-pane">
+        <label>مرفقات (صور أو PDF)</label>
+        <input id="vFiles" type="file" accept="image/*,application/pdf" multiple />
+        <div id="filesPreview" class="chips" style="margin-top:6px"></div>
+        <div class="note" style="margin-top:6px">يتم رفع المرفقات بعد حفظ الزيارة مباشرة.</div>
       </div>
+
+      <!-- المهام -->
+      <div id="tab-tasks" class="tab-pane">
+        <div class="row" style="align-items:flex-end">
+          <div style="flex:1">
+            <label>مهمة</label>
+            <input id="taskTitle" placeholder="عمل HbA1c / مراجعة بعد أسبوع" />
+          </div>
+          <div>
+            <label>تاريخ الاستحقاق</label>
+            <input id="taskDue" type="date" />
+          </div>
+          <div><button id="btnAddTask" class="btn gray">➕ إضافة</button></div>
+        </div>
+        <div id="tasksList" class="chips" style="margin-top:8px"></div>
+      </div>
+
+      <div class="row" style="justify-content:flex-end;margin-top:10px">
+        <button id="btnSaveVisit" class="btn primary">💾 حفظ الزيارة</button>
+        <button id="btnCancelVisit" class="btn gray">إلغاء</button>
+      </div>
+    </section>
+
+    <!-- جدول الزيارات -->
+    <section class="card">
+      <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:8px">
+        <h3 class="section-title">سجل الزيارات</h3>
+        <span class="badge-soft">فرز حسب التاريخ تنازليًا</span>
+      </div>
+      <table class="table-visits">
+        <thead>
+          <tr>
+            <th>التاريخ</th>
+            <th>الطبيب</th>
+            <th>العيادة</th>
+            <th>السبب</th>
+            <th>وسوم</th>
+            <th>مرفقات</th>
+            <th class="no-print">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="visitsRows">
+          <tr><td colspan="7" class="note">لا توجد زيارات بعد.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- مساحة طباعة زيارة واحدة -->
+    <section id="visitPrintArea" class="print-visit">
+      <h4>🧑‍⚕️ ملخص زيارة طبية</h4>
+      <div id="printBody"></div>
     </section>
   </main>
 
   <div id="toast" class="toast"></div>
   <div id="loader" class="loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
 
+  <!-- منطق الصفحة -->
   <script type="module">
-    import { auth, db, storage, ensureAuth, requireChildIdFromQuery, setChildAvatar } from './firebase-init.js';
+    import { auth, db, storage, ensureAuth, requireChildIdFromQuery, setChildAvatar, toLocalDatetimeValue } from './firebase-init.js';
     import { signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-    import { collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-    import { ref as sRef, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
+    import {
+      collection, addDoc, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc,
+      query, orderBy, where, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+    import {
+      ref as sRef, uploadBytesResumable, getDownloadURL
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
 
-    const toast=(m)=>{const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
-    const showLoader=(on)=>{document.getElementById('loader').style.display=on?'flex':'none'}
+    // Helpers UI
+    const $=s=>document.querySelector(s);
+    const toast=(m)=>{const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2000);}
+    const showLoader=(on)=>{$("#loader").style.display=on?'flex':'none'}
+    const z2=n=>String(n).padStart(2,'0');
+    const todayISO=()=>{const d=new Date();return `${d.getFullYear()}-${z2(d.getMonth()+1)}-${z2(d.getDate())}`}
 
-    let uid=null, childId=null, child=null, editVisitId=null;
+    let uid=null, childId=null, child=null, editId=null;
+    let filesQueue=[];   // ملفات جديدة قبل الرفع
+    let tasks=[];       // {title, dueDate, done}
 
+    // تنقل الصفحة
     function buildNav(){
-      const row=document.getElementById('childNav'); row.innerHTML='';
-      [['child-dashboard.html','الرئيسية'],['measures.html','قياسات السكر'],['meals.html','الوجبات'],['reports.html','التقارير'],['visits.html','الزيارات الطبية']]
-      .forEach(([h,t])=>{ const a=document.createElement('a'); a.className='btn gray'; a.href=`${h}?child=${encodeURIComponent(childId)}`; a.textContent=t; row.appendChild(a);});
-      document.getElementById('lnkHome').href=`child-dashboard.html?child=${encodeURIComponent(childId)}`;
+      const row=$("#childNav"); row.innerHTML='';
+      const items=[
+        ['child-dashboard.html','الرئيسية'],
+        ['measures.html','قياسات السكر'],
+        ['meals.html','الوجبات'],
+        ['reports.html','التقارير'],
+        ['visits.html','الزيارات الطبية']
+      ];
+      items.forEach(([h,t])=>{
+        const a=document.createElement('a');
+        a.className='btn gray';
+        a.href=`${h}?child=${encodeURIComponent(childId)}`;
+        a.textContent=t;
+        row.appendChild(a);
+      });
+      $("#lnkHome").href=`child-dashboard.html?child=${encodeURIComponent(childId)}`;
     }
 
     async function loadChild(){
       const s=await getDoc(doc(db,'users',uid,'children',childId));
+      if(!s.exists()){ alert('الطفل غير موجود'); return; }
       child=s.data()||{};
-      setChildAvatar(document.getElementById('bannerAvatar'), child.name, child.photoURL);
+      setChildAvatar($("#bannerAvatar"), child.name, child.photoURL);
       bannerName.textContent=child.name||'—';
       bannerMeta.textContent=`${child.gender||'—'} • ${child.weight||'—'} كجم • ${child.height||'—'} سم`;
       childBanner.style.display='block';
     }
 
-    function clearVisitForm(){ ['vDate','vDoctor','vClinic','vReason','vNotes'].forEach(id=>document.getElementById(id).value=''); vFiles.value=''; }
+    // Tabs
+    const tabs=Array.from(document.querySelectorAll('.tab'));
+    tabs.forEach(b=>b.addEventListener('click', ()=>{
+      tabs.forEach(x=>x.classList.remove('active')); b.classList.add('active');
+      const id=b.dataset.tab;
+      document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('show'));
+      document.getElementById('tab-'+id).classList.add('show');
+    }));
 
-    function bindForm(){
-      btnVisitCancel.addEventListener('click', ()=>{ visitFormBox.style.display='none'; clearVisitForm(); editVisitId=null; });
-      btnVisitNew.addEventListener('click', ()=>{ clearVisitForm(); editVisitId=null; vDate.value=new Date().toISOString().slice(0,10); visitFormBox.style.display='block'; });
-      btnVisitSave.addEventListener('click', saveVisit);
+    function clearForm(){
+      editId=null; filesQueue=[]; tasks=[];
+      vDate.value=todayISO();
+      ['vDoctor','vClinic','vReason','vNotesDoctor','vNotesParent','vTags',
+       'vWt','vHt','vTemp','vSys','vDia','vHR','vTresiba','vICR','vCorr'].forEach(id=>document.getElementById(id).value='');
+      vFiles.value='';
+      filesPreview.innerHTML='';
+      renderTasks();
     }
 
-    async function saveVisit(){
-      const date=vDate.value, doctor=vDoctor.value.trim(), clinic=vClinic.value.trim(), reason=vReason.value.trim(), notes=vNotes.value.trim();
-      if(!date){ return toast('أدخلي تاريخ الزيارة'); }
-      showLoader(true);
-      if(!editVisitId){
-        const ref = await addDoc(collection(db,'users',uid,'children',childId,'visits'), { date, doctor:doctor||null, clinic:clinic||null, reason:reason||null, notes:notes||null, files:[], createdAt:serverTimestamp(), updatedAt:serverTimestamp() });
-        editVisitId = ref.id;
-      }else{
-        await updateDoc(doc(db,'users',uid,'children',childId,'visits',editVisitId), { date, doctor:doctor||null, clinic:clinic||null, reason:reason||null, notes:notes||null, updatedAt:serverTimestamp() });
-      }
-      // رفع ملفات
-      const files = Array.from(vFiles.files||[]);
-      if(files.length){
-        const uploaded=[];
-        for(const f of files){
-          const path=`users/${uid}/children/${childId}/visits/${editVisitId}/files/${Date.now()}_${f.name.replace(/[^\w.\-]+/g,'_')}`;
-          const task = uploadBytesResumable(sRef(storage, path), f, {contentType:f.type});
-          await new Promise((res,rej)=> task.on('state_changed', ()=>{}, rej, res));
-          const url = await getDownloadURL(task.snapshot.ref);
-          uploaded.push({name:f.name, url, type:f.type, size:f.size});
-        }
-        const vRef=doc(db,'users',uid,'children',childId,'visits',editVisitId);
-        const cur=(await getDoc(vRef)).data()||{};
-        const curFiles=Array.isArray(cur.files)?cur.files:[];
-        await updateDoc(vRef, { files: curFiles.concat(uploaded) });
-      }
-      toast('✅ تم حفظ الزيارة'); visitFormBox.style.display='none'; clearVisitForm(); editVisitId=null; await loadVisits();
-      showLoader(false);
-    }
-
-    async function loadVisits(){
-      const tb=document.getElementById('visitsRows');
-      const qs=await getDocs(query(collection(db,'users',uid,'children',childId,'visits'), orderBy('date','desc')));
-      if(qs.empty){ tb.innerHTML='<tr><td colspan="6" class="center note">لا توجد زيارات.</td></tr>'; return; }
-      const rows=[];
-      qs.forEach(s=>{
-        const v=s.data(), files=Array.isArray(v.files)? v.files : [];
-        rows.push(`<tr>
-          <td><b>${escapeHTML(v.date||'—')}</b></td>
-          <td>${escapeHTML(v.doctor||'—')}</td>
-          <td>${escapeHTML(v.clinic||'—')}</td>
-          <td>${escapeHTML(v.reason||'—')}</td>
-          <td>${ files.length? files.map(f=>`<span class="badge-soft" title="${escapeHTML(f.name)}">${f.type.startsWith('image/')?'🖼️':'📄'} ${short(f.name)}</span>`).join(' ') : '—' }</td>
-          <td class="no-print">
-            <button class="btn gray" data-act="view" data-id="${s.id}">👁️ عرض/طباعة</button>
-            <button class="btn gray" data-act="edit" data-id="${s.id}">✏️ تعديل</button>
-            <button class="btn red"  data-act="del"  data-id="${s.id}">🗑️ حذف</button>
-          </td>
-        </tr>`);
-      });
-      tb.innerHTML=rows.join('');
-      tb.querySelectorAll('button[data-act]').forEach(btn=>{
-        const id=btn.dataset.id, act=btn.dataset.act;
-        btn.addEventListener('click',()=> act==='view'? viewVisit(id) : act==='edit'? editVisit(id) : delVisit(id));
+    // مهام
+    function renderTasks(){
+      const box=$("#tasksList"); box.innerHTML='';
+      if(!tasks.length){ box.innerHTML='<span class="note">لا توجد مهام.</span>'; return; }
+      tasks.forEach((t,i)=>{
+        const el=document.createElement('div'); el.className='chip';
+        el.innerHTML = `<input type="checkbox" ${t.done?'checked':''} style="vertical-align:middle"> ${escapeHTML(t.title)} ${t.dueDate?`— <small>${t.dueDate}</small>`:''} <a href="#" data-i="${i}" style="margin-right:8px">✖</a>`;
+        el.querySelector('input').addEventListener('change',e=>{ t.done = e.target.checked; });
+        el.querySelector('a').addEventListener('click',e=>{e.preventDefault(); tasks.splice(i,1); renderTasks();});
+        box.appendChild(el);
       });
     }
-
     function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]))}
+
+    // رفع الملفات بعد حفظ الزيارة
+    async function uploadVisitFiles(visitId){
+      if(!filesQueue.length) return [];
+      const out=[];
+      for(const f of filesQueue){
+        const path=`users/${uid}/children/${childId}/visits/${visitId}/files/${Date.now()}_${sanitizeName(f.name)}`;
+        const ref=sRef(storage, path);
+        const task=uploadBytesResumable(ref, f, {contentType:f.type});
+        await new Promise((res,rej)=>task.on('state_changed',()=>{},rej,res));
+        const url=await getDownloadURL(task.snapshot.ref);
+        out.push({name:f.name,url,type:f.type,size:f.size});
+      }
+      return out;
+    }
+    function sanitizeName(n){ return (n||'file').replace(/[^\w.\-]+/g,'_'); }
+
+    // حفظ الزيارة
+    async function saveVisit(){
+      const base={
+        date: vDate.value,
+        doctor: vDoctor.value.trim()||null,
+        clinic: vClinic.value.trim()||null,
+        reason: vReason.value.trim()||null,
+        notesDoctor: vNotesDoctor.value.trim()||null,
+        notesParent: vNotesParent.value.trim()||null,
+        tags: parseTags(vTags.value),
+        vitals:{
+          weight: numOrNull(vWt), height: numOrNull(vHt), temp: numOrNull(vTemp),
+          bpSys: numOrNull(vSys), bpDia: numOrNull(vDia), hr: numOrNull(vHR),
+          bmi: computeBMI(numOrNull(vWt), numOrNull(vHt))
+        },
+        doseSnapshot:{
+          tresiba: numOrNull(vTresiba),
+          icr: numOrNull(vICR),
+          correctionFactor: numOrNull(vCorr)
+        },
+        tasks: tasks,
+        updatedAt: serverTimestamp()
+      };
+      if(!base.date){ toast('أدخلي تاريخ الزيارة'); return; }
+
+      showLoader(true);
+      try{
+        let vid=editId;
+        if(!vid){
+          const ref=await addDoc(collection(db,'users',uid,'children',childId,'visits'),{
+            ...base, createdAt: serverTimestamp(), files:[]
+          });
+          vid=ref.id;
+        }else{
+          await updateDoc(doc(db,'users',uid,'children',childId,'visits',vid), base);
+        }
+
+        const uploaded = await uploadVisitFiles(vid);
+        if(uploaded.length){
+          const ref=doc(db,'users',uid,'children',childId,'visits',vid);
+          const snap=await getDoc(ref);
+          const cur=snap.data()||{};
+          const curFiles=Array.isArray(cur.files)?cur.files:[];
+          await updateDoc(ref,{files: curFiles.concat(uploaded)});
+        }
+
+        toast('✅ تم حفظ الزيارة');
+        visitFormCard.style.display='none';
+        clearForm();
+        await loadVisits();
+      }catch(err){
+        console.error(err);
+        alert('تعذّر حفظ الزيارة: '+(err?.message||err));
+      }finally{ showLoader(false); }
+    }
+
+    function numOrNull(inp){ const v=Number(inp?.value); return Number.isFinite(v)? v : null; }
+    function computeBMI(wt, htCm){ if(!(wt>0 && htCm>0)) return null; const h=htCm/100; const bmi=wt/(h*h); return Math.round(bmi*10)/10; }
+    function parseTags(s){ if(!s) return []; return s.split(/[#,،,]/).map(x=>x.trim()).filter(Boolean); }
+
+    // تحميل الزيارات
+    async function loadVisits(){
+      const from=$("#from").value, to=$("#to").value, txt=($("#qText").value||'').toLowerCase();
+      const qy=query(collection(db,'users',uid,'children',childId,'visits'), orderBy('date','desc'));
+      const qs=await getDocs(qy);
+
+      let rows=[];
+      let lastDate='—';
+      qs.forEach(s=>{
+        const v=s.data()||{};
+        // فلترة زمنية بسيطة في الذاكرة (أبسط من where متعدد)
+        if(from && v.date<from) return;
+        if(to   && v.date>to)   return;
+        // بحث نصّي
+        const blob=(v.doctor||'')+' '+(v.clinic||'')+' '+(v.reason||'')+' '+(v.notesDoctor||'')+' '+(v.notesParent||'')+' '+(Array.isArray(v.tags)?v.tags.join(' '):'');
+        if(txt && !blob.toLowerCase().includes(txt)) return;
+
+        rows.push({id:s.id, ...v});
+        if(lastDate==='—') lastDate=v.date||'—';
+      });
+
+      k_total.textContent=rows.length||0;
+      k_last.textContent=lastDate;
+
+      if(!rows.length){
+        visitsRows.innerHTML='<tr><td colspan="7" class="note">لا توجد زيارات مطابقة.</td></tr>';
+        return;
+      }
+
+      visitsRows.innerHTML = rows.map(v=>{
+        const files = Array.isArray(v.files)? v.files : [];
+        const tags  = Array.isArray(v.tags)? v.tags : [];
+        return `
+          <tr>
+            <td><b>${escapeHTML(v.date||'—')}</b></td>
+            <td>${escapeHTML(v.doctor||'—')}</td>
+            <td>${escapeHTML(v.clinic||'—')}</td>
+            <td>${escapeHTML(v.reason||'—')}</td>
+            <td>${tags.map(t=>`<span class="chip">${escapeHTML(t)}</span>`).join(' ')||'—'}</td>
+            <td>${files.length? files.map(f=>`<span class="chip" title="${escapeHTML(f.name)}">${f.type?.startsWith('image/')?'🖼️':'📄'} ${short(f.name)}</span>`).join(' ') : '—'}</td>
+            <td class="actions no-print">
+              <button class="btn gray" data-act="view" data-id="${v.id}">👁️ عرض/طباعة</button>
+              <button class="btn gray" data-act="edit" data-id="${v.id}">✏️ تعديل</button>
+              <button class="btn red"  data-act="del"  data-id="${v.id}">🗑️ حذف</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // ربط أحداث الإجراءات
+      visitsRows.querySelectorAll('button[data-act]').forEach(btn=>{
+        const id=btn.dataset.id, act=btn.dataset.act;
+        btn.addEventListener('click',()=>{
+          if(act==='view') viewVisit(id);
+          else if(act==='edit') editVisit(id);
+          else if(act==='del')  delVisit(id);
+        });
+      });
+    }
+
     function short(n){ return (n&&n.length>18)? (n.slice(0,16)+'…') : (n||'ملف'); }
 
     async function viewVisit(id){
       const ref=doc(db,'users',uid,'children',childId,'visits',id);
-      const snap=await getDoc(ref); if(!snap.exists()) return;
-      const v=snap.data(); const files=Array.isArray(v.files)?v.files:[];
-      printBody.innerHTML = `
-        <div><b>الطفل:</b> ${escapeHTML(child?.name||'—')}</div>
-        <div><b>التاريخ:</b> ${escapeHTML(v.date||'—')}</div>
-        <div><b>الطبيب:</b> ${escapeHTML(v.doctor||'—')}</div>
-        <div><b>العيادة:</b> ${escapeHTML(v.clinic||'—')}</div>
+      const snap=await getDoc(ref);
+      if(!snap.exists()){ alert('الزيارة غير موجودة'); return; }
+      const v=snap.data()||{};
+      const files=Array.isArray(v.files)? v.files : [];
+      const tags =Array.isArray(v.tags)? v.tags : [];
+
+      const meta=`
+        <div class="row" style="justify-content:space-between">
+          <div><b>الطفل:</b> ${escapeHTML(child?.name||'—')}</div>
+          <div><b>التاريخ:</b> ${escapeHTML(v.date||'—')}</div>
+        </div>
+        <div><b>الطبيب:</b> ${escapeHTML(v.doctor||'—')} • <b>العيادة:</b> ${escapeHTML(v.clinic||'—')}</div>
         <div><b>السبب:</b> ${escapeHTML(v.reason||'—')}</div>
-        <div><b>ملاحظات:</b> ${escapeHTML(v.notes||'—')}</div>
-        <div><b>مرفقات:</b> ${ files.length? files.map(f=>`<div>• ${f.type.startsWith('image/')?'🖼️':'📄'} <a href="${f.url}" target="_blank">${escapeHTML(f.name)}</a></div>`).join('') : '—' }</div>
+        <div><b>ملاحظات الطبيب:</b> ${escapeHTML(v.notesDoctor||'—')}</div>
+        <div><b>ملاحظات وليّ الأمر:</b> ${escapeHTML(v.notesParent||'—')}</div>
+        <div style="margin:6px 0"><b>الوسوم:</b> ${tags.map(t=>`<span class="chip">${escapeHTML(t)}</span>`).join(' ')||'—'}</div>
+        <hr>
+        <div><b>المؤشرات الحيويّة:</b> وزن ${v.vitals?.weight??'—'} كجم • طول ${v.vitals?.height??'—'} سم • BMI ${v.vitals?.bmi??'—'} • حر ${v.vitals?.temp??'—'}°C • ضغط ${v.vitals?.bpSys??'—'}/${v.vitals?.bpDia??'—'} • نبض ${v.vitals?.hr??'—'}</div>
+        <div><b>لقطة الجرعات:</b> ترسيبا ${v.doseSnapshot?.tresiba??'—'} U • ICR ${v.doseSnapshot?.icr??'—'} g/U • تصحيح ${v.doseSnapshot?.correctionFactor??'—'} mmol/L/U</div>
+        <div style="margin:6px 0"><b>المهام:</b> ${
+          (Array.isArray(v.tasks)&&v.tasks.length)?
+            v.tasks.map(t=>`<div>• ${escapeHTML(t.title)} ${t.dueDate?`<small>(${t.dueDate})</small>`:''} — ${t.done?'تم':'قيد المتابعة'}</div>`).join('') : '—'
+        }</div>
+        <div><b>مرفقات:</b> ${
+          files.length? files.map(f=>`<div>• ${f.type?.startsWith('image/')?'🖼️':'📄'} <a href="${f.url}" target="_blank">${escapeHTML(f.name)}</a></div>`).join('') : '—'
+        }</div>
       `;
-      visitPrintArea.style.display='block';
-      window.print();
+      $("#printBody").innerHTML=meta;
+      // إظهار كتلة الطباعة داخل الصفحة (ستختفي في الوضع العادي)
+      $("#visitPrintArea").style.display='block';
+      // اختياري: فتح نافذة طباعة مباشرة بزرّ أعلى الصفحة
+      $("#btnPrintVisit").onclick = ()=> window.print();
+      toast('✅ تم تجهيز الزيارة للطباعة — استخدمي زر طباعة الزيارة');
     }
+
     async function editVisit(id){
       const ref=doc(db,'users',uid,'children',childId,'visits',id);
-      const s=await getDoc(ref); if(!s.exists()) return;
-      const v=s.data();
-      editVisitId=id;
-      vDate.value=v.date||''; vDoctor.value=v.doctor||''; vClinic.value=v.clinic||''; vReason.value=v.reason||''; vNotes.value=v.notes||'';
-      visitFormBox.style.display='block';
+      const snap=await getDoc(ref);
+      if(!snap.exists()){ alert('الزيارة غير موجودة'); return; }
+      const v=snap.data()||{};
+      editId=id;
+      visitFormCard.style.display='block';
+      // تبويب أول
+      tabs.forEach(x=>x.classList.remove('active')); tabs[0].classList.add('active');
+      document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('show'));
+      document.getElementById('tab-basic').classList.add('show');
+
+      vDate.value = v.date || todayISO();
+      vDoctor.value = v.doctor || '';
+      vClinic.value = v.clinic || '';
+      vReason.value = v.reason || '';
+      vNotesDoctor.value = v.notesDoctor || '';
+      vNotesParent.value = v.notesParent || '';
+      vTags.value = (Array.isArray(v.tags)? v.tags.map(t=>`#${t}`).join(' ') : '');
+
+      vWt.value = v.vitals?.weight ?? '';
+      vHt.value = v.vitals?.height ?? '';
+      vTemp.value = v.vitals?.temp ?? '';
+      vSys.value = v.vitals?.bpSys ?? '';
+      vDia.value = v.vitals?.bpDia ?? '';
+      vHR.value  = v.vitals?.hr ?? '';
+
+      vTresiba.value = v.doseSnapshot?.tresiba ?? '';
+      vICR.value     = v.doseSnapshot?.icr ?? '';
+      vCorr.value    = v.doseSnapshot?.correctionFactor ?? '';
+
+      tasks = Array.isArray(v.tasks) ? JSON.parse(JSON.stringify(v.tasks)) : [];
+      renderTasks();
+
+      filesQueue=[]; // المرفقات الجديدة فقط بعد الحفظ
+      filesPreview.innerHTML = (Array.isArray(v.files)&&v.files.length)
+        ? v.files.map(f=>`<span class="chip" title="${escapeHTML(f.name)}">${f.type?.startsWith('image/')?'🖼️':'📄'} ${short(f.name)}</span>`).join(' ')
+        : '<span class="note">لا توجد مرفقات محفوظة.</span>';
+      toast('✏️ وضع التعديل مفعّل');
     }
+
     async function delVisit(id){
-      if(!confirm('حذف هذه الزيارة؟')) return;
+      if(!confirm('هل تريدين حذف هذه الزيارة؟')) return;
       await deleteDoc(doc(db,'users',uid,'children',childId,'visits',id));
-      toast('🗑️ تم الحذف'); await loadVisits();
+      toast('🗑️ تم حذف الزيارة');
+      await loadVisits();
     }
+
+    // CSV بسيط
+    function exportCSV(rows){
+      const head=['date','doctor','clinic','reason','tags','notesDoctor','notesParent','weight','height','bmi','tresiba','icr','corr'];
+      const lines=[head.join(',')];
+      rows.forEach(v=>{
+        const line=[
+          v.date||'',
+          qcsv(v.doctor), qcsv(v.clinic), qcsv(v.reason),
+          qcsv((Array.isArray(v.tags)?v.tags.join('|'):'')),
+          qcsv(v.notesDoctor), qcsv(v.notesParent),
+          v.vitals?.weight??'', v.vitals?.height??'', v.vitals?.bmi??'',
+          v.doseSnapshot?.tresiba??'', v.doseSnapshot?.icr??'', v.doseSnapshot?.correctionFactor??''
+        ].join(',');
+        lines.push(line);
+      });
+      const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8'});
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download=`visits_${child?.name||'child'}.csv`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+    function qcsv(s){ const v=String(s||'').replace(/"/g,'""'); return `"${v}"`; }
+
+    // أحداث الواجهة
+    btnNew.addEventListener('click', ()=>{
+      clearForm();
+      visitFormCard.style.display='block';
+      tabs.forEach(x=>x.classList.remove('active')); tabs[0].classList.add('active');
+      document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('show'));
+      document.getElementById('tab-basic').classList.add('show');
+    });
+    btnCancelVisit.addEventListener('click', ()=>{
+      visitFormCard.style.display='none';
+      clearForm();
+    });
+    btnSaveVisit.addEventListener('click', saveVisit);
+
+    btnAddTask.addEventListener('click', ()=>{
+      const title=(taskTitle.value||'').trim(); if(!title) return toast('اكتبي عنوان المهمة');
+      tasks.push({title, dueDate: taskDue.value||null, done:false});
+      taskTitle.value=''; taskDue.value=''; renderTasks();
+    });
+
+    vFiles.addEventListener('change', ()=>{
+      filesQueue = Array.from(vFiles.files||[]);
+      if(!filesQueue.length){ filesPreview.innerHTML=''; return; }
+      filesPreview.innerHTML = filesQueue.map(f=>`<span class="chip">${f.type.startsWith('image/')?'🖼️':'📄'} ${escapeHTML(f.name)}</span>`).join(' ');
+    });
+
+    btnRun.addEventListener('click', loadVisits);
+    btnExport.addEventListener('click', async ()=>{
+      // نبني نفس قائمة loadVisits ثم نصدر
+      const from=$("#from").value, to=$("#to").value, txt=($("#qText").value||'').toLowerCase();
+      const qy=query(collection(db,'users',uid,'children',childId,'visits'), orderBy('date','desc'));
+      const qs=await getDocs(qy);
+      let rows=[];
+      qs.forEach(s=>{
+        const v=s.data()||{};
+        if(from && v.date<from) return;
+        if(to   && v.date>to)   return;
+        const blob=(v.doctor||'')+' '+(v.clinic||'')+' '+(v.reason||'')+' '+(v.notesDoctor||'')+' '+(v.notesParent||'')+' '+(Array.isArray(v.tags)?v.tags.join(' '):'');
+        if(txt && !blob.toLowerCase().includes(txt)) return;
+        rows.push({id:s.id, ...v});
+      });
+      exportCSV(rows);
+    });
+
+    btnLogout.addEventListener('click', ()=>signOut(auth).then(()=>location.href='index.html'));
 
     // Boot
     (async function(){
-      const {uid:U}=await ensureAuth(); uid=U; childId=requireChildIdFromQuery();
-      // nav
-      const nav=document.getElementById('childNav'); nav.innerHTML='';
-      [['child-dashboard.html','الرئيسية'],['measures.html','قياسات السكر'],['meals.html','الوجبات'],['reports.html','التقارير'],['visits.html','الزيارات الطبية']]
-      .forEach(([h,t])=>{ const a=document.createElement('a'); a.className='btn gray'; a.href=`${h}?child=${encodeURIComponent(childId)}`; a.textContent=t; nav.appendChild(a);});
-      document.getElementById('lnkHome').href=`child-dashboard.html?child=${encodeURIComponent(childId)}`;
-
+      const {uid:U}=await ensureAuth(); uid=U;
+      childId=requireChildIdFromQuery();
+      buildNav();
       await loadChild();
-      bindForm();
+      // افتراض فترة آخر 30 يوم
+      const to=todayISO(); const d=new Date(); d.setDate(d.getDate()-29);
+      const from=`${d.getFullYear()}-${z2(d.getMonth()+1)}-${z2(d.getDate())}`;
+      $("#from").value=from; $("#to").value=to;
       await loadVisits();
-
-      btnLogout.addEventListener('click', ()=> signOut(auth).then(()=>location.href='index.html'));
-    });
+    })();
   </script>
 </body>
 </html>
-
