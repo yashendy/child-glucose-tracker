@@ -6,33 +6,27 @@
   <title>قياسات السكر</title>
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* تنسيقات خفيفة إضافية خاصة بالصفحة */
-    .unit-toggle{display:flex;gap:10px;align-items:center}
-    .unit-toggle label{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);padding:6px 10px;border-radius:10px;cursor:pointer}
-    .unit-toggle input{accent-color:#0ea5e9}
     .state{display:inline-block;padding:2px 8px;border-radius:999px}
     .state.ok{background:#ecfdf5;color:#16a34a}
     .state.low{background:#fff7ed;color:#b45309}
     .state.high{background:#fee2e2;color:#dc2626}
-    .icon{font-size:14px}
-    .hide{display:none!important}
+    .small{font-size:12px;color:#6b7280}
     .table{width:100%;border-collapse:separate;border-spacing:0}
-    .table th,.table td{border:1px solid var(--line);padding:8px;text-align:right;vertical-align:top}
-    .table thead th{background:#f0f9ff;font-weight:800}
-    .cell-hint{font-size:12px;color:var(--muted)}
-    .actions .btn{padding:6px 10px}
+    .table th,.table td{border:1px solid #e5e7eb;padding:8px;text-align:right;vertical-align:top}
+    .table thead th{background:#f1f5f9;font-weight:800}
+    .center{text-align:center}
   </style>
 </head>
 <body>
 
-  <!-- ✅ بنر الطفل -->
+  <!-- بنر الطفل -->
   <div id="childBanner" style="text-align:center; padding:12px 8px; display:none">
     <img id="bannerAvatar" class="avatar" style="width:84px;height:84px" src="images/avatar-default.png" alt="صورة الطفل">
     <div style="margin-top:6px;font-weight:800" id="bannerName">—</div>
     <div class="note" id="bannerMeta">—</div>
   </div>
 
-  <!-- ✅ الشريط العلوي -->
+  <!-- Topbar -->
   <div class="topbar">
     <div>🧪 قياسات السكر</div>
     <div class="row">
@@ -42,22 +36,17 @@
   </div>
 
   <main class="container">
-    <!-- ✅ روابط تنقّل طفل -->
+    <!-- Nav -->
     <div class="card"><div class="row" id="childNav"></div></div>
 
-    <!-- ✅ نموذج الإدخال -->
+    <!-- إدخال القياس -->
     <section class="card">
-      <div class="row" style="justify-content:space-between;align-items:center">
-        <h3 class="section-title" style="margin:0">إدخال القياس</h3>
-        <span class="badge-soft">الوحدة الداخلية: mmol/L (تقريب 0.1)</span>
-      </div>
-
-      <div class="grid g3" style="margin-top:10px">
+      <h3 style="margin:0 0 8px">إدخال قياس</h3>
+      <div class="grid g3" style="margin:10px 0">
         <div>
           <label>التاريخ</label>
           <input id="mDate" type="date">
         </div>
-
         <div>
           <label>وقت القياس</label>
           <select id="mSlot">
@@ -77,86 +66,74 @@
             <option value="other">أخرى</option>
           </select>
         </div>
-
-        <!-- اختيار الوحدة + القيمة -->
         <div>
-          <label>القراءة</label>
-          <div class="unit-toggle" style="margin-bottom:6px">
-            <label><input type="radio" name="unit" value="mmol" checked> mmol/L</label>
-            <label><input type="radio" name="unit" value="mg"> mg/dL</label>
-          </div>
-          <input id="mValue" type="number" step="0.1" min="0" placeholder="أدخلي القيمة حسب الوحدة المختارة">
-          <div class="cell-hint">يتم التحويل والتخزين بالـ mmol/L (تقريب 0.1)</div>
+          <label>قراءة mmol/L</label>
+          <input id="valMmol" type="number" step="0.1" min="0" placeholder="مثال: 7.8">
         </div>
 
         <div>
-          <label>كارب (جم)</label>
-          <input id="mCarbs" type="number" step="0.1" min="0" placeholder="اختياري">
+          <label>قراءة mg/dL</label>
+          <input id="valMg" type="number" step="1" min="0" placeholder="مثال: 140">
         </div>
-
         <div>
-          <label>جرعة الوجبة (مقترحة)</label>
-          <input id="mDoseSuggested" readonly placeholder="يُحسب من ICR">
-          <div class="cell-hint">المقترح = الكارب ÷ ICR</div>
+          <label>كارب (جم) — اختياري</label>
+          <input id="mCarbs" type="number" step="0.1" min="0">
         </div>
-
         <div>
-          <label>جرعة فعلية (إن أُعطيت)</label>
-          <input id="mDoseGiven" type="number" step="0.1" min="0" placeholder="اختياري">
+          <label>جرعة وجبة مقترحة</label>
+          <input id="doseSuggested" readonly placeholder="يُحسب من ICR">
         </div>
 
-        <!-- التصحيح يظهر فقط عند الارتفاع -->
-        <div id="boxCorr" class="hide">
-          <label>جرعة تصحيحية (مقترحة)</label>
-          <input id="mCorr" type="number" step="0.1" min="0">
-          <div class="cell-hint">التصحيح المقترح = (القراءة - الهدف) ÷ معامل التصحيح</div>
+        <!-- تظهر شرطيًا -->
+        <div id="corrBox">
+          <label>جرعة تصحيحية مقترحة</label>
+          <input id="corrSuggested" readonly placeholder="يُحسب من CF/الهدف">
+        </div>
+        <div id="corrGivenBox">
+          <label>جرعة تصحيحية فعلية</label>
+          <input id="corrGiven" type="number" step="0.1" min="0">
         </div>
 
-        <!-- الرفع يظهر فقط عند الهبوط -->
-        <div id="boxRaise" class="hide">
-          <label>رفع السكر</label>
-          <input id="mRaisedWith" placeholder="عصير / تمر …">
-          <div class="cell-hint">يظهر فقط عند الهبوط</div>
+        <div id="raiseBox">
+          <label>رفع السكر (للمنخفض)</label>
+          <input id="raisedWith" placeholder="عصير/تمر…">
         </div>
-
         <div style="grid-column:1/-1">
-          <label>ملاحظات</label>
+          <label>ملاحظة</label>
           <input id="mNote" placeholder="اختياري">
         </div>
       </div>
 
-      <div class="row" style="justify-content:flex-end;margin-top:8px">
+      <div class="row" style="justify-content:flex-end">
         <button id="mSave" class="btn primary">💾 حفظ القياس</button>
-        <button id="mCancelEdit" class="btn gray hide" type="button">إلغاء التعديل</button>
       </div>
-
-      <div class="note" style="margin-top:6px">
-        • عند <b>الارتفاع</b> يظهر التصحيحي فقط. • عند <b>الهبوط</b> يظهر رفع السكر فقط. • داخل النطاق يُخفى الإثنان.
-      </div>
+      <div class="small" style="margin-top:6px">يتم التقريب لأقرب 0.1 mmol/L. لا يُسمح بتكرار نفس التوقيت لنفس التاريخ.</div>
     </section>
 
-    <!-- ✅ جدول قراءات اليوم/التاريخ المحدد -->
+    <!-- قراءات اليوم -->
     <section class="card">
-      <div class="row" style="justify-content:space-between;align-items:center">
-        <h3 class="section-title" style="margin:0">📅 قراءات اليوم المختار</h3>
+      <div class="row" style="justify-content:space-between;align-items:end">
+        <div>
+          <h3 style="margin:0">📅 قراءات اليوم</h3>
+          <div class="small">اختاري تاريخًا لعرض قراءات ذلك اليوم.</div>
+        </div>
         <div class="row">
-          <button id="btnReloadDay" class="btn gray">🔁 عرض قياسات اليوم</button>
+          <input id="dayPicker" type="date">
+          <button id="btnLoadDay" class="btn">عرض</button>
         </div>
       </div>
-      <div class="note">التقريب لأقرب 0.1 mmol/L. الأسهم: ⬆️ مرتفع • ⬇️ منخفض • 🟢 داخل النطاق</div>
       <table class="table" style="margin-top:8px">
         <thead>
           <tr>
-            <th>التوقيت</th>
+            <th>الوقت</th>
             <th>القراءة</th>
             <th>الحالة</th>
             <th>جرعات</th>
             <th>ملاحظات</th>
-            <th class="center">إجراء</th>
           </tr>
         </thead>
         <tbody id="mRows">
-          <tr><td colspan="6" class="note center">لا توجد قياسات.</td></tr>
+          <tr><td colspan="5" class="note center">لا توجد قياسات.</td></tr>
         </tbody>
       </table>
     </section>
@@ -166,21 +143,15 @@
   <div id="loader" class="loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
 
   <script type="module">
-    /* ===== Imports مشتركة ===== */
-    import {
-      auth, db, ensureAuth, requireChildIdFromQuery,
-      setChildAvatar, toLocalDatetimeValue
-    } from './firebase-init.js';
-
+    import { auth, db, ensureAuth, requireChildIdFromQuery, setChildAvatar } from './firebase-init.js';
     import { signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
     import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-    /* ===== Helpers محلية ===== */
-    const $ = s => document.querySelector(s);
+    const $=s=>document.querySelector(s);
     const toast=(m)=>{const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2000)}
     const showLoader=(on)=>{$("#loader").style.display=on?"flex":"none"}
 
-    const mLabels = {
+    const mLabels={
       uponWake:'الاستيقاظ',
       preBreakfast:'قبل الإفطار', postBreakfast:'بعد الإفطار',
       preLunch:'قبل الغداء',      postLunch:'بعد الغداء',
@@ -189,28 +160,19 @@
       beforeExercise:'قبل التمرين', afterExercise:'بعد التمرين',
       random:'قياس عشوائي', other:'أخرى'
     };
-    const mOrder = ['uponWake','preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','beforeExercise','afterExercise','random','other'];
+    const mOrder=['uponWake','preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep','beforeExercise','afterExercise','random','other'];
+    const z2=n=>String(n).padStart(2,'0');
+    const todayISO=()=>{const d=new Date();return `${d.getFullYear()}-${z2(d.getMonth()+1)}-${z2(d.getDate())}`};
+    const round1=n=>Math.round(Number(n)*10)/10;
+    function stateBy(v, low, high){ if(v==null||isNaN(v)) return 'ok'; if(isFinite(low)&&v<low) return 'low'; if(isFinite(high)&&v>high) return 'high'; return 'ok' }
 
-    const round1 = n => Math.round(Number(n)*10)/10;
-    function stateBy(v, low, high){
-      if(v==null || isNaN(v)) return 'ok';
-      if(isFinite(low) && v < low) return 'low';
-      if(isFinite(high) && v > high) return 'high';
-      return 'ok';
-    }
-    const iconByState = s => s==='low'?'⬇️':(s==='high'?'⬆️':'🟢');
+    let uid=null, childId=null, child={};
 
-    /* ===== متغيرات عامة ===== */
-    let uid=null, childId=null, child=null;
-    let editMode = { on:false, slot:null }; // لمنع تكرار نفس الوقت إلا عند التعديل
-
-    /* ===== Boot ===== */
-    (async function(){
+    (async function boot(){
       showLoader(true);
-      const a = await ensureAuth(); uid=a.uid;
-      childId = requireChildIdFromQuery();
+      const u=await ensureAuth(); uid=u.uid; childId=requireChildIdFromQuery();
 
-      // تنقل الطفل
+      // nav
       const nav=$("#childNav"); nav.innerHTML="";
       [
         ['child-dashboard.html','الرئيسية'],
@@ -225,245 +187,147 @@
       $("#lnkHome").href=`child-dashboard.html?child=${encodeURIComponent(childId)}`;
 
       await loadChild();
-      initForm();
-      bindUI();
-      await loadDay(); // اليوم الافتراضي
+      initInputs();
+      await loadDayTable($("#dayPicker").value);
 
-      $("#btnLogout").addEventListener("click", ()=>signOut(auth).then(()=>location.href='index.html'));
+      $("#btnLogout").addEventListener('click', ()=>signOut(auth).then(()=>location.href='index.html'));
       showLoader(false);
-    })().catch(e=>{console.error(e); toast('⚠️ فشل التحميل'); showLoader(false);});
+    })().catch(err=>{console.error(err);toast('فشل التهيئة');showLoader(false)});
 
-    /* ===== تحميل بيانات الطفل ===== */
     async function loadChild(){
-      const s = await getDoc(doc(db,'users',uid,'children',childId));
-      child = s.data()||{};
+      const s=await getDoc(doc(db,'users',uid,'children',childId));
+      child=s.data()||{};
       setChildAvatar($("#bannerAvatar"), child.name, child.photoURL);
-      $("#bannerName").textContent = child.name || '—';
-      $("#bannerMeta").textContent = `${child.gender||'—'} • ${child.weight??'—'} كجم • ${child.height??'—'} سم`;
-      $("#childBanner").style.display = 'block';
+      $("#bannerName").textContent=child.name||'—';
+      $("#bannerMeta").textContent=[child.gender||'', (child.weight!=null?child.weight+' كجم':'—'), (child.height!=null?child.height+' سم':'—')].filter(Boolean).join(' • ');
+      $("#childBanner").style.display='block';
     }
 
-    /* ===== تهيئة النموذج ===== */
-    function initForm(){
-      // تاريخ اليوم
-      const d=new Date(); const iso = d.toISOString().slice(0,10);
-      $("#mDate").value = iso;
-
-      // حساب جرعة الوجبة المقترحة من ICR
-      const recalcMealDose = ()=>{
-        const carbs = Number($("#mCarbs").value)||0;
-        const icr = Number(child?.icr)||0;
-        $("#mDoseSuggested").value = (icr>0 && carbs>0) ? (Math.round((carbs/icr)*10)/10).toFixed(1) : '';
-      };
-      $("#mCarbs").addEventListener('input', recalcMealDose);
-
-      // مراقبة القراءة لعرض/إخفاء التصحيح/الرفع
-      const refreshStateBoxes = ()=>{
-        const unit = document.querySelector('input[name="unit"]:checked').value;
-        const raw  = Number($("#mValue").value)||0;
-        // تحويل إلى mmol/L لو كانت mg/dL
-        const mmol = unit==='mg' ? round1(raw/18) : round1(raw);
-        const low  = Number(child?.lowThreshold);
-        const high = Number(child?.highThreshold);
-        const target = Number(child?.target);
-        const corrFactor = Number(child?.correctionFactor);
-
-        // حالة القراءة
-        const st = stateBy(mmol, low, high);
-
-        // إظهار/إخفاء
-        if(st==='high'){
-          $("#boxCorr").classList.remove('hide');
-          $("#boxRaise").classList.add('hide');
-          // اقتراح التصحيح إن توفّر target & CF
-          if(isFinite(target) && isFinite(corrFactor) && corrFactor>0){
-            const corr = Math.max(0, round1((mmol - target) / corrFactor));
-            $("#mCorr").value = corr ? corr.toFixed(1) : '';
-          }
-        }else if(st==='low'){
-          $("#boxCorr").classList.add('hide');
-          $("#boxRaise").classList.remove('hide');
-          $("#mCorr").value='';
-        }else{
-          $("#boxCorr").classList.add('hide');
-          $("#boxRaise").classList.add('hide');
-          $("#mCorr").value='';
-        }
-      };
-
-      $("#mValue").addEventListener('input', refreshStateBoxes);
-      document.querySelectorAll('input[name="unit"]').forEach(r=>{
-        r.addEventListener('change', ()=>{
-          // عند تغيير الوحدة لا نعدّل القيمة تلقائيًا، فقط نعيد تقييم الحالة
-          refreshStateBoxes();
-        });
+    function initInputs(){
+      $("#mDate").value=todayISO();
+      $("#dayPicker").value=todayISO();
+      // ربط mmol/mg
+      $("#valMmol").addEventListener('input', ()=>{
+        const v=Number($("#valMmol").value); $("#valMg").value = v? Math.round(v*18) : '';
+        recomputeDoseBoxes();
       });
-
-      // تحميل اليوم عند تغيير التاريخ
-      $("#mDate").addEventListener('change', loadDay);
-      $("#btnReloadDay").addEventListener('click', loadDay);
-
-      // حفظ القياس
-      $("#mSave").addEventListener('click', onSave);
-      $("#mCancelEdit").addEventListener('click', ()=>{
-        editMode={on:false,slot:null};
-        $("#mCancelEdit").classList.add('hide');
-        $("#mSlot").disabled=false;
-        toast('تم إلغاء وضع التعديل');
+      $("#valMg").addEventListener('input', ()=>{
+        const v=Number($("#valMg").value); $("#valMmol").value = v? (Math.round((v/18)*10)/10).toFixed(1) : '';
+        recomputeDoseBoxes();
       });
+      $("#mCarbs").addEventListener('input', recomputeDoseBoxes);
+      $("#mSave").addEventListener('click', saveMeasure);
+      $("#btnLoadDay").addEventListener('click', ()=>loadDayTable($("#dayPicker").value));
+      $("#dayPicker").addEventListener('change', ()=>loadDayTable($("#dayPicker").value));
     }
 
-    /* ===== تحميل قراءات اليوم المحدد ===== */
-    async function loadDay(){
-      showLoader(true);
-      try{
-        const date = $("#mDate").value;
-        const ref  = doc(db,'users',uid,'children',childId,'measurements',date);
-        const snap = await getDoc(ref);
-        const data = snap.data()||{};
-        const readings = data.readings||{};
-        renderDay(readings);
-      }catch(e){ console.error(e); toast('⚠️ حدث خطأ في تحميل اليوم'); }
-      finally{ showLoader(false); }
+    function recomputeDoseBoxes(){
+      const mmol=Number($("#valMmol").value)||null;
+      const target=Number(child?.target)||null;
+      const cf=Number(child?.correctionFactor)||null;
+      const icr=Number(child?.icr)||null;
+      const carbs=Number($("#mCarbs").value)||0;
+
+      // وجبة مقترحة
+      $("#doseSuggested").value = (icr>0 && carbs>0) ? (Math.round((carbs/icr)*10)/10).toFixed(1) : '';
+
+      const low=Number(child?.lowThreshold), high=Number(child?.highThreshold);
+      const st= stateBy(mmol, low, high);
+
+      // إظهار حقول الرفع/التصحيح حسب الحالة
+      const showCorr = (st==='high');
+      const showRaise = (st==='low');
+      $("#corrBox").style.display = showCorr? 'block':'none';
+      $("#corrGivenBox").style.display = showCorr? 'block':'none';
+      $("#raiseBox").style.display = showRaise? 'block':'none';
+
+      // تصحيح مقترح
+      if(showCorr && isFinite(target)&&target>0 && isFinite(cf)&&cf>0 && mmol!=null){
+        const corr = Math.max(0, (mmol - target)/cf);
+        $("#corrSuggested").value = (Math.round(corr*10)/10).toFixed(1);
+      }else{
+        $("#corrSuggested").value='';
+      }
+      if(!showCorr){ $("#corrGiven").value=''; }
+      if(!showRaise){ $("#raisedWith").value=''; }
     }
 
-    function renderDay(readings){
-      const low  = Number(child?.lowThreshold);
-      const high = Number(child?.highThreshold);
-      const tb = $("#mRows");
-      let html = '';
+    async function saveMeasure(){
+      const date=$("#mDate").value.trim();
+      const slot=$("#mSlot").value;
+      const mmol = Number($("#valMmol").value);
+      if(!date||!slot) return toast('اختاري التاريخ ووقت القياس');
+      if(!(mmol>0)) return toast('كتابة قراءة صحيحة (mmol/L)');
 
-      mOrder.forEach(key=>{
-        const r = readings[key];
+      // منع التكرار: إذا يوجد قراءة لنفس slot في نفس اليوم — ارفضي
+      const ref=doc(db,'users',uid,'children',childId,'measurements',date);
+      const snap=await getDoc(ref);
+      const base=snap.data()||{date, readings:{}};
+      if(base.readings && base.readings[slot] && base.readings[slot].valueMmol!=null){
+        toast('هذا التوقيت مسجّل بالفعل لهذا اليوم'); return;
+      }
+
+      const low=Number(child?.lowThreshold), high=Number(child?.highThreshold);
+      const st=stateBy(mmol, low, high);
+      const carbs = $("#mCarbs").value? Number($("#mCarbs").value): null;
+      const mealDose = $("#doseSuggested").value? Number($("#doseSuggested").value): null;
+      const corrSuggested = $("#corrSuggested").value? Number($("#corrSuggested").value): null;
+      const corrGiven = $("#corrGiven").value? Number($("#corrGiven").value): null;
+      const raised = $("#raisedWith").value || null;
+      const note = $("#mNote").value || null;
+
+      if(!base.readings) base.readings={};
+      base.readings[slot] = {
+        valueMmol: Math.round(mmol*10)/10,
+        status: st,
+        carbs,
+        mealDose,
+        correctionSuggested: corrSuggested ?? null,
+        correctionGiven: (st==='high' ? (corrGiven ?? null) : null),
+        raisedWith: (st==='low' ? (raised ?? null) : null),
+        note
+      };
+
+      await setDoc(ref, base, {merge:true});
+      toast('✅ تم حفظ القياس');
+      await loadDayTable(date);
+
+      // تفريغ جزئي
+      $("#mSlot").value=''; $("#valMmol").value=''; $("#valMg").value='';
+      $("#mCarbs").value=''; $("#doseSuggested").value=''; $("#corrSuggested").value=''; $("#corrGiven").value=''; $("#raisedWith").value=''; $("#mNote").value='';
+      recomputeDoseBoxes();
+    }
+
+    async function loadDayTable(date){
+      if(!date){ $("#mRows").innerHTML='<tr><td colspan="5" class="note center">—</td></tr>'; return; }
+      const ref=doc(db,'users',uid,'children',childId,'measurements',date);
+      const snap=await getDoc(ref);
+      const data=snap.data()||{};
+      const readings=data.readings||{};
+      let html=''; let any=false;
+      const low=Number(child?.lowThreshold), high=Number(child?.highThreshold);
+
+      mOrder.forEach(k=>{
+        const r=readings[k];
         if(!r || (r.valueMmol==null && r.value==null)) return;
-        const v = round1(Number(r.valueMmol ?? r.value));
-        const st = stateBy(v, low, high);
-        const doses = [
-          (r.mealDose!=null ? `وجبة: ${r.mealDose}U` : ''),
-          (r.correctionGiven!=null ? `تصحيح: ${r.correctionGiven}U` : '')
-        ].filter(Boolean).join(' • ') || '—';
-        const note  = [r.note||'', r.raisedWith||''].filter(Boolean).join(' — ') || '—';
-
-        html += `
+        any=true;
+        const v=round1(Number(r.valueMmol ?? r.value));
+        const st=stateBy(v, low, high);
+        const doses=[ r.mealDose!=null?`وجبة: ${r.mealDose}U`:'' , r.correctionGiven!=null?`تصحيح: ${r.correctionGiven}U`:'' ].filter(Boolean).join(' • ') || '—';
+        const notes = r.note || r.raisedWith || '—';
+        html+=`
           <tr>
-            <td><b>${mLabels[key]}</b></td>
-            <td>${v.toFixed(1)} mmol/L <span class="icon">${iconByState(st)}</span></td>
+            <td><b>${mLabels[k]}</b></td>
+            <td>${v.toFixed(1)} mmol/L</td>
             <td><span class="state ${st}">${st==='low'?'منخفض':st==='high'?'مرتفع':'طبيعي'}</span></td>
             <td>${doses}</td>
-            <td>${escapeHTML(note)}</td>
-            <td class="actions center">
-              <button class="btn gray" data-edit="${key}">✏️ تعديل</button>
-            </td>
+            <td>${escapeHTML(notes)}</td>
           </tr>`;
       });
-
-      tb.innerHTML = html || `<tr><td colspan="6" class="note center">لا توجد قياسات.</td></tr>`;
-
-      // ربط زر التعديل
-      tb.querySelectorAll('button[data-edit]').forEach(btn=>{
-        btn.addEventListener('click', ()=>editReading(btn.dataset.edit, readings[btn.dataset.edit]));
-      });
+      $("#mRows").innerHTML = any? html : `<tr><td colspan="5" class="note center">لا توجد قياسات.</td></tr>`;
     }
 
-    function editReading(slot, r){
-      // تحميل القيمة في النموذج + تفعيل وضع التعديل
-      $("#mSlot").value = slot;
-      $("#mSlot").disabled = true;
-      editMode = { on:true, slot };
-      $("#mCancelEdit").classList.remove('hide');
-
-      // نملأ الحقول (اعتمادًا على المخزن mmol)
-      const mmol = round1(Number(r?.valueMmol ?? r?.value ?? 0));
-      document.querySelector('input[name="unit"][value="mmol"]').checked = true;
-      $("#mValue").value = mmol ? mmol.toFixed(1) : '';
-      $("#mCarbs").value = r?.carbs ?? '';
-      $("#mDoseSuggested").value = ''; // يُعاد الحساب حسب ICR والـ carbs
-      $("#mDoseGiven").value = r?.mealDose ?? '';
-      $("#mCorr").value = r?.correctionGiven ?? '';
-      $("#mRaisedWith").value = r?.raisedWith ?? '';
-      $("#mNote").value = r?.note ?? '';
-
-      // تحديث صناديق الحالة/التصحيح/الرفع
-      const event = new Event('input'); $("#mValue").dispatchEvent(event); $("#mCarbs").dispatchEvent(event);
-      toast('وضع التعديل مفعّل لهذا التوقيت');
-    }
-
-    /* ===== حفظ القياس ===== */
-    async function onSave(){
-      const date = $("#mDate").value.trim();
-      const slot = $("#mSlot").value;
-      const unit = document.querySelector('input[name="unit"]:checked').value; // mmol | mg
-      const raw  = Number($("#mValue").value||0);
-
-      if(!date || !slot){ toast('اختاري التاريخ ووقت القياس'); return; }
-      if(!(raw>0)){ toast('أدخلي قراءة صحيحة'); return; }
-
-      // التحويل إلى mmol/L
-      const mmol = unit==='mg' ? round1(raw/18) : round1(raw);
-
-      // جرعات وملاحظات
-      const carbs = ($("#mCarbs").value==='') ? null : Number($("#mCarbs").value);
-      const mealDose = ($("#mDoseGiven").value==='') ? null : Number($("#mDoseGiven").value);
-      const correction = ($("#mCorr").value==='') ? null : Number($("#mCorr").value);
-      const raised = $("#mRaisedWith").value.trim() || null;
-      const note   = $("#mNote").value.trim() || null;
-
-      // تحديد الحالة
-      const low  = Number(child?.lowThreshold);
-      const high = Number(child?.highThreshold);
-      const status = stateBy(mmol, low, high);
-
-      showLoader(true);
-      try{
-        const ref  = doc(db,'users',uid,'children',childId,'measurements',date);
-        const snap = await getDoc(ref);
-        const base = snap.data() || { date, readings:{} };
-        if(!base.readings) base.readings = {};
-
-        // منع تكرار نفس الوقت لنفس اليوم—إلا في وضع التعديل على نفس الخانة
-        if(!editMode.on){
-          if(base.readings[slot] && base.readings[slot].valueMmol!=null){
-            toast('⚠️ هذا الوقت مُسجّل بالفعل لهذا اليوم'); showLoader(false); return;
-          }
-        }else{
-          // لو في وضع التعديل لكن غيّرتِ السلوْت ممنوع (المربع مقفول بالفعل)
-          if(editMode.slot !== slot){
-            toast('⚠️ لا يمكنكِ تغيير وقت القياس أثناء التعديل'); showLoader(false); return;
-          }
-        }
-
-        base.readings[slot] = {
-          valueMmol: mmol,
-          status,
-          carbs,
-          mealDose,
-          correctionGiven: correction,
-          raisedWith: raised,
-          note
-        };
-
-        await setDoc(ref, base, {merge:true});
-        toast(editMode.on ? '✅ تم تحديث القياس' : '✅ تم حفظ القياس');
-
-        // إنهاء وضع التعديل إن وجد
-        editMode={on:false,slot:null};
-        $("#mCancelEdit").classList.add('hide');
-        $("#mSlot").disabled=false;
-
-        // تفريغ الحقول الخفيفة
-        // $("#mValue").value=''; $("#mCarbs").value=''; $("#mDoseGiven").value=''; $("#mCorr").value=''; $("#mRaisedWith").value=''; $("#mNote").value='';
-
-        await loadDay();
-      }catch(e){
-        console.error(e);
-        toast('⚠️ فشل الحفظ — تحققي من الصلاحيات');
-      }finally{
-        showLoader(false);
-      }
-    }
-
-    /* ===== Utils ===== */
-    function escapeHTML(str){ return String(str||'').replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+    function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]))}
   </script>
 </body>
 </html>
