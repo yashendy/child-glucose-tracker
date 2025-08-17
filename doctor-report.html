@@ -1,254 +1,358 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>تقرير الطبيب</title>
-<link rel="stylesheet" href="styles.css">
-<style>
-.table thead th{white-space:nowrap}
-.chart-box{position:relative;width:280px;max-width:100%}
-.tir-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;font-weight:800}
-.tir-big{font-size:22px}
-.tir-small{font-size:11px;color:#475569}
-@media print{
-  @page{ size:A4; margin:10mm }
-  .chart-box{width:240px}
-}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>تقرير الطبيب — تحليل القياسات</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    :root{
+      --line:#e5e7eb; --muted:#6b7280; --ok:#16a34a; --low:#b45309; --high:#dc2626;
+      --okbg:#ecfdf5; --lowbg:#fff7ed; --highbg:#fee2e2;
+    }
+    /* لمسات خفيفة لهذه الصفحة */
+    .state{display:inline-block;padding:2px 8px;border-radius:999px}
+    .state.ok{background:var(--okbg);color:var(--ok)}
+    .state.low{background:var(--lowbg);color:var(--low)}
+    .state.high{background:var(--highbg);color:var(--high)}
+    .small{font-size:12px;color:var(--muted)}
+    .table{width:100%;border-collapse:separate;border-spacing:0}
+    .table th,.table td{border:1px solid var(--line);padding:8px;text-align:right;vertical-align:top}
+    .table thead th{background:#f1f5f9;font-weight:800}
+    .table td.date{background:#fbfdff;white-space:nowrap;font-weight:800}
+    .cell{display:flex;flex-direction:column;gap:4px}
+    .icon-plate{font-size:14px}
+    .kpi{display:grid;gap:10px;grid-template-columns:repeat(7,minmax(0,1fr))}
+    .kpi .box{background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:10px}
+    .kpi .v{font-weight:800}
+    .chart-box{position:relative;width:260px;max-width:100%}
+    .tir-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;font-weight:800}
+    .tir-big{font-size:22px}
+    .tir-small{font-size:11px;color:#475569}
+    @media print{
+      @page{size:A4;margin:10mm}
+      header,.no-print{display:none!important}
+      body{background:#fff}
+      .card{border:0;box-shadow:none;margin:0 0 8px;padding:0}
+      .chart-box{width:220px}
+      .table th,.table td{padding:6px}
+    }
+  </style>
 </head>
 <body>
-<div class="topbar">
-  <div>📊 تقرير الطبيب</div>
-  <div class="row">
-    <a id="lnkDash" class="btn gray">لوحة الطفل</a>
-    <button id="btnPrint" class="btn">🖨️ طباعة</button>
-    <button id="btnBlank" class="btn">📝 تقرير فارغ (7 أيام)</button>
+
+  <!-- بنر الطفل -->
+  <div id="childBanner" style="text-align:center; padding:12px 8px; display:none">
+    <img id="bannerAvatar" class="avatar" style="width:84px;height:84px" src="images/avatar-default.png" alt="صورة الطفل">
+    <div style="margin-top:6px;font-weight:800" id="bannerName">—</div>
+    <div class="note" id="bannerMeta">—</div>
   </div>
-</div>
 
-<main class="container">
-  <section class="card">
-    <div class="row" style="gap:12px;align-items:center">
-      <img id="avatar" class="avatar" style="width:64px;height:64px" src="images/avatar-default.png" alt="">
-      <div>
-        <div id="kidName" style="font-weight:800">—</div>
-        <div id="kidMeta" class="note">—</div>
-      </div>
-      <span class="badge-soft" id="kidSetup">—</span>
+  <!-- الشريط العلوي -->
+  <div class="topbar">
+    <div>🩺 تقرير الطبيب</div>
+    <div class="row">
+      <a id="lnkHome" class="btn gray">الرئيسية</a>
+      <button id="btnPrint" class="btn">🖨️ طباعة PDF</button>
     </div>
-  </section>
+  </div>
 
-  <section class="card">
-    <div class="grid g4">
-      <div><label>الفترة السريعة</label>
-        <select id="preset">
-          <option value="7">آخر 7 أيام</option>
-          <option value="14">آخر 14 يومًا</option>
-          <option value="30">آخر 30 يومًا</option>
-          <option value="custom">مخصص…</option>
-        </select>
-      </div>
-      <div><label>من</label><input id="from" type="date"></div>
-      <div><label>إلى</label><input id="to" type="date"></div>
-      <div class="row" style="align-items:end">
-        <button id="run" class="btn primary" style="width:100%">عرض</button>
-      </div>
-    </div>
-    <div id="periodMeta" class="note" style="margin-top:6px">—</div>
-  </section>
+  <main class="container">
+    <!-- تنقّل صفحات الطفل -->
+    <div class="card"><div class="row" id="childNav"></div></div>
 
-  <section class="card">
-    <div class="kpi" style="display:grid;gap:10px;grid-template-columns:repeat(7,minmax(0,1fr))">
-      <div class="box"><div class="small">عدد القراءات</div><div id="k_total" class="v" style="font-weight:800">—</div></div>
-      <div class="box"><div class="small">منخفض</div><div id="k_low" class="v" style="font-weight:800">—</div></div>
-      <div class="box"><div class="small">طبيعي</div><div id="k_ok" class="v" style="font-weight:800">—</div></div>
-      <div class="box"><div class="small">مرتفع</div><div id="k_high" class="v" style="font-weight:800">—</div></div>
-      <div class="box"><div class="small">% داخل النطاق</div><div id="k_tir" class="v" style="font-weight:800">—%</div></div>
-      <div class="box"><div class="small">متوسط القراءة</div><div id="k_avg" class="v" style="font-weight:800">—</div></div>
-      <div class="box"><div class="small">أعلى/أقل</div><div id="k_minmax" class="v" style="font-weight:800">—</div></div>
-    </div>
-  </section>
-
-  <section class="card">
-    <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:6px">
-      <h3 style="margin:0">📋 جدول القياسات</h3>
-      <div class="small">يعرض القراءة (بسهم) ثم الجرعات ثم الملاحظات و🍽️ لو فيه وجبة</div>
-    </div>
-    <table class="table">
-      <thead>
-        <tr>
-          <th>التاريخ</th>
-          <th>الاستيقاظ</th><th>قبل الإفطار</th><th>بعد الإفطار</th>
-          <th>قبل الغداء</th><th>بعد الغداء</th>
-          <th>قبل العشاء</th><th>بعد العشاء</th>
-          <th>قبل النوم</th><th>أثناء النوم</th>
-        </tr>
-      </thead>
-      <tbody id="rows"><tr><td colspan="10" class="note">—</td></tr></tbody>
-    </table>
-  </section>
-
-  <section class="card">
-    <h3 style="margin:0 0 6px">🍩 توزيع القراءات</h3>
-    <div class="row" style="gap:18px;align-items:center;flex-wrap:wrap">
-      <div class="chart-box">
-        <canvas id="chartDonut" width="280" height="280"></canvas>
-        <div class="tir-center">
-          <div id="tirBig" class="tir-big">—%</div>
-          <div class="tir-small">داخل النطاق</div>
+    <!-- فلاتر الفترة -->
+    <section class="card">
+      <div class="grid g4">
+        <div>
+          <label class="small">الفترة السريعة</label>
+          <select id="preset">
+            <option value="7">آخر 7 أيام</option>
+            <option value="14">آخر 14 يومًا</option>
+            <option value="30">آخر 30 يومًا</option>
+            <option value="custom">مخصص…</option>
+          </select>
+        </div>
+        <div>
+          <label class="small">من</label>
+          <input id="from" type="date">
+        </div>
+        <div>
+          <label class="small">إلى</label>
+          <input id="to" type="date">
+        </div>
+        <div class="row" style="align-items:end">
+          <button id="run" class="btn primary" style="width:100%">عرض التقرير</button>
         </div>
       </div>
-      <div class="note" id="donutMeta">—</div>
-    </div>
-  </section>
-</main>
+      <div id="periodMeta" class="small" style="margin-top:6px">—</div>
+    </section>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script type="module">
-import { auth, db, ensureAuth, requireChildIdFromQuery, loadChildProfile, setChildAvatar, todayISO } from './firebase-init.js';
-import { collection, getDocs, doc, getDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+    <!-- بيانات الطفل السريعة -->
+    <section class="card" id="kidInfoCard" style="display:none">
+      <div class="row" style="flex-wrap:wrap; gap:12px">
+        <span class="badge-soft">الوحدة: mmol/L</span>
+        <span id="kidBounds" class="badge-soft">حدود: —</span>
+        <span id="kidTargets" class="badge-soft">هدف/CF/ICR: —</span>
+      </div>
+    </section>
 
-const $=s=>document.querySelector(s);
-let uid=null, childId=null, child=null, donut=null;
+    <!-- KPIs -->
+    <section class="card">
+      <div class="kpi">
+        <div class="box"><div class="small">عدد القراءات</div><div id="k_total" class="v">—</div></div>
+        <div class="box"><div class="small">منخفض</div><div id="k_low" class="v">—</div></div>
+        <div class="box"><div class="small">طبيعي</div><div id="k_ok" class="v">—</div></div>
+        <div class="box"><div class="small">مرتفع</div><div id="k_high" class="v">—</div></div>
+        <div class="box"><div class="small">داخل النطاق %</div><div id="k_tir" class="v">—%</div></div>
+        <div class="box"><div class="small">متوسط القراءة</div><div id="k_avg" class="v">—</div></div>
+        <div class="box"><div class="small">أعلى / أقل</div><div id="k_minmax" class="v">—</div></div>
+      </div>
+    </section>
 
-const labels={
-  uponWake:'الاستيقاظ', preBreakfast:'قبل الإفطار', postBreakfast:'بعد الإفطار',
-  preLunch:'قبل الغداء', postLunch:'بعد الغداء',
-  preDinner:'قبل العشاء', postDinner:'بعد العشاء',
-  beforeSleep:'قبل النوم', duringSleep:'أثناء النوم'
-};
-const order=['uponWake','preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep'];
+    <!-- جدول أفقي (تاريخ على اليمين + خانات الأوقات) -->
+    <section class="card">
+      <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:6px">
+        <h3 style="margin:0">📋 جدول القياسات</h3>
+        <div class="small">الخانة تعرض: القياس (بسهم/نقطة) ثم الجرعات ثم الملاحظات و🍽️ لو وُجدت وجبة بنفس اليوم</div>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>التاريخ</th>
+            <th>الاستيقاظ</th>
+            <th>قبل الإفطار</th><th>بعد الإفطار</th>
+            <th>قبل الغداء</th><th>بعد الغداء</th>
+            <th>قبل العشاء</th><th>بعد العشاء</th>
+            <th>قبل النوم</th><th>أثناء النوم</th>
+          </tr>
+        </thead>
+        <tbody id="rows">
+          <tr><td colspan="10" class="small">اختاري فترة لعرض البيانات.</td></tr>
+        </tbody>
+      </table>
+    </section>
 
-function z2(n){return String(n).padStart(2,'0')}
-function addDays(iso,n){const d=new Date(iso); d.setDate(d.getDate()+n); return `${d.getFullYear()}-${z2(d.getMonth()+1)}-${z2(d.getDate())}`;}
-function enumerateDates(from,to){const out=[];let d=new Date(from),e=new Date(to);while(d<=e){out.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1)}return out;}
-function round1(x){return Math.round(Number(x)*10)/10}
-function stateBy(v,low,high){ if(v==null||isNaN(v))return'ok'; if(isFinite(low)&&v<low)return'low'; if(isFinite(high)&&v>high)return'high'; return 'ok'; }
-function iconBy(st){return st==='low'?'⬇️':st==='high'?'⬆️':'🟢'}
+    <!-- Doughnut -->
+    <section class="card">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h3 style="margin:0">🍩 توزيع القراءات</h3>
+        <span class="badge-soft small">TIR في الوسط</span>
+      </div>
+      <div class="row" style="gap:20px;align-items:center;flex-wrap:wrap">
+        <div class="chart-box">
+          <canvas id="chartDonut" width="260" height="260"></canvas>
+          <div class="tir-center">
+            <div id="tirBig" class="tir-big">—%</div>
+            <div class="tir-small">داخل النطاق</div>
+          </div>
+        </div>
+        <div class="small" id="donutMeta">—</div>
+      </div>
+    </section>
+  </main>
 
-(async function boot(){
-  ({uid}=await ensureAuth());
-  childId=requireChildIdFromQuery();
-  $('#lnkDash').href=`child-dashboard.html?child=${encodeURIComponent(childId)}`;
+  <div id="toast" class="toast"></div>
+  <div id="loader" class="loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
 
-  child=await loadChildProfile(uid, childId);
-  setChildAvatar($('#avatar'), child.name, child.photoURL);
-  $('#kidName').textContent=child.name||'—';
-  $('#kidMeta').textContent=`${child.gender||'—'} • ${child.weight??'—'} كجم • ${child.height??'—'} سم`;
-  $('#kidSetup').textContent=`الوحدة: mmol/L • حدود: ${child.lowThreshold??'—'} — ${child.highThreshold??'—'}`;
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script type="module">
+    /* ===== أدوات مشتركة من firebase-init.js ===== */
+    import {
+      auth, db, ensureAuth, requireChildIdFromQuery,
+      setChildAvatar
+    } from './firebase-init.js';
 
-  const to=todayISO(), from=addDays(to,-6);
-  $('#from').value=from; $('#to').value=to;
-  updatePeriodMeta();
+    import { signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    import { doc, getDoc, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-  $('#preset').addEventListener('change',()=>{
-    if($('#preset').value==='custom') return;
-    const n=Number($('#preset').value); const to=todayISO(), from=addDays(to,-(n-1));
-    $('#from').value=from; $('#to').value=to; updatePeriodMeta();
-  });
-  $('#run').addEventListener('click',build);
-  $('#btnPrint').addEventListener('click',()=>window.print());
-  $('#btnBlank').addEventListener('click',makeBlank7);
+    const $=s=>document.querySelector(s);
+    const toast=(m)=>{const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2000)}
+    const showLoader=(on)=>{$("#loader").style.display=on?"flex":"none"}
 
-  await build();
-})();
+    const labels={
+      uponWake:'الاستيقاظ',
+      preBreakfast:'قبل الإفطار', postBreakfast:'بعد الإفطار',
+      preLunch:'قبل الغداء',     postLunch:'بعد الغداء',
+      preDinner:'قبل العشاء',    postDinner:'بعد العشاء',
+      beforeSleep:'قبل النوم',   duringSleep:'أثناء النوم'
+    };
+    const order=['uponWake','preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep'];
 
-function updatePeriodMeta(){
-  $('#periodMeta').textContent = `الفترة: ${$('#from').value||'—'} → ${$('#to').value||'—'}`;
-}
+    const z2=n=>String(n).padStart(2,'0');
+    const todayISO = ()=>{const d=new Date();return `${d.getFullYear()}-${z2(d.getMonth()+1)}-${z2(d.getDate())}`};
+    function addDays(iso, n){const d=new Date(iso);d.setDate(d.getDate()+n);return `${d.getFullYear()}-${z2(d.getMonth()+1)}-${z2(d.getDate())}`}
+    function enumerateDates(from,to){const out=[];let d=new Date(from);const end=new Date(to);while(d<=end){out.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1)}return out}
+    const round1=n=>Math.round(Number(n)*10)/10;
+    function stateBy(v, low, high){ if(v==null||isNaN(v)) return 'ok'; if(isFinite(low)&&v<low) return 'low'; if(isFinite(high)&&v>high) return 'high'; return 'ok' }
+    const iconByState = s => s==='low'?'⬇️':(s==='high'?'⬆️':'🟢');
 
-async function getMealsPresenceByDate(from,to){
-  const map=new Map();
-  const snap=await getDocs(collection(db,'users',uid,'children',childId,'meals'));
-  snap.forEach(s=>{
-    const d=(String((s.data().time||'')).slice(0,10));
-    if(d>=from&&d<=to) map.set(d,true);
-  });
-  return map;
-}
+    let uid=null, childId=new URL(location.search).searchParams.get('child');
+    let child={}, donutChart=null;
 
-async function build(){
-  updatePeriodMeta();
-  const from=$('#from').value, to=$('#to').value; if(!from||!to){alert('حددي الفترة'); return;}
-  const col=collection(db,'users',uid,'children',childId,'measurements');
-  const qs=await getDocs(query(col, where('date','>=',from), where('date','<=',to), orderBy('date','asc')));
+    (async function boot(){
+      showLoader(true);
+      const u=await ensureAuth(); uid=u.uid;
+      if(!childId) childId=requireChildIdFromQuery();
 
-  const mapByDate=new Map();
-  qs.forEach(s=>{ const d=s.data()||{}; mapByDate.set(d.date, d.readings||{}) });
+      // nav
+      const nav=$("#childNav"); nav.innerHTML="";
+      [
+        ['child-dashboard.html','الرئيسية'],
+        ['measures.html','قياسات السكر'],
+        ['meals.html','الوجبات'],
+        ['reports.html','التقارير'],
+        ['visits.html','الزيارات الطبية'],
+        ['doctor-report.html','تقرير الدكتور']
+      ].forEach(([h,t])=>{
+        const a=document.createElement('a'); a.className='btn gray'; a.href=`${h}?child=${encodeURIComponent(childId)}`; a.textContent=t; nav.appendChild(a);
+      });
+      $("#lnkHome").href=`child-dashboard.html?child=${encodeURIComponent(childId)}`;
 
-  const mealsMap = await getMealsPresenceByDate(from,to);
+      await loadChild();
+      initFilters();
+      await build();
 
-  const dates=enumerateDates(from,to);
-  const tbody=$('#rows'); tbody.innerHTML='';
+      $("#btnPrint").addEventListener('click',()=>window.print());
+      showLoader(false);
+    })().catch(err=>{console.error(err);toast('⚠️ فشل التهيئة');showLoader(false)});
 
-  let total=0, cLow=0, cOk=0, cHigh=0, sum=0, minV=Infinity, maxV=-Infinity, minD='—', maxD='—';
+    async function loadChild(){
+      const snap=await getDoc(doc(db,'users',uid,'children',childId));
+      if(!snap.exists()){ toast('الطفل غير موجود'); return; }
+      child=snap.data()||{};
+      setChildAvatar($("#bannerAvatar"),child.name,child.photoURL);
+      $("#bannerName").textContent=child.name||'—';
+      $("#bannerMeta").textContent=[child.gender||'', (child.weight!=null?child.weight+' كجم':'—'), (child.height!=null?child.height+' سم':'—')].filter(Boolean).join(' • ');
+      $("#childBanner").style.display='block';
 
-  dates.forEach(date=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td class="date">${date}</td>`;
-    const readings=mapByDate.get(date)||{};
-    const hasMeal=mealsMap.get(date)===true;
+      $("#kidInfoCard").style.display='block';
+      $("#kidBounds").textContent = `حدود: ${child.lowThreshold??'—'} — ${child.highThreshold??'—'}`;
+      $("#kidTargets").textContent= `هدف/CF/ICR: ${child.target??'—'} • ${child.correctionFactor??'—'} • ${child.icr??'—'}`;
+    }
 
-    order.forEach(slot=>{
-      const r=readings[slot];
-      const td=document.createElement('td');
-      if(!r || (r.valueMmol==null && r.value==null)){ td.textContent='—'; tr.appendChild(td); return; }
-      const v=round1(r.valueMmol ?? r.value);
-      const st=stateBy(v, Number(child.lowThreshold), Number(child.highThreshold));
-      const doses = [
-        r.mealDose!=null? `وجبة: ${r.mealDose}U` : '',
-        r.correctionGiven!=null? `تصحيح: ${r.correctionGiven}U` : ''
-      ].filter(Boolean).join(' • ');
-      const note = [r.note||'', r.raisedWith||''].filter(Boolean).join(' — ');
-      const plate = hasMeal? ' 🍽️' : '';
-      td.innerHTML = `
-        <div class="cell">
-          <div class="line"><b>${v.toFixed(1)} mmol/L</b> ${iconBy(st)}</div>
-          ${doses? `<div class="line small">${doses}</div>`:''}
-          ${(note||hasMeal)? `<div class="line note">${note||''}${plate}</div>`:''}
-        </div>`;
-      tr.appendChild(td);
+    function initFilters(){
+      const to=todayISO(), from=addDays(to,-6);
+      $("#from").value=from; $("#to").value=to;
+      $("#preset").addEventListener('change',()=>{
+        const v=$("#preset").value; if(v==='custom') return;
+        const to=todayISO(); const from=addDays(to,-(Number(v)-1));
+        $("#from").value=from; $("#to").value=to; updatePeriodMeta();
+      });
+      $("#run").addEventListener('click', build);
+      updatePeriodMeta();
+    }
+    function updatePeriodMeta(){
+      $("#periodMeta").textContent=`الفترة: ${$("#from").value||'—'} → ${$("#to").value||'—'}`;
+    }
 
-      total++; sum+=v;
-      if(st==='low') cLow++; else if(st==='high') cHigh++; else cOk++;
-      if(v<minV){minV=v;minD=date;} if(v>maxV){maxV=v;maxD=date;}
-    });
+    async function build(){
+      updatePeriodMeta();
+      const from=$("#from").value, to=$("#to").value;
+      if(!from || !to){ toast('حددي من/إلى'); return; }
 
-    tbody.appendChild(tr);
-  });
+      // قياسات الفترة
+      const qy=query(
+        collection(db,'users',uid,'children',childId,'measurements'),
+        where('date','>=',from), where('date','<=',to), orderBy('date','asc')
+      );
+      const qs=await getDocs(qy);
+      const byDate=new Map();
+      qs.forEach(s=>{ const d=s.data()||{}; byDate.set(d.date, d.readings||{}) });
 
-  $('#k_total').textContent=total; $('#k_low').textContent=cLow; $('#k_ok').textContent=cOk; $('#k_high').textContent=cHigh;
-  const tir = total? Math.round((cOk/total)*100) : 0;
-  $('#k_tir').textContent = tir+'%';
-  $('#k_avg').textContent = total? (sum/total).toFixed(1)+' mmol/L' : '—';
-  $('#k_minmax').textContent = (isFinite(minV)&&isFinite(maxV))? `${minV.toFixed(1)} / ${maxV.toFixed(1)} mmol/L (${minD} — ${maxD})` : '—';
+      // وجود وجبات حسب اليوم (لأيقونة 🍽️)
+      const mealsByDate = await getMealsPresenceByDate(from,to);
 
-  renderDonut(cLow,cOk,cHigh,total,tir);
-}
+      const dates=enumerateDates(from,to);
+      const tbody=$("#rows"); tbody.innerHTML='';
 
-function renderDonut(low,ok,high,total,tir){
-  const ctx=document.getElementById('chartDonut').getContext('2d');
-  if(donut) donut.destroy();
-  donut=new Chart(ctx,{
-    type:'doughnut',
-    data:{labels:['منخفض','طبيعي','مرتفع'],datasets:[{data:[low,ok,high],backgroundColor:['#f59e0b','#22c55e','#ef4444'],borderWidth:2,borderColor:'#fff'}]},
-    options:{plugins:{legend:{display:true,position:'bottom'}},cutout:'65%'}
-  });
-  $('#tirBig').textContent = (isFinite(tir)?tir:0)+'%';
-  $('#donutMeta').textContent = `الإجمالي: ${total} • منخفض: ${low} • طبيعي: ${ok} • مرتفع: ${high}`;
-}
+      let total=0,cLow=0,cOk=0,cHigh=0,sum=0;
+      let minV=Infinity,maxV=-Infinity,minD='—',maxD='—';
 
-function makeBlank7(){
-  const to=todayISO(); const from=addDays(to,-6);
-  $('#from').value=from; $('#to').value=to; updatePeriodMeta();
-  const dates=enumerateDates(from,to);
-  const tbody=$('#rows');
-  tbody.innerHTML= dates.map(d=>{
-    const empty = '<td>—</td>'.repeat(order.length);
-    return `<tr><td class="date">${d}</td>${empty}</tr>`;
-  }).join('');
-  renderDonut(0,0,0,0,0);
-}
-</script>
+      dates.forEach(date=>{
+        const tr=document.createElement('tr');
+        const tdDate=document.createElement('td'); tdDate.className='date'; tdDate.textContent=date; tr.appendChild(tdDate);
+
+        const readings=byDate.get(date)||{};
+        const hasMeal=mealsByDate.get(date)===true;
+
+        order.forEach(slot=>{
+          const td=document.createElement('td');
+          const r=readings[slot];
+          if(!r || (r.valueMmol==null && r.value==null)){ td.textContent='—'; }
+          else{
+            const v=round1(Number(r.valueMmol ?? r.value));
+            const st=stateBy(v, Number(child.lowThreshold), Number(child.highThreshold));
+            const icon = iconByState(st);
+            const doses=[ (r.mealDose!=null?`وجبة: ${r.mealDose}U`:''), (r.correctionGiven!=null?`تصحيح: ${r.correctionGiven}U`:'') ].filter(Boolean).join(' • ');
+            const note=[r.note||'', r.raisedWith||''].filter(Boolean).join(' — ');
+            const plate = hasMeal ? ' <span class="icon-plate" title="يوجد وجبة هذا اليوم">🍽️</span>' : '';
+
+            td.innerHTML = `
+              <div class="cell">
+                <div><b>${v.toFixed(1)} mmol/L</b> ${icon}</div>
+                ${doses? `<div class="small">${doses}</div>`:''}
+                ${(note||hasMeal)? `<div class="small">${note||''}${plate}</div>`:''}
+              </div>
+            `;
+
+            total++; sum+=v;
+            if(isFinite(Number(child.lowThreshold)) && v<Number(child.lowThreshold)) cLow++;
+            else if(isFinite(Number(child.highThreshold)) && v>Number(child.highThreshold)) cHigh++;
+            else cOk++;
+
+            if(v<minV){minV=v;minD=date} if(v>maxV){maxV=v;maxD=date}
+          }
+          tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+      });
+
+      $("#k_total").textContent=total||0;
+      $("#k_low").textContent=cLow;
+      $("#k_ok").textContent=cOk;
+      $("#k_high").textContent=cHigh;
+      const tir = total? Math.round((cOk/total)*100) : 0;
+      $("#k_tir").textContent=tir+'%';
+      $("#k_avg").textContent= total? (sum/total).toFixed(1)+' mmol/L' : '—';
+      $("#k_minmax").textContent=(isFinite(minV)&&isFinite(maxV))? `${minV.toFixed(1)} / ${maxV.toFixed(1)} mmol/L (${minD} — ${maxD})` : '—';
+
+      renderDonut(cLow,cOk,cHigh,total,tir);
+    }
+
+    async function getMealsPresenceByDate(from,to){
+      const map=new Map();
+      const snap=await getDocs(collection(db,'users',uid,'children',childId,'meals'));
+      snap.forEach(s=>{
+        const m=s.data()||{}; if(!m.time) return;
+        const d=String(m.time).slice(0,10);
+        if(d>=from && d<=to) map.set(d,true);
+      });
+      return map;
+    }
+
+    let donutChart=null;
+    function renderDonut(low,ok,high,total,tir){
+      const ctx=$("#chartDonut").getContext('2d');
+      if(donutChart) donutChart.destroy();
+      donutChart = new Chart(ctx,{
+        type:'doughnut',
+        data:{labels:['منخفض','طبيعي','مرتفع'],datasets:[{data:[low,ok,high],backgroundColor:['#f59e0b','#22c55e','#ef4444'],borderColor:'#fff',borderWidth:2,hoverOffset:6}]},
+        options:{
+          plugins:{
+            legend:{display:true,position:'bottom',labels:{usePointStyle:true,pointStyle:'circle'}},
+            tooltip:{callbacks:{label:(c)=>{const v=c.parsed;const pct= total? Math.round((v/total)*100):0; return `${c.label}: ${v} (${pct}%)`;}}}
+          },
+          cutout:'65%', responsive:true, animation:{duration:500}
+        }
+      });
+      $("#tirBig").textContent=(isFinite(tir)?tir:0)+'%';
+      $("#donutMeta").textContent=`الإجمالي: ${total||0} • منخفض: ${low} • طبيعي: ${ok} • مرتفع: ${high}`;
+    }
+
+    // خروج
+    $("#btnLogout")?.addEventListener('click', ()=>signOut(auth).then(()=>location.href='index.html'));
+  </script>
 </body>
 </html>
