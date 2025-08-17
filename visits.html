@@ -1,154 +1,196 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>الزيارات الطبية</title>
-<link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>الزيارات الطبية</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .table{width:100%;border-collapse:separate;border-spacing:0}
+    .table th,.table td{border:1px solid #e5e7eb;padding:8px;text-align:right;vertical-align:top}
+    .table thead th{background:#f0f9ff}
+    .chip{display:inline-flex;align-items:center;gap:6px;background:#eef6ff;color:#0369a1;border-radius:999px;padding:4px 8px;font-weight:800;font-size:12px}
+    .print-visit{display:none;background:#fff;color:#000;padding:12px;border:1px dashed #e5e7eb;margin-top:10px}
+    @media print{
+      header,.no-print,.topbar,.btn{display:none!important}
+      .print-visit{display:block!important}
+    }
+  </style>
 </head>
 <body>
-<div class="topbar">
-  <div>📅 الزيارات الطبية</div>
-  <div class="row">
-    <a id="lnkDash" class="btn gray">لوحة الطفل</a>
+  <!-- بنر الطفل -->
+  <div id="childBanner" style="text-align:center; padding:12px 8px; display:none">
+    <img id="bannerAvatar" class="avatar" style="width:84px;height:84px" src="images/avatar-default.png" alt="صورة الطفل">
+    <div style="margin-top:6px;font-weight:800" id="bannerName">—</div>
+    <div class="note" id="bannerMeta">—</div>
   </div>
-</div>
 
-<main class="container">
-  <section class="card">
-    <div class="row" style="gap:12px;align-items:center">
-      <img id="avatar" class="avatar" style="width:64px;height:64px" src="images/avatar-default.png" alt="">
-      <div>
-        <div id="kidName" style="font-weight:800">—</div>
-        <div id="kidMeta" class="note">—</div>
-      </div>
+  <div class="topbar">
+    <div>📅 الزيارات الطبية</div>
+    <div class="row">
+      <a id="lnkHome" class="btn gray">الرئيسية</a>
       <button id="btnNew" class="btn">➕ زيارة جديدة</button>
+      <button id="btnLogout" class="btn">خروج</button>
     </div>
-  </section>
+  </div>
 
-  <section class="card" id="formBox" style="display:none">
-    <h3 style="margin:0 0 8px">إضافة / تعديل زيارة</h3>
-    <div class="grid g3">
-      <div><label>التاريخ</label><input id="vDate" type="date"></div>
-      <div><label>الطبيب</label><input id="vDoctor"></div>
-      <div><label>العيادة</label><input id="vClinic"></div>
-      <div style="grid-column:1/-1"><label>السبب</label><input id="vReason"></div>
-      <div style="grid-column:1/-1"><label>ملاحظات</label><textarea id="vNotes" rows="2"></textarea></div>
-      <div style="grid-column:1/-1"><label>روابط مرفقات (اختياري — سطر لكل رابط)</label><textarea id="vFiles" rows="2" placeholder="https://…\nhttps://…"></textarea></div>
+  <main class="container">
+    <div class="card"><div class="row" id="childNav"></div></div>
+
+    <!-- النموذج -->
+    <section id="visitFormBox" class="card" style="display:none">
+      <h3 style="margin:0 0 6px">إضافة / تعديل زيارة</h3>
+      <div class="grid g3">
+        <div><label>تاريخ</label><input id="vDate" type="date"></div>
+        <div><label>الطبيب</label><input id="vDoctor" placeholder="مثال: د. أحمد"></div>
+        <div><label>العيادة</label><input id="vClinic" placeholder="مثال: مستشفى الأطفال"></div>
+        <div style="grid-column:1/-1"><label>السبب / الشكوى</label><input id="vReason" placeholder="متابعة/ضبط جرعات…"></div>
+        <div style="grid-column:1/-1"><label>ملاحظات</label><textarea id="vNotes" rows="2"></textarea></div>
+      </div>
+      <div class="row" style="justify-content:flex-end;margin-top:8px">
+        <button id="btnVisitSave" class="btn primary">💾 حفظ</button>
+        <button id="btnVisitCancel" class="btn gray">إلغاء</button>
+      </div>
+    </section>
+
+    <!-- القائمة -->
+    <section class="card">
+      <h3 style="margin:0 0 6px">قائمة الزيارات</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>التاريخ</th>
+            <th>الطبيب</th>
+            <th>العيادة</th>
+            <th>السبب</th>
+            <th class="no-print">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="visitsRows">
+          <tr><td colspan="5" class="note">لا توجد زيارات بعد.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div id="visitPrintArea" class="print-visit">
+      <h4>🧑‍⚕️ ملخص زيارة طبية</h4>
+      <div id="printBody"></div>
     </div>
-    <div class="row" style="justify-content:flex-end;margin-top:8px">
-      <button id="btnSave" class="btn primary">💾 حفظ</button>
-      <button id="btnCancel" class="btn gray">إلغاء</button>
-    </div>
-  </section>
+  </main>
 
-  <section class="card">
-    <table class="table">
-      <thead><tr><th>التاريخ</th><th>الطبيب</th><th>العيادة</th><th>السبب</th><th>مرفقات</th><th>إجراءات</th></tr></thead>
-      <tbody id="rows"><tr><td colspan="6" class="note">—</td></tr></tbody>
-    </table>
-  </section>
-</main>
+  <div id="toast" class="toast"></div>
 
-<script type="module">
-import { auth, db, ensureAuth, requireChildIdFromQuery, loadChildProfile, setChildAvatar, todayISO } from './firebase-init.js';
-import { collection, addDoc, query, orderBy, getDocs, doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+  <script type="module">
+    import { auth, db, ensureAuth, requireChildIdFromQuery, setChildAvatar } from './firebase-init.js';
+    import { signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    import { collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-const $=s=>document.querySelector(s);
-let uid=null, childId=null, child=null, editId=null;
+    const $=s=>document.querySelector(s);
+    const toast=(m)=>{const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2000)}
 
-(async function boot(){
-  ({uid}=await ensureAuth());
-  childId=requireChildIdFromQuery();
-  $('#lnkDash').href=`child-dashboard.html?child=${encodeURIComponent(childId)}`;
+    let uid=null, childId=null, child=null, editId=null;
 
-  child=await loadChildProfile(uid, childId);
-  setChildAvatar($('#avatar'), child.name, child.photoURL);
-  $('#kidName').textContent=child.name||'—';
-  $('#kidMeta').textContent=`${child.gender||'—'} • ${child.weight??'—'} كجم • ${child.height??'—'} سم`;
+    (async function(){
+      const u=await ensureAuth(); uid=u.uid; childId=requireChildIdFromQuery();
 
-  $('#btnNew').addEventListener('click', ()=>{ editId=null; showForm(true); $('#vDate').value=todayISO(); });
-  $('#btnCancel').addEventListener('click', ()=>showForm(false));
-  $('#btnSave').addEventListener('click', saveVisit);
+      // nav
+      const nav=$("#childNav"); nav.innerHTML='';
+      [['child-dashboard.html','الرئيسية'],['measures.html','قياسات السكر'],['meals.html','الوجبات'],['reports.html','التقارير'],['visits.html','الزيارات الطبية'],['doctor-report.html','تقرير الدكتور']]
+      .forEach(([h,t])=>{ const a=document.createElement('a'); a.className='btn gray'; a.href=`${h}?child=${encodeURIComponent(childId)}`; a.textContent=t; nav.appendChild(a);});
+      $("#lnkHome").href=`child-dashboard.html?child=${encodeURIComponent(childId)}`;
 
-  await loadVisits();
-})();
+      await loadChild();
+      await loadVisits();
 
-function showForm(on){ $('#formBox').style.display = on? 'block':'none'; }
-function linksFromTextarea(v){ return String(v||'').split('\n').map(s=>s.trim()).filter(Boolean).map(url=>({url,name:url})); }
+      $("#btnNew").addEventListener('click', ()=>{ editId=null; clearForm(); $("#vDate").value=new Date().toISOString().slice(0,10); $("#visitFormBox").style.display='block'; });
+      $("#btnVisitCancel").addEventListener('click', ()=> $("#visitFormBox").style.display='none');
+      $("#btnVisitSave").addEventListener('click', saveVisit);
+      $("#btnLogout").addEventListener('click', ()=>signOut(auth).then(()=>location.href='index.html'));
+    })();
 
-async function loadVisits(){
-  const tbody=$('#rows'); tbody.innerHTML='';
-  const qs = await getDocs(query(collection(db,'users',uid,'children',childId,'visits'), orderBy('date','desc')));
-  if(qs.empty){ tbody.innerHTML='<tr><td colspan="6" class="note">لا توجد زيارات.</td></tr>'; return; }
-  const html=[];
-  qs.forEach(s=>{
-    const v=s.data();
-    const files=Array.isArray(v.files)? v.files : [];
-    html.push(`<tr>
-      <td><b>${escapeHTML(v.date||'—')}</b></td>
-      <td>${escapeHTML(v.doctor||'—')}</td>
-      <td>${escapeHTML(v.clinic||'—')}</td>
-      <td>${escapeHTML(v.reason||'—')}</td>
-      <td>${files.length? files.map(f=>`<a href="${f.url}" target="_blank">رابط</a>`).join(' • ') : '—'}</td>
-      <td>
-        <button class="btn gray" onclick="viewVisit('${s.id}')">👁️</button>
-        <button class="btn gray" onclick="editVisit('${s.id}')">✏️</button>
-        <button class="btn gray" onclick="delVisit('${s.id}')">🗑️</button>
-      </td>
-    </tr>`);
-  });
-  tbody.innerHTML=html.join('');
-}
+    async function loadChild(){
+      const s=await getDoc(doc(db,'users',uid,'children',childId));
+      child=s.data()||{};
+      setChildAvatar($("#bannerAvatar"), child.name, child.photoURL);
+      $("#bannerName").textContent=child.name||'—';
+      $("#bannerMeta").textContent=[child.gender||'', (child.weight!=null?child.weight+' كجم':'—'), (child.height!=null?child.height+' سم':'—')].filter(Boolean).join(' • ');
+      $("#childBanner").style.display='block';
+    }
 
-window.viewVisit = async function(id){
-  const ref=doc(db,'users',uid,'children',childId,'visits',id);
-  const s=await getDoc(ref); if(!s.exists()) return alert('غير موجود');
-  const v=s.data();
-  const files=Array.isArray(v.files)?v.files:[];
-  const meta = `
-    التاريخ: ${escapeHTML(v.date||'—')}\nالطبيب: ${escapeHTML(v.doctor||'—')}\nالعيادة: ${escapeHTML(v.clinic||'—')}
-    \nالسبب: ${escapeHTML(v.reason||'—')}\nملاحظات: ${escapeHTML(v.notes||'—')}
-    \nمرفقات: ${files.length? files.map(f=>f.url).join('\n'):'—'}
-  `;
-  alert(meta);
-}
+    function clearForm(){ ['vDate','vDoctor','vClinic','vReason','vNotes'].forEach(id=>$("#"+id).value=''); }
 
-window.editVisit = async function(id){
-  const ref=doc(db,'users',uid,'children',childId,'visits',id);
-  const s=await getDoc(ref); if(!s.exists()) return alert('غير موجود');
-  const v=s.data(); editId=id; showForm(true);
-  $('#vDate').value=v.date||''; $('#vDoctor').value=v.doctor||''; $('#vClinic').value=v.clinic||'';
-  $('#vReason').value=v.reason||''; $('#vNotes').value=v.notes||'';
-  $('#vFiles').value=(Array.isArray(v.files)? v.files.map(f=>f.url).join('\n') : '');
-}
+    async function loadVisits(){
+      const tbody=$("#visitsRows");
+      const qy=query(collection(db,'users',uid,'children',childId,'visits'), orderBy('date','desc'));
+      const qs=await getDocs(qy);
+      if(qs.empty){ tbody.innerHTML='<tr><td colspan="5" class="note">لا توجد زيارات بعد.</td></tr>'; return; }
+      const rows=[];
+      qs.forEach(s=>{
+        const v=s.data();
+        rows.push(`
+          <tr>
+            <td><b>${escapeHTML(v.date||'—')}</b></td>
+            <td>${escapeHTML(v.doctor||'—')}</td>
+            <td>${escapeHTML(v.clinic||'—')}</td>
+            <td>${escapeHTML(v.reason||'—')}</td>
+            <td class="no-print">
+              <button class="btn" data-act="view" data-id="${s.id}">👁️</button>
+              <button class="btn" data-act="edit" data-id="${s.id}">✏️</button>
+              <button class="btn" data-act="del"  data-id="${s.id}">🗑️</button>
+            </td>
+          </tr>`);
+      });
+      tbody.innerHTML=rows.join('');
+      tbody.querySelectorAll('button[data-act]').forEach(btn=>{
+        const id=btn.dataset.id, act=btn.dataset.act;
+        btn.addEventListener('click', ()=> {
+          if(act==='view') viewVisit(id);
+          else if(act==='edit') editVisit(id);
+          else if(act==='del') delVisit(id);
+        });
+      });
+    }
 
-window.delVisit = async function(id){
-  if(!confirm('حذف الزيارة؟')) return;
-  await deleteDoc(doc(db,'users',uid,'children',childId,'visits',id));
-  await loadVisits();
-}
+    async function saveVisit(){
+      const v={ date:$("#vDate").value, doctor:$("#vDoctor").value.trim()||null, clinic:$("#vClinic").value.trim()||null, reason:$("#vReason").value.trim()||null, notes:$("#vNotes").value.trim()||null, updatedAt:serverTimestamp() };
+      if(!v.date) return toast('أدخلي تاريخ الزيارة');
 
-async function saveVisit(){
-  const date=$('#vDate').value; if(!date) return alert('أدخلي التاريخ');
-  const payload={
-    date,
-    doctor: $('#vDoctor').value||null,
-    clinic: $('#vClinic').value||null,
-    reason: $('#vReason').value||null,
-    notes: $('#vNotes').value||null,
-    files: linksFromTextarea($('#vFiles').value),
-    updatedAt: serverTimestamp()
-  };
-  if(editId){
-    await updateDoc(doc(db,'users',uid,'children',childId,'visits',editId), payload);
-  }else{
-    payload.createdAt=serverTimestamp();
-    await addDoc(collection(db,'users',uid,'children',childId,'visits'), payload);
-  }
-  showForm(false); editId=null; await loadVisits();
-}
+      if(editId){
+        await updateDoc(doc(db,'users',uid,'children',childId,'visits',editId), v);
+      }else{
+        v.createdAt=serverTimestamp();
+        await addDoc(collection(db,'users',uid,'children',childId,'visits'), v);
+      }
+      toast('✅ تم الحفظ'); $("#visitFormBox").style.display='none'; clearForm(); editId=null; await loadVisits();
+    }
 
-function escapeHTML(s){ return String(s||'').replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
-</script>
+    async function viewVisit(id){
+      const s=await getDoc(doc(db,'users',uid,'children',childId,'visits',id));
+      if(!s.exists()){ toast('غير موجودة'); return; }
+      const v=s.data();
+      $("#printBody").innerHTML=`
+        <div><b>الطفل:</b> ${escapeHTML(child?.name||'—')}</div>
+        <div><b>التاريخ:</b> ${escapeHTML(v.date||'—')}</div>
+        <div><b>الطبيب:</b> ${escapeHTML(v.doctor||'—')}</div>
+        <div><b>العيادة:</b> ${escapeHTML(v.clinic||'—')}</div>
+        <div><b>السبب:</b> ${escapeHTML(v.reason||'—')}</div>
+        <div><b>ملاحظات:</b> ${escapeHTML(v.notes||'—')}</div>`;
+      window.print();
+    }
+
+    async function editVisit(id){
+      const s=await getDoc(doc(db,'users',uid,'children',childId,'visits',id));
+      if(!s.exists()){ toast('غير موجودة'); return; }
+      const v=s.data(); editId=id;
+      $("#vDate").value=v.date||''; $("#vDoctor").value=v.doctor||''; $("#vClinic").value=v.clinic||''; $("#vReason").value=v.reason||''; $("#vNotes").value=v.notes||'';
+      $("#visitFormBox").style.display='block';
+    }
+    async function delVisit(id){
+      if(!confirm('حذف الزيارة؟')) return;
+      await deleteDoc(doc(db,'users',uid,'children',childId,'visits',id));
+      await loadVisits();
+    }
+    function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]))}
+  </script>
 </body>
 </html>
