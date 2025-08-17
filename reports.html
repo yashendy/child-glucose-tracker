@@ -3,179 +3,194 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>تقارير الطفل</title>
+  <title>الزيارات الطبية</title>
   <link rel="stylesheet" href="styles.css">
   <style>
-    @media print { @page{ size: A4 landscape; margin: 8mm } .no-print{display:none!important} }
+    .table{width:100%;border-collapse:separate;border-spacing:0}
+    .table th,.table td{border:1px solid #e5e7eb;padding:8px;text-align:right;vertical-align:top}
+    .table thead th{background:#f0f9ff}
+    .chip{display:inline-flex;align-items:center;gap:6px;background:#eef6ff;color:#0369a1;border-radius:999px;padding:4px 8px;font-weight:800;font-size:12px}
+    .print-visit{display:none;background:#fff;color:#000;padding:12px;border:1px dashed #e5e7eb;margin-top:10px}
+    @media print{
+      header,.no-print,.topbar,.btn{display:none!important}
+      .print-visit{display:block!important}
+    }
   </style>
 </head>
 <body>
-
-  <!-- ✅ بنر الطفل -->
+  <!-- بنر الطفل -->
   <div id="childBanner" style="text-align:center; padding:12px 8px; display:none">
     <img id="bannerAvatar" class="avatar" style="width:84px;height:84px" src="images/avatar-default.png" alt="صورة الطفل">
     <div style="margin-top:6px;font-weight:800" id="bannerName">—</div>
     <div class="note" id="bannerMeta">—</div>
   </div>
 
-  <!-- ✅ Topbar -->
   <div class="topbar">
-    <div>📄 تقارير أسبوعية</div>
+    <div>📅 الزيارات الطبية</div>
     <div class="row">
       <a id="lnkHome" class="btn gray">الرئيسية</a>
-      <button id="btnBlank" class="btn">ورقة فارغة (7 أيام)</button>
-      <button id="btnPrint" class="btn">طباعة PDF</button>
+      <button id="btnNew" class="btn">➕ زيارة جديدة</button>
+      <button id="btnLogout" class="btn">خروج</button>
     </div>
   </div>
 
   <main class="container">
-    <!-- ✅ Nav -->
     <div class="card"><div class="row" id="childNav"></div></div>
 
-    <section class="card">
-      <div class="grid g4 no-print">
-        <div><label>من</label><input id="from" type="date"></div>
-        <div><label>إلى</label><input id="to" type="date"></div>
-        <div><label>المدى السريع</label>
-          <select id="preset">
-            <option value="7">آخر 7 أيام</option>
-            <option value="14">آخر 14 يوم</option>
-            <option value="30">آخر 30 يوم</option>
-          </select>
-        </div>
-        <div style="display:flex;align-items:end"><button id="run" class="btn primary" style="width:100%">عرض</button></div>
+    <!-- النموذج -->
+    <section id="visitFormBox" class="card" style="display:none">
+      <h3 style="margin:0 0 6px">إضافة / تعديل زيارة</h3>
+      <div class="grid g3">
+        <div><label>تاريخ</label><input id="vDate" type="date"></div>
+        <div><label>الطبيب</label><input id="vDoctor" placeholder="مثال: د. أحمد"></div>
+        <div><label>العيادة</label><input id="vClinic" placeholder="مثال: مستشفى الأطفال"></div>
+        <div style="grid-column:1/-1"><label>السبب / الشكوى</label><input id="vReason" placeholder="متابعة/ضبط جرعات…"></div>
+        <div style="grid-column:1/-1"><label>ملاحظات</label><textarea id="vNotes" rows="2"></textarea></div>
       </div>
-      <div id="meta" class="note" style="margin:6px 0">—</div>
-
-      <div class="card" style="margin-top:8px">
-        <table class="table" id="rep">
-          <thead>
-            <tr>
-              <th>التاريخ</th>
-              <th>الاستيقاظ</th>
-              <th>قبل الإفطار</th><th>بعد الإفطار</th>
-              <th>قبل الغداء</th><th>بعد الغداء</th>
-              <th>قبل العشاء</th><th>بعد العشاء</th>
-              <th>قبل النوم</th><th>أثناء النوم</th>
-            </tr>
-          </thead>
-          <tbody id="rows"><tr><td colspan="10" class="center note">اختاري الفترة لعرض البيانات.</td></tr></tbody>
-        </table>
+      <div class="row" style="justify-content:flex-end;margin-top:8px">
+        <button id="btnVisitSave" class="btn primary">💾 حفظ</button>
+        <button id="btnVisitCancel" class="btn gray">إلغاء</button>
       </div>
     </section>
+
+    <!-- القائمة -->
+    <section class="card">
+      <h3 style="margin:0 0 6px">قائمة الزيارات</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>التاريخ</th>
+            <th>الطبيب</th>
+            <th>العيادة</th>
+            <th>السبب</th>
+            <th class="no-print">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="visitsRows">
+          <tr><td colspan="5" class="note">لا توجد زيارات بعد.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div id="visitPrintArea" class="print-visit">
+      <h4>🧑‍⚕️ ملخص زيارة طبية</h4>
+      <div id="printBody"></div>
+    </div>
   </main>
 
   <div id="toast" class="toast"></div>
-  <div id="loader" class="loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
 
   <script type="module">
-    import { auth, db, ensureAuth, requireChildIdFromQuery, setChildAvatar, todayISO } from './firebase-init.js';
+    import { auth, db, ensureAuth, requireChildIdFromQuery, setChildAvatar } from './firebase-init.js';
     import { signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-    import { doc, getDoc, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+    import { collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-    const toast=(m)=>{const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
-    const showLoader=(on)=>{document.getElementById('loader').style.display=on?'flex':'none'}
+    const $=s=>document.querySelector(s);
+    const toast=(m)=>{const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2000)}
 
-    const labels={
-      uponWake:'الاستيقاظ',preBreakfast:'قبل الإفطار',postBreakfast:'بعد الإفطار',
-      preLunch:'قبل الغداء',postLunch:'بعد الغداء',
-      preDinner:'قبل العشاء',postDinner:'بعد العشاء',
-      beforeSleep:'قبل النوم',duringSleep:'أثناء النوم'
-    };
-    const order=['uponWake','preBreakfast','postBreakfast','preLunch','postLunch','preDinner','postDinner','beforeSleep','duringSleep'];
+    let uid=null, childId=null, child=null, editId=null;
 
-    let uid=null, childId=null, child=null;
+    (async function(){
+      const u=await ensureAuth(); uid=u.uid; childId=requireChildIdFromQuery();
 
-    function buildNav(){
-      const row=document.getElementById('childNav'); row.innerHTML='';
-      [['child-dashboard.html','الرئيسية'],['measures.html','قياسات السكر'],['meals.html','الوجبات'],['reports.html','التقارير'],['visits.html','الزيارات الطبية']]
-      .forEach(([h,t])=>{ const a=document.createElement('a'); a.className='btn gray'; a.href=`${h}?child=${encodeURIComponent(childId)}`; a.textContent=t; row.appendChild(a);});
-      document.getElementById('lnkHome').href=`child-dashboard.html?child=${encodeURIComponent(childId)}`;
-    }
+      // nav
+      const nav=$("#childNav"); nav.innerHTML='';
+      [['child-dashboard.html','الرئيسية'],['measures.html','قياسات السكر'],['meals.html','الوجبات'],['reports.html','التقارير'],['visits.html','الزيارات الطبية'],['doctor-report.html','تقرير الدكتور']]
+      .forEach(([h,t])=>{ const a=document.createElement('a'); a.className='btn gray'; a.href=`${h}?child=${encodeURIComponent(childId)}`; a.textContent=t; nav.appendChild(a);});
+      $("#lnkHome").href=`child-dashboard.html?child=${encodeURIComponent(childId)}`;
+
+      await loadChild();
+      await loadVisits();
+
+      $("#btnNew").addEventListener('click', ()=>{ editId=null; clearForm(); $("#vDate").value=new Date().toISOString().slice(0,10); $("#visitFormBox").style.display='block'; });
+      $("#btnVisitCancel").addEventListener('click', ()=> $("#visitFormBox").style.display='none');
+      $("#btnVisitSave").addEventListener('click', saveVisit);
+      $("#btnLogout").addEventListener('click', ()=>signOut(auth).then(()=>location.href='index.html'));
+    })();
 
     async function loadChild(){
       const s=await getDoc(doc(db,'users',uid,'children',childId));
       child=s.data()||{};
-      setChildAvatar(document.getElementById('bannerAvatar'), child.name, child.photoURL);
-      bannerName.textContent=child.name||'—';
-      bannerMeta.textContent=`${child.gender||'—'} • ${child.weight||'—'} كجم • ${child.height||'—'} سم`;
-      childBanner.style.display='block';
+      setChildAvatar($("#bannerAvatar"), child.name, child.photoURL);
+      $("#bannerName").textContent=child.name||'—';
+      $("#bannerMeta").textContent=[child.gender||'', (child.weight!=null?child.weight+' كجم':'—'), (child.height!=null?child.height+' سم':'—')].filter(Boolean).join(' • ');
+      $("#childBanner").style.display='block';
     }
 
-    function iso(d){ return d.toISOString().slice(0,10); }
-    function addDays(date, n){ const d=new Date(date); d.setDate(d.getDate()+n); return d; }
-    function rangeDays(from,to){ const out=[]; let d=new Date(from); const end=new Date(to); while(d<=end){ out.push(iso(d)); d.setDate(d.getDate()+1);} return out; }
-    function round1(n){ const v=Math.round(Number(n)*10)/10; return Number.isFinite(v)?v:null }
-    function stateIcon(v,lo,hi){ if(v==null) return ''; if(isFinite(lo)&&v<lo) return '⬇️'; if(isFinite(hi)&&v>hi) return '⬆️'; return '🟢'; }
+    function clearForm(){ ['vDate','vDoctor','vClinic','vReason','vNotes'].forEach(id=>$("#"+id).value=''); }
 
-    async function buildReport(from, to){
-      showLoader(true);
-      const dates=rangeDays(from,to);
-      const snaps=await Promise.all(dates.map(d=>getDoc(doc(db,'users',uid,'children',childId,'measurements',d))));
-      const lo=Number(child?.lowThreshold), hi=Number(child?.highThreshold);
-
-      // Meals-index by date+slot (وجود رمز 🍽️)
-      const mealsQ = await getDocs(query(collection(db,'users',uid,'children',childId,'meals'), where('time','>=', from), where('time','<=', addDays(to,1).toISOString())));
-      const mealMap = new Map(); // key: date|slot -> true
-      mealsQ.forEach(s=>{
-        const m=s.data(); if(!m?.time) return;
-        const date=(new Date(m.time)).toISOString().slice(0,10);
-        // مش مرتبط بوقت محدد، هنكتفي بإظهار 🍽️ في أي خلية اليوم فيها بيانات قياس + وجبة
-        mealMap.set(date, true);
+    async function loadVisits(){
+      const tbody=$("#visitsRows");
+      const qy=query(collection(db,'users',uid,'children',childId,'visits'), orderBy('date','desc'));
+      const qs=await getDocs(qy);
+      if(qs.empty){ tbody.innerHTML='<tr><td colspan="5" class="note">لا توجد زيارات بعد.</td></tr>'; return; }
+      const rows=[];
+      qs.forEach(s=>{
+        const v=s.data();
+        rows.push(`
+          <tr>
+            <td><b>${escapeHTML(v.date||'—')}</b></td>
+            <td>${escapeHTML(v.doctor||'—')}</td>
+            <td>${escapeHTML(v.clinic||'—')}</td>
+            <td>${escapeHTML(v.reason||'—')}</td>
+            <td class="no-print">
+              <button class="btn" data-act="view" data-id="${s.id}">👁️</button>
+              <button class="btn" data-act="edit" data-id="${s.id}">✏️</button>
+              <button class="btn" data-act="del"  data-id="${s.id}">🗑️</button>
+            </td>
+          </tr>`);
       });
-
-      const tbody=document.getElementById('rows'); let html='';
-      snaps.forEach((snap,i)=>{
-        const d=dates[i]; const data=snap.data()||{}; const r=data.readings||{};
-        let row=`<tr><td class="date">${d}</td>`;
-        order.forEach(slot=>{
-          const x=r[slot]; if(!x||x.valueMmol==null){ row+=`<td>—</td>`; return; }
-          const v=round1(x.valueMmol); const icon=stateIcon(v,lo,hi);
-          const note=(x.note||x.raisedWith)? `<div class="note">${escapeHTML(x.note||x.raisedWith)}</div>`:'';
-          const mealMark = mealMap.has(d)? ' 🍽️' : '';
-          const doseTxt = [x.mealDose!=null?`جرعة: ${x.mealDose}U`: '', x.correctionGiven!=null?`تصحيح: ${x.correctionGiven}U`: ''].filter(Boolean).join(' • ');
-          row+=`<td><div><b>${v?.toFixed(1)||''} ${icon}${mealMark}</b></div>${doseTxt?`<div class="note">${doseTxt}</div>`:''}${note}</td>`;
+      tbody.innerHTML=rows.join('');
+      tbody.querySelectorAll('button[data-act]').forEach(btn=>{
+        const id=btn.dataset.id, act=btn.dataset.act;
+        btn.addEventListener('click', ()=> {
+          if(act==='view') viewVisit(id);
+          else if(act==='edit') editVisit(id);
+          else if(act==='del') delVisit(id);
         });
-        row+='</tr>';
-        html+=row;
       });
-      tbody.innerHTML = html || `<tr><td colspan="10" class="center note">لا توجد بيانات.</td></tr>`;
-
-      meta.textContent = `الطفل: ${child?.name||'—'} • الفترة: ${from} → ${to} • حدود: منخفض < ${child?.lowThreshold??'—'} — مرتفع > ${child?.highThreshold??'—'}`;
-      showLoader(false);
     }
 
+    async function saveVisit(){
+      const v={ date:$("#vDate").value, doctor:$("#vDoctor").value.trim()||null, clinic:$("#vClinic").value.trim()||null, reason:$("#vReason").value.trim()||null, notes:$("#vNotes").value.trim()||null, updatedAt:serverTimestamp() };
+      if(!v.date) return toast('أدخلي تاريخ الزيارة');
+
+      if(editId){
+        await updateDoc(doc(db,'users',uid,'children',childId,'visits',editId), v);
+      }else{
+        v.createdAt=serverTimestamp();
+        await addDoc(collection(db,'users',uid,'children',childId,'visits'), v);
+      }
+      toast('✅ تم الحفظ'); $("#visitFormBox").style.display='none'; clearForm(); editId=null; await loadVisits();
+    }
+
+    async function viewVisit(id){
+      const s=await getDoc(doc(db,'users',uid,'children',childId,'visits',id));
+      if(!s.exists()){ toast('غير موجودة'); return; }
+      const v=s.data();
+      $("#printBody").innerHTML=`
+        <div><b>الطفل:</b> ${escapeHTML(child?.name||'—')}</div>
+        <div><b>التاريخ:</b> ${escapeHTML(v.date||'—')}</div>
+        <div><b>الطبيب:</b> ${escapeHTML(v.doctor||'—')}</div>
+        <div><b>العيادة:</b> ${escapeHTML(v.clinic||'—')}</div>
+        <div><b>السبب:</b> ${escapeHTML(v.reason||'—')}</div>
+        <div><b>ملاحظات:</b> ${escapeHTML(v.notes||'—')}</div>`;
+      window.print();
+    }
+
+    async function editVisit(id){
+      const s=await getDoc(doc(db,'users',uid,'children',childId,'visits',id));
+      if(!s.exists()){ toast('غير موجودة'); return; }
+      const v=s.data(); editId=id;
+      $("#vDate").value=v.date||''; $("#vDoctor").value=v.doctor||''; $("#vClinic").value=v.clinic||''; $("#vReason").value=v.reason||''; $("#vNotes").value=v.notes||'';
+      $("#visitFormBox").style.display='block';
+    }
+    async function delVisit(id){
+      if(!confirm('حذف الزيارة؟')) return;
+      await deleteDoc(doc(db,'users',uid,'children',childId,'visits',id));
+      await loadVisits();
+    }
     function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]))}
-
-    // أحداث
-    btnPrint.addEventListener('click', ()=>window.print());
-    btnBlank.addEventListener('click', ()=>{
-      const today=new Date(); const dates=Array.from({length:7},(_,i)=>{const d=new Date(today); d.setDate(today.getDate()+i); return d.toISOString().slice(0,10);});
-      rows.innerHTML = dates.map(d=>`<tr><td class="date">${d}</td>${'<td>—</td>'.repeat(9)}</tr>`).join('');
-    });
-    preset.addEventListener('change', ()=>{
-      const days=Number(preset.value)||7; const t=new Date(); const f=new Date(); f.setDate(t.getDate()-days+1);
-      from.value = iso(f); to.value = iso(t);
-    });
-    run.addEventListener('click', ()=>{
-      if(!from.value||!to.value) return toast('اختاري الفترة');
-      buildReport(from.value, to.value);
-    });
-
-    // Boot
-    (async function(){
-      const {uid:U}=await ensureAuth(); uid=U; childId=requireChildIdFromQuery();
-      // nav
-      const nav=document.getElementById('childNav'); nav.innerHTML='';
-      [['child-dashboard.html','الرئيسية'],['measures.html','قياسات السكر'],['meals.html','الوجبات'],['reports.html','التقارير'],['visits.html','الزيارات الطبية']]
-      .forEach(([h,t])=>{ const a=document.createElement('a'); a.className='btn gray'; a.href=`${h}?child=${encodeURIComponent(childId)}`; a.textContent=t; nav.appendChild(a);});
-      document.getElementById('lnkHome').href=`child-dashboard.html?child=${encodeURIComponent(childId)}`;
-
-      await loadChild();
-      // افتراضي: آخر 7 أيام
-      const d=new Date(); const f=new Date(); f.setDate(d.getDate()-6);
-      from.value = todayISO(); to.value = todayISO(); // ممكن تخليها f→d لو حابة
-    })();
   </script>
 </body>
 </html>
